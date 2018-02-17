@@ -1,0 +1,84 @@
+version: 2
+
+jobs:
+    build:
+        environment:
+            TZ: "/usr/share/zoneinfo/America/Detroit"
+        working_directory: ~/app
+        docker:
+            - image: circleci/ruby:2.2.7-node-browsers
+        steps:
+
+            ##
+            # SETUP
+            ##
+            - run:
+                name: Flag local build
+                command: |
+                  if [[ "$CIRCLE_BUILD_NUM" == '' ]]; then
+                    touch ~/.localCircleBuild
+                  fi
+            - add_ssh_keys
+            - checkout
+            - run:
+                name: Validate PR
+                command: |
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    bash .devops/validate-pr.sh
+                  fi
+            - run:
+                name: Install jq
+                command: |
+                  sudo curl -sSL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+                  sudo chmod +x /usr/local/bin/jq
+            - run:
+                name: Calculate codebase version
+                command: |
+                  git config --global user.email "$ESGBOT_GIT_EMAIL" && git config --global user.name "$ESGBOT_GIT_NAME"
+                  bash .devops/calculate-app-version.sh
+                  cp ~/.version VERSION
+
+            ##
+            # RESTORE CACHES
+            ##
+
+            ##
+            # TESTS
+            ##
+
+            ##
+            # SAVE CACHES
+            ##
+
+            ##
+            # DEPLOYMENT
+            ##
+            - run:
+                name: Deploy Edge (If staging)
+                command: |
+                  set -ou pipefail
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    if [ "${CIRCLE_BRANCH}" == "edge" ]; then
+                      bash .devops/deploy.sh staging
+                    fi
+                  fi
+            - run:
+                name: Deploy QA (If master)
+                command: |
+                  set -ou pipefail
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                      bash .devops/deploy.sh qa
+                      bash .devops/post-release.sh
+                    fi
+                  fi
+            - run:
+                name: Deploy Production (If production)
+                command: |
+                  set -ou pipefail
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    if [ "${CIRCLE_BRANCH}" == "production" ]; then
+                      bash .devops/deploy.sh production
+                      bash .devops/post-release.sh
+                    fi
+                  fi
