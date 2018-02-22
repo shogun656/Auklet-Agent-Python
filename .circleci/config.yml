@@ -6,7 +6,7 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         docker:
-            - image: circleci/ruby:2.2.7-node-browsers
+            - image: circleci/python:3.6.4-jessie-node-browsers
         steps:
 
             ##
