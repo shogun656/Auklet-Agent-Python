@@ -47,7 +47,7 @@ git pull
 # Generate the changelogs.
 CURRENT_DIR="$(pwd)"
 cd ~ # Prevents codebase contamination.
-npm install --no-spin bluebird any-promise request-promise-any request semver-sort > /dev/null 2>&1
+npm install --no-spin bluebird any-promise request-promise-any request semver semver-extra semver-sort parse-link-header > /dev/null 2>&1
 node $THIS_DIR/calculateChangelogs.js "$CURRENT_DIR"
 eval cd $CURRENT_DIR
 # Push the changelog to GitHub.
