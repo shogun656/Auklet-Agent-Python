@@ -38,7 +38,7 @@ class AukletSampler(Runnable):
         if t - sampled_at < self.interval:
             return
         self.sampled_times[thread_id] = t
-        profiler.sample()
+        profiler.sample(frame, event)
         self.counter += 1
         if self.counter % 1000 == 0:
             # Produce tree to kafka every second

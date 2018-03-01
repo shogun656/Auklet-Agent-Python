@@ -21,7 +21,8 @@ __all__ = ['AukletProfileTree']
 
 class Function(object):
     root = False
-    samples = 1
+    samples = 0
+    calls = 0
     line_num = ''
     func_name = ''
     file_name = ''
@@ -49,6 +50,7 @@ class Function(object):
             "funcName": self.func_name,
             "nSamples": self.samples,
             "lineNum": self.line_num,
+            "nCalls": self.calls,
             "callees": [item.to_dict() for item in self.children]
         }
 
@@ -82,9 +84,10 @@ class AukletProfileTree(object):
 
     def _remove_ignored_frames(self, new_stack):
         cleansed_stack = []
-        for item in new_stack:
-            if "site-packages" not in item[1]:
-                cleansed_stack.append(item)
+        for frame in new_stack:
+            file_name = inspect.getsourcefile(frame) or inspect.getfile(frame)
+            if "site-packages" not in file_name:
+                cleansed_stack.append(frame)
         return cleansed_stack
 
     def _build_tree(self, new_stack):
@@ -93,10 +96,9 @@ class AukletProfileTree(object):
         parent_func = root_func
         for frame in reversed(new_stack):
             current_func = self._create_frame_func(
-                frame[0], parent=parent_func)
+                frame, parent=parent_func)
             parent_func.children.append(current_func)
             parent_func = current_func
-        # print root_func.to_dict()
         return root_func
 
     def _update_sample_count(self, parent, new_parent):
@@ -116,6 +118,7 @@ class AukletProfileTree(object):
             return self.root_func
         self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
+        # print self.root_func.to_dict()
 
     def clear_root(self):
         self.root_func = None

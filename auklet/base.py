@@ -23,15 +23,18 @@ class Client(object):
         self.base_url = "https://api-staging.auklet.io/"
         self.send_enabled = True
         self._get_kafka_certs()
-        self.producer = KafkaProducer(**{
-            "bootstrap_servers": "kafka-staging.auklet.io:9093",
-            "ssl_cafile": "tmp/ck_ca.pem",
-            "ssl_certfile": "tmp/ck_cert.pem",
-            "ssl_keyfile": "tmp/ck_private_key.pem",
-            "security_protocol": "SSL",
-            "ssl_check_hostname": False,
-            "value_serializer": lambda m: json.dumps(m)
-        })
+        try:
+            self.producer = KafkaProducer(**{
+                "bootstrap_servers": "kafka-staging.auklet.io:9093",
+                "ssl_cafile": "tmp/ck_ca.pem",
+                "ssl_certfile": "tmp/ck_cert.pem",
+                "ssl_keyfile": "tmp/ck_private_key.pem",
+                "security_protocol": "SSL",
+                "ssl_check_hostname": False,
+                "value_serializer": lambda m: json.dumps(m)
+            })
+        except KafkaError:
+            pass
         self.profiler_topic = "staging-profiler"
         self.events_topic = ""
 

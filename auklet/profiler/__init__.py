@@ -67,10 +67,16 @@ class SamplingProfiler(Profiler):
             base_frame, base_code, ignored_frames, ignored_codes)
         self.sampler = sampler
 
-
-    def sample(self):
+    def sample(self, frame, event):
         """Samples the given frame."""
-        self.profiler_tree.update_hash(inspect.stack())
+        increment_call = False
+        if event == "call":
+            increment_call = True
+        stack = []
+        while frame:
+            stack.append(frame)
+            frame = frame.f_back
+        self.profiler_tree.update_hash(stack)
 
     def run(self):
         self.sampler.start(self)
