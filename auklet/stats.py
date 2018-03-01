@@ -116,4 +116,7 @@ class AukletProfileTree(object):
             return self.root_func
         self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
-        print self.root_func.to_dict()
+
+    def clear_root(self):
+        self.root_func = None
+        return True

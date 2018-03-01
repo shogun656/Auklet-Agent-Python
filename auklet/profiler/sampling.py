@@ -1,14 +1,15 @@
 from __future__ import absolute_import
 
+import os
 import sys
 import functools
 import threading
 import six.moves._thread as _thread
 
-from auklet.base import thread_clock, deferral, Runnable
+from auklet.base import thread_clock, deferral, Runnable, Client
 
 
-__all__ = ['AukletProfiler']
+__all__ = ['AukletSampler']
 
 INTERVAL = 1e-3  # 1ms
 
@@ -21,11 +22,14 @@ class AukletSampler(Runnable):
     required for earlier than Python 3.3.
     .. _Yappi: https://code.google.com/p/yappi/
     """
+    client = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, client, profiler_tree, *args, **kwargs):
         self.sampled_times = {}
         self.counter = 0
         self.interval = INTERVAL
+        self.client = client
+        self.profiler_tree = profiler_tree
 
     def _profile(self, profiler, frame, event, arg):
         t = thread_clock()
@@ -34,8 +38,12 @@ class AukletSampler(Runnable):
         if t - sampled_at < self.interval:
             return
         self.sampled_times[thread_id] = t
-        profiler.sample(frame)
+        profiler.sample()
         self.counter += 1
+        if self.counter % 1000 == 0:
+            # Produce tree to kafka every second
+            self.client.produce(self, self.profiler_tree.root_func.to_dict())
+            self.profiler_tree.clear_root()
         if self.counter % 10000 == 0:
             self._clear_for_dead_threads()
 

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import time
 import inspect
 
-from auklet.base import Runnable, frame_stack
+from auklet.base import Runnable, frame_stack, Client
 from auklet.stats import AukletProfileTree
 from auklet.profiler.sampling import AukletSampler
 
@@ -58,16 +58,17 @@ class SamplingProfiler(Profiler):
     sampler = None
     profiler_tree = None
 
-    def __init__(self, base_frame=None, base_code=None,
-                 ignored_frames=(), ignored_codes=()):
-        sampler = AukletSampler()
-        base = super(SamplingProfiler, self)
-        base.__init__(base_frame, base_code, ignored_frames, ignored_codes)
-        self.sampler = sampler
+    def __init__(self, apikey=None, app_id=None, base_frame=None,
+                 base_code=None, ignored_frames=(), ignored_codes=()):
+        client = Client(apikey, app_id)
         self.profiler_tree = AukletProfileTree()
+        sampler = AukletSampler(client, self.profiler_tree)
+        super(SamplingProfiler, self).__init__(
+            base_frame, base_code, ignored_frames, ignored_codes)
+        self.sampler = sampler
 
 
-    def sample(self, frame):
+    def sample(self):
         """Samples the given frame."""
         self.profiler_tree.update_hash(inspect.stack())
 

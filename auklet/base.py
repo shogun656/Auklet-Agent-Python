@@ -17,8 +17,8 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']
 
 
 class Client(object):
-    def __init__(self, consumer_key, app_id):
-        self.consumer_key = os.environ.get('AUKLET_CONSUMER_KEY', consumer_key)
+    def __init__(self, apikey=None, app_id=None):
+        self.apikey = os.environ.get('AUKLET_APIKEY', apikey)
         self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
         self.base_url = "https://api-staging.auklet.io/"
         self.send_enabled = True
@@ -35,9 +35,6 @@ class Client(object):
         self.profiler_topic = "staging-profiler"
         self.events_topic = ""
 
-    def _build_request_data(self, data, type=None):
-        return {}
-
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
 
@@ -52,7 +49,7 @@ class Client(object):
 
     def _get_kafka_certs(self):
         res = requests.get(self._build_url("v1/certificates/"),
-                           headers={"apikey": self.consumer_key})
+                           headers={"apikey": self.apikey})
         mlz = zipfile.ZipFile(io.BytesIO(res.content))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename
@@ -60,22 +57,9 @@ class Client(object):
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
 
-    def produce(self, data_type="profiler"):
+    def produce(self, data, data_type="profiler"):
         if data_type == "profiler":
-            res = self.producer.send(self.profiler_topic,
-                                     value={"tree": {'funcName': '<module>', 'lineNum': 32, 'fileName': 'auklet/example_app.py', 'callees': [{'funcName': 'random_numbers', 'lineNum': 9, 'fileName': 'auklet/example_app.py', 'callees': [{'funcName': '<module>', 'lineNum': 33, 'fileName': 'auklet/example_app.py', 'callees': [], 'nSamples': 1, 'root': False}], 'nSamples': 1, 'root': False}], 'nSamples': 3, 'root': True}})
-            # Block for 'synchronous' sends
-            try:
-                record_metadata = res.get(timeout=10)
-            except KafkaError as e:
-                # Decide what to do if produce request failed...
-                print e
-                pass
-
-            # Successful result returns assigned partition and offset
-            print (record_metadata.topic)
-            print (record_metadata.partition)
-            print (record_metadata.offset)
+            self.producer.send(self.profiler_topic, value=data)
 
 
 # Requires Rewriting
