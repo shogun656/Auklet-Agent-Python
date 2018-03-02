@@ -72,9 +72,10 @@ class SamplingProfiler(Profiler):
         increment_call = False
         if event == "call":
             increment_call = True
-        stack = []
+        stack = [(frame, increment_call)]
+        frame = frame.f_back
         while frame:
-            stack.append(frame)
+            stack.append((frame, False))
             frame = frame.f_back
         self.profiler_tree.update_hash(stack)
 

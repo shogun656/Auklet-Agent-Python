@@ -7,6 +7,7 @@ import json
 import errno
 import zipfile
 import requests
+import traceback
 
 from contextlib import contextmanager
 from collections import deque
@@ -22,7 +23,7 @@ class Client(object):
         self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
         self.base_url = "https://api-staging.auklet.io/"
         self.send_enabled = True
-        self._get_kafka_certs()
+        #self._get_kafka_certs()
         try:
             self.producer = KafkaProducer(**{
                 "bootstrap_servers": "kafka-staging.auklet.io:9093",
@@ -34,7 +35,7 @@ class Client(object):
                 "value_serializer": lambda m: json.dumps(m)
             })
         except KafkaError:
-            pass
+            print traceback.print_exc()
         self.profiler_topic = "staging-profiler"
         self.events_topic = ""
 
@@ -53,6 +54,7 @@ class Client(object):
     def _get_kafka_certs(self):
         res = requests.get(self._build_url("v1/certificates/"),
                            headers={"apikey": self.apikey})
+        print res
         mlz = zipfile.ZipFile(io.BytesIO(res.content))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename

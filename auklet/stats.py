@@ -21,8 +21,8 @@ __all__ = ['AukletProfileTree']
 
 class Function(object):
     root = False
-    samples = 0
-    calls = 0
+    samples = 1
+    calls = 1
     line_num = ''
     func_name = ''
     file_name = ''
@@ -31,13 +31,14 @@ class Function(object):
     parent = None
 
     def __init__(self, line_num, func_name, file_name, root=False,
-                 parent=None):
+                 parent=None, calls=0):
         self.line_num = line_num
         self.func_name = func_name
         self.file_name = file_name
         self.root = root
         self.parent = parent
         self.children = []
+        self.calls = calls
 
     def __str__(self):
         pp = pprint.PrettyPrinter()
@@ -56,7 +57,7 @@ class Function(object):
 
     def has_child(self, test_child):
         for child in self.children:
-            if  test_child.func_name == child.func_name \
+            if test_child.func_name == child.func_name \
                     and test_child.file_name == child.file_name:
                 return child
         return False
@@ -74,18 +75,25 @@ class AukletProfileTree(object):
                 root=True,
                 parent=None
             )
+
+        calls = 1
+        if frame[1]:
+            calls = 1
+        frame = frame[0]
         return Function(
             line_num=frame.f_lineno,
             func_name=frame.f_code.co_name,
             file_name=inspect.getsourcefile(frame) or inspect.getfile(frame),
             root=root,
-            parent=None
+            parent=parent,
+            calls=calls
         )
 
     def _remove_ignored_frames(self, new_stack):
         cleansed_stack = []
         for frame in new_stack:
-            file_name = inspect.getsourcefile(frame) or inspect.getfile(frame)
+            file_name = inspect.getsourcefile(frame[0]) or \
+                        inspect.getfile(frame[0])
             if "site-packages" not in file_name:
                 cleansed_stack.append(frame)
         return cleansed_stack
@@ -107,6 +115,7 @@ class AukletProfileTree(object):
         new_child = new_parent.children[0]
         has_child = parent.has_child(new_child)
         if has_child:
+            has_child.calls += new_child.calls
             has_child.samples += 1
             return self._update_sample_count(has_child, new_child)
         parent.children.append(new_child)
@@ -118,7 +127,7 @@ class AukletProfileTree(object):
             return self.root_func
         self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
-        # print self.root_func.to_dict()
+        print self.root_func.to_dict()
 
     def clear_root(self):
         self.root_func = None

@@ -6,7 +6,7 @@ import functools
 import threading
 import six.moves._thread as _thread
 
-from auklet.base import thread_clock, deferral, Runnable, Client
+from auklet.base import thread_clock, deferral, Runnable
 
 
 __all__ = ['AukletSampler']
