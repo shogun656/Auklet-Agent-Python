@@ -42,18 +42,16 @@ class Function(object):
 
     def __str__(self):
         pp = pprint.PrettyPrinter()
-        return pp.pformat(self.to_dict())
+        return pp.pformat(dict(self))
 
-    def to_dict(self):
-        return {
-            "root": self.root,
-            "funcName": self.func_name,
-            "nSamples": self.samples,
-            "lineNum": self.line_num,
-            "nCalls": self.calls,
-            "fileHash": self.file_hash,
-            "callees": [item.to_dict() for item in self.children]
-        }
+    def __iter__(self):
+        yield "root", self.root
+        yield "funcName", self.func_name
+        yield "nSamples", self.samples
+        yield "lineNum", self.line_num
+        yield "nCalls", self.calls
+        yield "fileHash", self.file_hash
+        yield "callees", [dict(item) for item in self.children]
 
     def has_child(self, test_child):
         for child in self.children:
@@ -63,7 +61,20 @@ class Function(object):
         return False
 
 
+class Event(Function):
+    trace = None
+    exc_type = None
+    locals = {}
+
+    def __iter__(self):
+        yield "trace", self.trace
+        yield "exc_type", self.exc_type
+        yield "locals", self.locals
+        super(Event, self,).__iter__()
+
+
 class AukletProfileTree(object):
+    git_hash = None
     root_func = None
     file_hashes = {}
 
@@ -140,7 +151,7 @@ class AukletProfileTree(object):
             return self.root_func
         self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
-        print self.root_func.to_dict()
+        print dict(self.root_func)
 
     def clear_root(self):
         self.root_func = None

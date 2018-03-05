@@ -42,7 +42,7 @@ class AukletSampler(Runnable):
         self.counter += 1
         if self.counter % 1000 == 0:
             # Produce tree to kafka every second
-            self.client.produce(self, self.profiler_tree.root_func.to_dict())
+            self.client.produce(self, dict(self.profiler_tree.root_func))
             self.profiler_tree.clear_root()
         if self.counter % 10000 == 0:
             self._clear_for_dead_threads()
