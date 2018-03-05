@@ -11,9 +11,9 @@
 """
 from __future__ import absolute_import, division
 
-import json
-import inspect
 import pprint
+import inspect
+import subprocess
 
 dict()
 __all__ = ['AukletProfileTree']
@@ -25,19 +25,19 @@ class Function(object):
     calls = 0
     line_num = ''
     func_name = ''
-    file_name = ''
+    file_hash = ''
 
     children = []
     parent = None
 
-    def __init__(self, line_num, func_name, file_name, root=False,
-                 parent=None, calls=0):
+    def __init__(self, line_num, func_name, file_hash=None,
+                 root=False, parent=None, calls=0):
         self.line_num = line_num
         self.func_name = func_name
-        self.file_name = file_name
         self.root = root
         self.parent = parent
         self.children = []
+        self.file_hash = file_hash
         self.calls = calls
 
     def __str__(self):
@@ -47,33 +47,41 @@ class Function(object):
     def to_dict(self):
         return {
             "root": self.root,
-            "fileName": self.file_name,
             "funcName": self.func_name,
             "nSamples": self.samples,
             "lineNum": self.line_num,
             "nCalls": self.calls,
+            "fileHash": self.file_hash,
             "callees": [item.to_dict() for item in self.children]
         }
 
     def has_child(self, test_child):
         for child in self.children:
             if test_child.func_name == child.func_name \
-                    and test_child.file_name == child.file_name:
+                    and test_child.file_hash == child.file_hash:
                 return child
         return False
 
 
 class AukletProfileTree(object):
     root_func = None
+    file_hashes = {}
+
+    def _get_git_file_hash(self, path):
+        file_hash = self.file_hashes.get(path, None)
+        if file_hash is None:
+            file_hash = subprocess.check_output(['git', 'hash-object', path])
+            self.file_hashes[path] = file_hash.rstrip()
+        return file_hash
 
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
             return Function(
                 line_num=1,
                 func_name="root",
-                file_name="root",
                 root=True,
                 parent=None,
+                file_hash=None,
                 calls=1
             )
 
@@ -81,12 +89,15 @@ class AukletProfileTree(object):
         if frame[1]:
             calls = 1
         frame = frame[0]
+
+        file_name = inspect.getsourcefile(frame) or inspect.getfile(frame)
+        file_hash = self._get_git_file_hash(file_name)
         return Function(
             line_num=frame.f_lineno,
             func_name=frame.f_code.co_name,
-            file_name=inspect.getsourcefile(frame) or inspect.getfile(frame),
             root=root,
             parent=parent,
+            file_hash=file_hash,
             calls=calls
         )
 
@@ -95,7 +106,8 @@ class AukletProfileTree(object):
         for frame in new_stack:
             file_name = inspect.getsourcefile(frame[0]) or \
                         inspect.getfile(frame[0])
-            if "site-packages" not in file_name:
+            if "site-packages" not in file_name and \
+                    "Python.framework" not in file_name:
                 cleansed_stack.append(frame)
         return cleansed_stack
 

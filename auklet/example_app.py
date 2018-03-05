@@ -23,11 +23,7 @@ def g():
     return 1 + 1
 
 
-samplingProfiler = SamplingProfiler(
-    apikey='7420da40386d17ea8bc6aafbf50b03e1fef65c'
-           '704f9d296cd8e1b32352790728c8f12abbd3ddf'
-           'f2340a5eac3dabb463c1849d29ff2f3c85279828c9e396e5d64',
-    app_id='5a0ba207-4078-4bf1-8cce-559e3370a9bc')
+samplingProfiler = SamplingProfiler()
 
 samplingProfiler.start()
 random_numbers()

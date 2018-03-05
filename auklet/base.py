@@ -14,13 +14,15 @@ from collections import deque
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']
+__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']\
 
 
 class Client(object):
     def __init__(self, apikey=None, app_id=None):
+        # overwrite default excepthook to handled and
+        # send uncaught/unhandled exceptions
         sys.excepthook = self.handle_exc
-        self.apikey = os.environ.get('AUKLET_APIKEY', apikey)
+        self.apikey = os.environ.get('AUKLET_API_KEY', apikey)
         self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
         self.base_url = "https://api-staging.auklet.io/"
         self.send_enabled = True
@@ -73,6 +75,7 @@ class Client(object):
 
     def handle_exc(self, type, value, traceback):
         data = self._build_event_data(type, value, traceback)
+        # Call base sys.excepthook for default exception handling
         sys.__excepthook__(type, value, traceback)
 
 
