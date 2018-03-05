@@ -19,6 +19,7 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']
 
 class Client(object):
     def __init__(self, apikey=None, app_id=None):
+        sys.excepthook = self.handle_exc
         self.apikey = os.environ.get('AUKLET_APIKEY', apikey)
         self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
         self.base_url = "https://api-staging.auklet.io/"
@@ -37,7 +38,7 @@ class Client(object):
         except KafkaError:
             print traceback.print_exc()
         self.profiler_topic = "staging-profiler"
-        self.events_topic = ""
+        self.event_topic = "staging-events"
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
@@ -54,7 +55,6 @@ class Client(object):
     def _get_kafka_certs(self):
         res = requests.get(self._build_url("v1/certificates/"),
                            headers={"apikey": self.apikey})
-        print res
         mlz = zipfile.ZipFile(io.BytesIO(res.content))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename
@@ -62,9 +62,18 @@ class Client(object):
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
 
+    def _build_event_data(self, type, value, traceback):
+        return ""
+
     def produce(self, data, data_type="profiler"):
         if data_type == "profiler":
             self.producer.send(self.profiler_topic, value=data)
+        elif data_type == "event":
+            self.producer.send(self.event_topic, value=data)
+
+    def handle_exc(self, type, value, traceback):
+        data = self._build_event_data(type, value, traceback)
+        sys.__excepthook__(type, value, traceback)
 
 
 # Requires Rewriting

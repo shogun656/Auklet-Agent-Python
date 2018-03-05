@@ -22,7 +22,7 @@ __all__ = ['AukletProfileTree']
 class Function(object):
     root = False
     samples = 1
-    calls = 1
+    calls = 0
     line_num = ''
     func_name = ''
     file_name = ''
@@ -73,10 +73,11 @@ class AukletProfileTree(object):
                 func_name="root",
                 file_name="root",
                 root=True,
-                parent=None
+                parent=None,
+                calls=1
             )
 
-        calls = 1
+        calls = 0
         if frame[1]:
             calls = 1
         frame = frame[0]
