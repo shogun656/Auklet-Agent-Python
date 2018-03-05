@@ -93,7 +93,7 @@ class AukletProfileTree(object):
         file_name = inspect.getsourcefile(frame) or inspect.getfile(frame)
         file_hash = self._get_git_file_hash(file_name)
         return Function(
-            line_num=frame.f_lineno,
+            line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,
             root=root,
             parent=parent,
