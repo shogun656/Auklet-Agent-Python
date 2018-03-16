@@ -9,25 +9,31 @@ import zipfile
 import requests
 import traceback
 
+from uuid import uuid4
 from contextlib import contextmanager
 from collections import deque
 from kafka import KafkaProducer
-from kafka.errors import KafkaError
+from auklet.stats import Event
+from ipify import get_ip
 
-__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']\
+__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']
 
 
 class Client(object):
+    producer_types = {
+        "profiler_data": "staging-profiler",
+        "event": "staging-events"
+    }
+
     def __init__(self, apikey=None, app_id=None):
         # overwrite default excepthook to handled and
         # send uncaught/unhandled exceptions
-        sys.excepthook = self.handle_exc
         self.apikey = os.environ.get('AUKLET_API_KEY', apikey)
         self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
         self.base_url = "https://api-staging.auklet.io/"
         self.send_enabled = True
-        #self._get_kafka_certs()
-        try:
+        self.producer = None
+        if self._get_kafka_certs():
             self.producer = KafkaProducer(**{
                 "bootstrap_servers": "kafka-staging.auklet.io:9093",
                 "ssl_cafile": "tmp/ck_ca.pem",
@@ -37,8 +43,6 @@ class Client(object):
                 "ssl_check_hostname": False,
                 "value_serializer": lambda m: json.dumps(m)
             })
-        except KafkaError:
-            print traceback.print_exc()
         self.profiler_topic = "staging-profiler"
         self.event_topic = "staging-events"
 
@@ -55,28 +59,28 @@ class Client(object):
         return True
 
     def _get_kafka_certs(self):
-        res = requests.get(self._build_url("v1/certificates/"),
-                           headers={"apikey": self.apikey})
+        res = requests.get(self._build_url("private/devices/certificates/"),
+                           headers={"Authorization": "JWT %s" % self.apikey})
         mlz = zipfile.ZipFile(io.BytesIO(res.content))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename
             self._create_kafka_cert_location(filename)
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
+        return True
 
-    def _build_event_data(self, type, value, traceback):
-        return ""
+    def build_event_data(self, type, value, traceback, tree):
+        print traceback
+        event = Event(type, value, traceback, tree)
+        event_dict = dict(event)
+        event_dict['appId'] = self.app_id
+        event_dict['publicIp'] = get_ip()
+        event_dict['uuid'] = str(uuid4())
+        event_dict['timestamp'] = int(round(time.time() * 1000))
 
     def produce(self, data, data_type="profiler"):
-        if data_type == "profiler":
-            self.producer.send(self.profiler_topic, value=data)
-        elif data_type == "event":
-            self.producer.send(self.event_topic, value=data)
-
-    def handle_exc(self, type, value, traceback):
-        data = self._build_event_data(type, value, traceback)
-        # Call base sys.excepthook for default exception handling
-        sys.__excepthook__(type, value, traceback)
+        if self.producer is not None:
+            self.producer.send(self.producer_types[data_type], value=data)
 
 
 # Requires Rewriting

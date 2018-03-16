@@ -25,6 +25,7 @@ class AukletSampler(Runnable):
     client = None
 
     def __init__(self, client, profiler_tree, *args, **kwargs):
+        sys.excepthook = self.handle_exc
         self.sampled_times = {}
         self.counter = 0
         self.interval = INTERVAL
@@ -37,12 +38,15 @@ class AukletSampler(Runnable):
         sampled_at = self.sampled_times.get(thread_id, 0)
         if t - sampled_at < self.interval:
             return
+        print thread_id
+        print self.sampled_times
         self.sampled_times[thread_id] = t
         profiler.sample(frame, event)
         self.counter += 1
         if self.counter % 1000 == 0:
             # Produce tree to kafka every second
-            self.client.produce(self, dict(self.profiler_tree.root_func))
+            self.client.produce(
+                self.profiler_tree.build_profiler_object(self.client.app_id))
             self.profiler_tree.clear_root()
         if self.counter % 10000 == 0:
             self._clear_for_dead_threads()
@@ -50,6 +54,10 @@ class AukletSampler(Runnable):
     def _clear_for_dead_threads(self):
         for thread_id in sys._current_frames().keys():
             self.sampled_times.pop(thread_id, None)
+
+    def handle_exc(self, type, value, traceback):
+        self.client.build_event_data(type, value, traceback,
+                                     self.profiler_tree)
 
     def run(self, profiler):
         profile = functools.partial(self._profile, profiler)

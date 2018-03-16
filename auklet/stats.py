@@ -11,16 +11,17 @@
 """
 from __future__ import absolute_import, division
 
+import time
 import pprint
 import inspect
 import subprocess
+from uuid import uuid4
+from ipify import get_ip
 
-dict()
-__all__ = ['AukletProfileTree']
+__all__ = ['AukletProfileTree', 'Event']
 
 
 class Function(object):
-    root = False
     samples = 1
     calls = 0
     line_num = ''
@@ -31,10 +32,9 @@ class Function(object):
     parent = None
 
     def __init__(self, line_num, func_name, file_hash=None,
-                 root=False, parent=None, calls=0):
+                 parent=None, calls=0):
         self.line_num = line_num
         self.func_name = func_name
-        self.root = root
         self.parent = parent
         self.children = []
         self.file_hash = file_hash
@@ -45,8 +45,7 @@ class Function(object):
         return pp.pformat(dict(self))
 
     def __iter__(self):
-        yield "root", self.root
-        yield "funcName", self.func_name
+        yield "functionName", self.func_name
         yield "nSamples", self.samples
         yield "lineNum", self.line_num
         yield "nCalls", self.calls
@@ -61,16 +60,39 @@ class Function(object):
         return False
 
 
-class Event(Function):
-    trace = None
+class Event(object):
+    trace = []
     exc_type = None
-    locals = {}
+    line_num = 0
+
+    def __init__(self, exc_type, value, tb, tree):
+        self.exc_type = exc_type
+        self.line_num = tb.tb_lineno
+        self._build_traceback(tb, tree)
 
     def __iter__(self):
-        yield "trace", self.trace
-        yield "exc_type", self.exc_type
-        yield "locals", self.locals
-        super(Event, self,).__iter__()
+        yield "stackTrace", self.trace
+        yield "excType", self.exc_type
+
+    def _filter_frame(self, file_name):
+        if "site-packages" in file_name or \
+                "Python.framework" in file_name:
+            return True
+        return False
+
+    def _build_traceback(self, trace, tree):
+        tb = []
+        while trace:
+            frame = trace.tb_frame
+            path = inspect.getsourcefile(frame) or inspect.getfile(frame)
+            if self._filter_frame(path):
+                trace = trace.tb_next
+                continue
+            tb.append({"functionName": frame.f_code.co_name,
+                       "fileHash": tree.get_git_file_hash(path),
+                       "locals": frame.f_locals})
+            trace = trace.tb_next
+        self.trace = tb
 
 
 class AukletProfileTree(object):
@@ -78,19 +100,11 @@ class AukletProfileTree(object):
     root_func = None
     file_hashes = {}
 
-    def _get_git_file_hash(self, path):
-        file_hash = self.file_hashes.get(path, None)
-        if file_hash is None:
-            file_hash = subprocess.check_output(['git', 'hash-object', path])
-            self.file_hashes[path] = file_hash.rstrip()
-        return file_hash
-
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
             return Function(
                 line_num=1,
                 func_name="root",
-                root=True,
                 parent=None,
                 file_hash=None,
                 calls=1
@@ -102,11 +116,10 @@ class AukletProfileTree(object):
         frame = frame[0]
 
         file_name = inspect.getsourcefile(frame) or inspect.getfile(frame)
-        file_hash = self._get_git_file_hash(file_name)
+        file_hash = self.get_git_file_hash(file_name)
         return Function(
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,
-            root=root,
             parent=parent,
             file_hash=file_hash,
             calls=calls
@@ -144,6 +157,13 @@ class AukletProfileTree(object):
             return self._update_sample_count(has_child, new_child)
         parent.children.append(new_child)
 
+    def get_git_file_hash(self, path):
+        file_hash = self.file_hashes.get(path, None)
+        if file_hash is None:
+            file_hash = subprocess.check_output(['git', 'hash-object', path])
+            self.file_hashes[path] = file_hash.rstrip()
+        return file_hash
+
     def update_hash(self, new_stack):
         new_tree_root = self._build_tree(new_stack)
         if self.root_func is None:
@@ -151,8 +171,16 @@ class AukletProfileTree(object):
             return self.root_func
         self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
-        print dict(self.root_func)
 
     def clear_root(self):
         self.root_func = None
         return True
+
+    def build_profiler_object(self, app_id):
+        return {
+            "appId": app_id,
+            "publicIp": get_ip(),
+            "uuid": str(uuid4()),
+            "timestamp": int(round(time.time() * 1000)),
+            "tree": dict(self.root_func)
+        }

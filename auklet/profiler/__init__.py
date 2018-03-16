@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import time
-import inspect
 
 from auklet.base import Runnable, frame_stack, Client
 from auklet.stats import AukletProfileTree
