@@ -12,9 +12,9 @@
 from __future__ import absolute_import, division
 
 import time
+import psutil
 import pprint
 import inspect
-import subprocess
 from uuid import uuid4
 from ipify import get_ip
 
@@ -26,18 +26,18 @@ class Function(object):
     calls = 0
     line_num = ''
     func_name = ''
-    file_hash = ''
+    file_path = ''
 
     children = []
     parent = None
 
-    def __init__(self, line_num, func_name, file_hash=None,
+    def __init__(self, line_num, func_name, file_path=None,
                  parent=None, calls=0):
         self.line_num = line_num
         self.func_name = func_name
         self.parent = parent
         self.children = []
-        self.file_hash = file_hash
+        self.file_path = file_path
         self.calls = calls
 
     def __str__(self):
@@ -49,13 +49,13 @@ class Function(object):
         yield "nSamples", self.samples
         yield "lineNum", self.line_num
         yield "nCalls", self.calls
-        yield "fileHash", self.file_hash
+        yield "filePath", self.file_path
         yield "callees", [dict(item) for item in self.children]
 
     def has_child(self, test_child):
         for child in self.children:
             if test_child.func_name == child.func_name \
-                    and test_child.file_hash == child.file_hash:
+                    and test_child.file_path == child.file_path:
                 return child
         return False
 
@@ -66,7 +66,7 @@ class Event(object):
     line_num = 0
 
     def __init__(self, exc_type, value, tb, tree):
-        self.exc_type = exc_type
+        self.exc_type = exc_type.__name__
         self.line_num = tb.tb_lineno
         self._build_traceback(tb, tree)
 
@@ -80,6 +80,12 @@ class Event(object):
             return True
         return False
 
+    def _convert_locals_to_string(self, local_vars):
+        for key in local_vars:
+            if type(local_vars[key]) != str and type(local_vars[key]) != int:
+                local_vars[key] = str(local_vars[key])
+        return local_vars
+
     def _build_traceback(self, trace, tree):
         tb = []
         while trace:
@@ -89,8 +95,8 @@ class Event(object):
                 trace = trace.tb_next
                 continue
             tb.append({"functionName": frame.f_code.co_name,
-                       "fileHash": tree.get_git_file_hash(path),
-                       "locals": frame.f_locals})
+                       "filePath": path,
+                       "locals": self._convert_locals_to_string(frame.f_locals)})
             trace = trace.tb_next
         self.trace = tb
 
@@ -98,7 +104,10 @@ class Event(object):
 class AukletProfileTree(object):
     git_hash = None
     root_func = None
-    file_hashes = {}
+    public_ip = None
+
+    def __init__(self):
+        self.public_ip = get_ip()
 
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
@@ -106,7 +115,7 @@ class AukletProfileTree(object):
                 line_num=1,
                 func_name="root",
                 parent=None,
-                file_hash=None,
+                file_path=None,
                 calls=1
             )
 
@@ -115,13 +124,12 @@ class AukletProfileTree(object):
             calls = 1
         frame = frame[0]
 
-        file_name = inspect.getsourcefile(frame) or inspect.getfile(frame)
-        file_hash = self.get_git_file_hash(file_name)
+        file_path = inspect.getsourcefile(frame) or inspect.getfile(frame)
         return Function(
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,
             parent=parent,
-            file_hash=file_hash,
+            file_path=file_path,
             calls=calls
         )
 
@@ -157,13 +165,6 @@ class AukletProfileTree(object):
             return self._update_sample_count(has_child, new_child)
         parent.children.append(new_child)
 
-    def get_git_file_hash(self, path):
-        file_hash = self.file_hashes.get(path, None)
-        if file_hash is None:
-            file_hash = subprocess.check_output(['git', 'hash-object', path])
-            self.file_hashes[path] = file_hash.rstrip()
-        return file_hash
-
     def update_hash(self, new_stack):
         new_tree_root = self._build_tree(new_stack)
         if self.root_func is None:
@@ -178,9 +179,29 @@ class AukletProfileTree(object):
 
     def build_profiler_object(self, app_id):
         return {
-            "appId": app_id,
-            "publicIp": get_ip(),
-            "uuid": str(uuid4()),
+            "application": app_id,
+            "publicIp": self.public_ip,
+            "id": str(uuid4()),
             "timestamp": int(round(time.time() * 1000)),
             "tree": dict(self.root_func)
         }
+
+
+class SystemMetrics(object):
+    cpu_usage = 0.0
+    mem_usage = 0.0
+    inbound_network = 0
+    outbound_network = 0
+
+    def __init__(self):
+        self.cpu_usage = psutil.cpu_percent(interval=1)
+        self.mem_usage = psutil.virtual_memory().used
+        network = psutil.net_io_counters()
+        self.inbound_network = network.bytes_recv
+        self.outbound_network = network.bytes_sent
+
+    def __iter__(self):
+        yield "cpuUsage", self.cpu_usage
+        yield "memoryUsage", self.mem_usage
+        yield "inboundNetwork", self.inbound_network
+        yield "outboundNetwork", self.outbound_network

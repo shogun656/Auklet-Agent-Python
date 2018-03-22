@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import io
 import sys
+import time
 import json
 import errno
 import zipfile
@@ -13,7 +14,8 @@ from uuid import uuid4
 from contextlib import contextmanager
 from collections import deque
 from kafka import KafkaProducer
-from auklet.stats import Event
+from kafka.errors import KafkaError
+from auklet.stats import Event, SystemMetrics
 from ipify import get_ip
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']
@@ -26,23 +28,24 @@ class Client(object):
     }
 
     def __init__(self, apikey=None, app_id=None):
-        # overwrite default excepthook to handled and
-        # send uncaught/unhandled exceptions
         self.apikey = os.environ.get('AUKLET_API_KEY', apikey)
         self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
         self.base_url = "https://api-staging.auklet.io/"
         self.send_enabled = True
         self.producer = None
         if self._get_kafka_certs():
-            self.producer = KafkaProducer(**{
-                "bootstrap_servers": "kafka-staging.auklet.io:9093",
-                "ssl_cafile": "tmp/ck_ca.pem",
-                "ssl_certfile": "tmp/ck_cert.pem",
-                "ssl_keyfile": "tmp/ck_private_key.pem",
-                "security_protocol": "SSL",
-                "ssl_check_hostname": False,
-                "value_serializer": lambda m: json.dumps(m)
-            })
+            try:
+                self.producer = KafkaProducer(**{
+                    "bootstrap_servers": "kafka-staging.auklet.io:9093",
+                    "ssl_cafile": "tmp/ck_ca.pem",
+                    "ssl_certfile": "tmp/ck_cert.pem",
+                    "ssl_keyfile": "tmp/ck_private_key.pem",
+                    "security_protocol": "SSL",
+                    "ssl_check_hostname": False,
+                    "value_serializer": lambda m: json.dumps(m)
+                })
+            except KafkaError:
+                pass
         self.profiler_topic = "staging-profiler"
         self.event_topic = "staging-events"
 
@@ -70,13 +73,14 @@ class Client(object):
         return True
 
     def build_event_data(self, type, value, traceback, tree):
-        print traceback
         event = Event(type, value, traceback, tree)
         event_dict = dict(event)
-        event_dict['appId'] = self.app_id
+        event_dict['application'] = self.app_id
         event_dict['publicIp'] = get_ip()
-        event_dict['uuid'] = str(uuid4())
+        event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = int(round(time.time() * 1000))
+        event_dict['systemMetrics'] = dict(SystemMetrics())
+        return event_dict
 
     def produce(self, data, data_type="profiler"):
         if self.producer is not None:

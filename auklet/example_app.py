@@ -38,6 +38,7 @@ def test_iterate():
 
 
 def spawn_threads():
+    1 / 0
     thread_one = threading.Thread(target=random_numbers)
     thread_two = threading.Thread(target=second_thread_func)
     thread_one.start()

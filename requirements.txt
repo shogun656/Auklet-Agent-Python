@@ -7,3 +7,4 @@ yappi;python_version<"2.7"
 ipify
 kafka
 requests
+psutil

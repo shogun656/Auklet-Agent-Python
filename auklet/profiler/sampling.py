@@ -38,8 +38,6 @@ class AukletSampler(Runnable):
         sampled_at = self.sampled_times.get(thread_id, 0)
         if t - sampled_at < self.interval:
             return
-        print thread_id
-        print self.sampled_times
         self.sampled_times[thread_id] = t
         profiler.sample(frame, event)
         self.counter += 1
@@ -56,8 +54,10 @@ class AukletSampler(Runnable):
             self.sampled_times.pop(thread_id, None)
 
     def handle_exc(self, type, value, traceback):
-        self.client.build_event_data(type, value, traceback,
-                                     self.profiler_tree)
+        event = self.client.build_event_data(type, value, traceback,
+                                             self.profiler_tree)
+        print event
+        self.client.produce(event, "event")
 
     def run(self, profiler):
         profile = functools.partial(self._profile, profiler)
