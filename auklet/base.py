@@ -3,14 +3,14 @@ from __future__ import absolute_import
 import os
 import io
 import sys
-import time
+import uuid
 import json
 import errno
 import zipfile
 import requests
-import traceback
 
 from uuid import uuid4
+from datetime import datetime
 from contextlib import contextmanager
 from collections import deque
 from kafka import KafkaProducer
@@ -18,7 +18,8 @@ from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
 from ipify import get_ip
 
-__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock']
+__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock',
+           'get_mac', 'setup_thread_excepthook']
 
 
 class Client(object):
@@ -76,10 +77,11 @@ class Client(object):
         event = Event(type, value, traceback, tree)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
-        event_dict['publicIp'] = get_ip()
+        event_dict['publicIP'] = get_ip()
         event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = int(round(time.time() * 1000))
+        event_dict['timestamp'] = datetime.now()
         event_dict['systemMetrics'] = dict(SystemMetrics())
+        event_dict['macAddressHash'] = get_mac()
         return event_dict
 
     def produce(self, data, data_type="profiler"):
@@ -163,6 +165,38 @@ def frame_stack(frame, base_frame=None, base_code=None,
             frames.appendleft(frame)
         frame = frame.f_back
     return frames
+
+
+def get_mac():
+    mac_num = hex(uuid.getnode()).replace('0x', '').upper()
+    mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
+    return mac
+
+
+def setup_thread_excepthook():
+    import threading
+    """
+    Workaround for `sys.excepthook` thread bug from:
+    http://bugs.python.org/issue1230540
+
+    Call once from the main thread before creating any threads.
+    """
+    init_original = threading.Thread.__init__
+
+    def init(self, *args, **kwargs):
+
+        init_original(self, *args, **kwargs)
+        run_original = self.run
+
+        def run_with_except_hook(*args2, **kwargs2):
+            try:
+                run_original(*args2, **kwargs2)
+            except Exception:
+                sys.excepthook(*sys.exc_info())
+
+        self.run = run_with_except_hook
+
+    threading.Thread.__init__ = init
 
 
 @contextmanager

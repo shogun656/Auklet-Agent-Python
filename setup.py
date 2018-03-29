@@ -26,10 +26,10 @@ def requirements(filename):
 
 setup(
     name='auklet',
+    version='0.0.0',
     platforms='linux',
     packages=find_packages(),
     entry_points={
-        'console_scripts': ['auklet = auklet.cli:cli']
     },
     classifiers=[
         'Development Status :: 4 - Beta',

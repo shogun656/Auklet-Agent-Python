@@ -11,14 +11,14 @@
 """
 from __future__ import absolute_import, division
 
-import time
 import psutil
 import pprint
 import inspect
 from uuid import uuid4
 from ipify import get_ip
+from datetime import datetime
 
-__all__ = ['AukletProfileTree', 'Event']
+__all__ = ['AukletProfileTree', 'Event', 'SystemMetrics']
 
 
 class Function(object):
@@ -47,7 +47,7 @@ class Function(object):
     def __iter__(self):
         yield "functionName", self.func_name
         yield "nSamples", self.samples
-        yield "lineNum", self.line_num
+        yield "lineNumber", self.line_num
         yield "nCalls", self.calls
         yield "filePath", self.file_path
         yield "callees", [dict(item) for item in self.children]
@@ -96,6 +96,7 @@ class Event(object):
                 continue
             tb.append({"functionName": frame.f_code.co_name,
                        "filePath": path,
+                       "lineNumber": frame.f_lineno,
                        "locals": self._convert_locals_to_string(frame.f_locals)})
             trace = trace.tb_next
         self.trace = tb
@@ -105,9 +106,12 @@ class AukletProfileTree(object):
     git_hash = None
     root_func = None
     public_ip = None
+    mac_address_hash = None
 
     def __init__(self):
+        from auklet.base import get_mac
         self.public_ip = get_ip()
+        self.mac_address_hash = get_mac()
 
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
@@ -180,9 +184,10 @@ class AukletProfileTree(object):
     def build_profiler_object(self, app_id):
         return {
             "application": app_id,
-            "publicIp": self.public_ip,
+            "publicIP": self.public_ip,
             "id": str(uuid4()),
-            "timestamp": int(round(time.time() * 1000)),
+            "timestamp": datetime.now(),
+            "macAddressHash": self.mac_address_hash,
             "tree": dict(self.root_func)
         }
 

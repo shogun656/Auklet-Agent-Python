@@ -11,7 +11,7 @@ def random_numbers():
 
 
 def foo(rand):
-    if rand == 1:
+    if rand != 7:
         return bar()
     else:
         return g()
@@ -35,13 +35,13 @@ def test_iterate():
     for item in [1, 2, 3, 4, 5, 6, 7, 8]:
         if foo(item) == 2:
             new_list.append(item)
+            raise Exception
 
 
 def spawn_threads():
-    1 / 0
-    thread_one = threading.Thread(target=random_numbers)
+    #thread_one = threading.Thread(target=random_numbers)
     thread_two = threading.Thread(target=second_thread_func)
-    thread_one.start()
+    #thread_one.start()
     thread_two.start()
 
 

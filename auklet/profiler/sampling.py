@@ -1,12 +1,11 @@
 from __future__ import absolute_import
 
-import os
 import sys
 import functools
 import threading
 import six.moves._thread as _thread
 
-from auklet.base import thread_clock, deferral, Runnable
+from auklet.base import thread_clock, deferral, Runnable, setup_thread_excepthook
 
 
 __all__ = ['AukletSampler']
@@ -31,6 +30,7 @@ class AukletSampler(Runnable):
         self.interval = INTERVAL
         self.client = client
         self.profiler_tree = profiler_tree
+        setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
         t = thread_clock()
@@ -53,10 +53,15 @@ class AukletSampler(Runnable):
         for thread_id in sys._current_frames().keys():
             self.sampled_times.pop(thread_id, None)
 
+    def _trace(self, frame, event, arg):
+        print frame, event, arg
+        if event == "exception":
+            _, value, traceback = arg
+            self.handle_exc(event, value, traceback)
+
     def handle_exc(self, type, value, traceback):
         event = self.client.build_event_data(type, value, traceback,
                                              self.profiler_tree)
-        print event
         self.client.produce(event, "event")
 
     def run(self, profiler):
