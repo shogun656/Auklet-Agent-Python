@@ -53,12 +53,6 @@ class AukletSampler(Runnable):
         for thread_id in sys._current_frames().keys():
             self.sampled_times.pop(thread_id, None)
 
-    def _trace(self, frame, event, arg):
-        print frame, event, arg
-        if event == "exception":
-            _, value, traceback = arg
-            self.handle_exc(event, value, traceback)
-
     def handle_exc(self, type, value, traceback):
         event = self.client.build_event_data(type, value, traceback,
                                              self.profiler_tree)
