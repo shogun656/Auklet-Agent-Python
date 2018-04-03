@@ -1,14 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-   profiling.stats
-   ~~~~~~~~~~~~~~~
-
-   Statistics classes.
-
-   :copyright: (c) 2014-2017, What! Studio
-   :license: BSD, see LICENSE for more details.
-
-"""
 from __future__ import absolute_import, division
 
 import psutil

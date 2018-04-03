@@ -89,8 +89,6 @@ class Client(object):
             self.producer.send(self.producer_types[data_type], value=data)
 
 
-# Requires Rewriting
-# Everything below this line is a candidate for rewriting
 class Runnable(object):
     """The base class for runnable classes such as :class:`profiling.profiler.
     Profiler`.

@@ -1,5 +1,4 @@
 six>=1.8.0
-urwid>=1.2.1
 yappi;python_version<"2.7"
 ipify
 kafka
