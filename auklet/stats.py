@@ -187,7 +187,7 @@ class AukletProfileTree(object):
             "publicIP": self.public_ip,
             "id": str(uuid4()),
             "timestamp": datetime.now(),
-            "mac_address_hash": self.mac_address_hash,
+            "macAddressHash": self.mac_address_hash,
             "tree": dict(self.root_func)
         }
 

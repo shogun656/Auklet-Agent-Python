@@ -80,8 +80,8 @@ class Client(object):
         event_dict['publicIP'] = get_ip()
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = datetime.now()
-        event_dict['system_metrics'] = dict(SystemMetrics())
-        event_dict['mac_address_hash'] = get_mac()
+        event_dict['systemMetrics'] = dict(SystemMetrics())
+        event_dict['macAddressHash'] = get_mac()
         return event_dict
 
     def produce(self, data, data_type="profiler"):
