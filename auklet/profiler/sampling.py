@@ -41,12 +41,11 @@ class AukletSampler(Runnable):
         self.sampled_times[thread_id] = t
         profiler.sample(frame, event)
         self.counter += 1
-        if self.counter % 1000 == 0:
-            # Produce tree to kafka every second
+        if self.counter % 10000 == 0:
+            # Produce tree to kafka every 10 seconds
             self.client.produce(
                 self.profiler_tree.build_profiler_object(self.client.app_id))
             self.profiler_tree.clear_root()
-        if self.counter % 10000 == 0:
             self._clear_for_dead_threads()
 
     def _clear_for_dead_threads(self):
