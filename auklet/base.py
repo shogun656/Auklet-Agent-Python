@@ -34,6 +34,7 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock',
 class Client(object):
     producer_types = None
     brokers = None
+    commit_hash = None
 
     def __init__(self, apikey=None, app_id=None, base_url=None):
         self.apikey = apikey
@@ -96,6 +97,10 @@ class Client(object):
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
         return True
+
+    def _get_commit_hash(self):
+        with open(".auklet", "r") as file:
+            self.commit_hash = file.read()
 
     def build_event_data(self, type, value, traceback, tree):
         event = Event(type, value, traceback, tree)
