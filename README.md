@@ -1,12 +1,21 @@
 # Auklet Python Agent
 
-Auklet's IoT Python agent is built to run on any POSIX operating system. It
-has been validated on:
+Auklet's IoT Python agent is built to run in both python 2.x and 3.x.
 
-- Ubuntu 16.04
+# Installation
 
-# Build
-
-To test, build, and install the agent, run
+To install the agent:
 
 	pip install auklet
+
+
+# Usage
+
+To setup your app to be profiled:
+
+    samplingProfiler = SamplingProfiler("api_key", "app_id")
+
+    samplingProfiler.start()
+    # Call your main function
+    main()
+    samplingProfiler.stop()
