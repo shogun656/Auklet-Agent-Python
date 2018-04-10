@@ -7,6 +7,7 @@ import uuid
 import json
 import errno
 import zipfile
+import hashlib
 
 from uuid import uuid4
 from datetime import datetime
@@ -35,8 +36,9 @@ class Client(object):
     producer_types = None
     brokers = None
     commit_hash = None
+    mac_hash = None
 
-    def __init__(self, apikey=None, app_id=None, base_url=None):
+    def __init__(self, apikey=None, app_id=None, base_url=None, mac_hash=None):
         self.apikey = apikey
         self.app_id = app_id
         self.base_url = "https://api.auklet.io/"
@@ -45,6 +47,7 @@ class Client(object):
         self.send_enabled = True
         self.producer = None
         self._get_kafka_brokers()
+        self.mac_hash = mac_hash
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -110,7 +113,7 @@ class Client(object):
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = datetime.now()
         event_dict['systemMetrics'] = dict(SystemMetrics())
-        event_dict['macAddressHash'] = get_mac()
+        event_dict['macAddressHash'] = self.mac_hash
         return event_dict
 
     def produce(self, data, data_type="profiler"):
@@ -196,7 +199,7 @@ def frame_stack(frame):
 def get_mac():
     mac_num = hex(uuid.getnode()).replace('0x', '').upper()
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
-    return mac
+    return hashlib.md5(mac).hexdigest()
 
 
 def get_device_ip():

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import time
 
-from auklet.base import Runnable, frame_stack, Client
+from auklet.base import Runnable, frame_stack, Client, get_mac
 from auklet.stats import AukletProfileTree
 from auklet.profiler.sampling import AukletSampler
 
@@ -38,8 +38,9 @@ class SamplingProfiler(Profiler):
     profiler_tree = None
 
     def __init__(self, apikey=None, app_id=None, base_url=None):
-        client = Client(apikey, app_id, base_url)
-        self.profiler_tree = AukletProfileTree()
+        self.mac_hash = get_mac()
+        client = Client(apikey, app_id, base_url, self.mac_hash)
+        self.profiler_tree = AukletProfileTree(self.mac_hash)
         sampler = AukletSampler(client, self.profiler_tree)
         super(SamplingProfiler, self).__init__()
         self.sampler = sampler

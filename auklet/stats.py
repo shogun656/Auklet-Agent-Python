@@ -94,12 +94,12 @@ class AukletProfileTree(object):
     git_hash = None
     root_func = None
     public_ip = None
-    mac_address_hash = None
+    mac_hash = None
 
-    def __init__(self):
-        from auklet.base import get_mac, get_device_ip
+    def __init__(self, mac_hash=None):
+        from auklet.base import get_device_ip
         self.public_ip = get_device_ip()
-        self.mac_address_hash = get_mac()
+        self.mac_hash = mac_hash
 
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
@@ -175,7 +175,7 @@ class AukletProfileTree(object):
             "publicIP": self.public_ip,
             "id": str(uuid4()),
             "timestamp": datetime.now(),
-            "macAddressHash": self.mac_address_hash,
+            "macAddressHash": self.mac_hash,
             "tree": dict(self.root_func)
         }
 
