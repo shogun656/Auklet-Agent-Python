@@ -7,7 +7,6 @@ import uuid
 import json
 import errno
 import zipfile
-import requests
 
 from uuid import uuid4
 from datetime import datetime
@@ -17,27 +16,38 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
 from ipify import get_ip
+from ipify.exceptions import IpifyException
+
+try:
+    # For Python 3.0 and later
+    from urllib import urlopen
+    from urllib.error import HTTPError
+    from urllib.request import Request
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen, Request, HTTPError
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock',
-           'get_mac', 'setup_thread_excepthook']
+           'get_mac', 'get_device_ip', 'setup_thread_excepthook']
 
 
 class Client(object):
-    producer_types = {
-        "profiler_data": "staging-profiler",
-        "event": "staging-events"
-    }
+    producer_types = None
+    brokers = None
 
-    def __init__(self, apikey=None, app_id=None):
-        self.apikey = os.environ.get('AUKLET_API_KEY', apikey)
-        self.app_id = os.environ.get('AUKLET_APP_ID', app_id)
-        self.base_url = "https://api-staging.auklet.io/"
+    def __init__(self, apikey=None, app_id=None, base_url=None):
+        self.apikey = apikey
+        self.app_id = app_id
+        self.base_url = "https://api.auklet.io/"
+        if base_url is not None:
+            self.base_url = base_url
         self.send_enabled = True
         self.producer = None
+        self._get_kafka_brokers()
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
-                    "bootstrap_servers": "kafka-staging.auklet.io:9093",
+                    "bootstrap_servers": self.brokers,
                     "ssl_cafile": "tmp/ck_ca.pem",
                     "ssl_certfile": "tmp/ck_cert.pem",
                     "ssl_keyfile": "tmp/ck_private_key.pem",
@@ -47,8 +57,6 @@ class Client(object):
                 })
             except KafkaError:
                 pass
-        self.profiler_topic = "staging-profiler"
-        self.event_topic = "staging-events"
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
@@ -62,10 +70,28 @@ class Client(object):
                     raise
         return True
 
+    def _get_kafka_brokers(self):
+        url = Request(self._build_url("private/devices/config/"),
+                      headers={"Authorization": "JWT %s" % self.apikey})
+        res = urlopen(url)
+        kafka_info = json.loads(res.read())
+        self.brokers = kafka_info['brokers']
+        self.producer_types = {
+            "profiler_data": kafka_info['prof_topic'],
+            "event": kafka_info['event_topic'],
+            "log": kafka_info['log_topic']
+        }
+
     def _get_kafka_certs(self):
-        res = requests.get(self._build_url("private/devices/certificates/"),
-                           headers={"Authorization": "JWT %s" % self.apikey})
-        mlz = zipfile.ZipFile(io.BytesIO(res.content))
+        url = Request(self._build_url("private/devices/certificates/"),
+                      headers={"Authorization": "JWT %s" % self.apikey})
+        try:
+            res = urlopen(url)
+        except HTTPError as e:
+            print e.geturl()
+            res = urlopen(e.geturl())
+        print res
+        mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename
             self._create_kafka_cert_location(filename)
@@ -77,7 +103,7 @@ class Client(object):
         event = Event(type, value, traceback, tree)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
-        event_dict['publicIP'] = get_ip()
+        event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = datetime.now()
         event_dict['systemMetrics'] = dict(SystemMetrics())
@@ -85,6 +111,7 @@ class Client(object):
         return event_dict
 
     def produce(self, data, data_type="profiler"):
+        print data
         if self.producer is not None:
             self.producer.send(self.producer_types[data_type], value=data)
 
@@ -150,17 +177,11 @@ class Runnable(object):
         self.stop()
 
 
-def frame_stack(frame, base_frame=None, base_code=None,
-                ignored_frames=(), ignored_codes=()):
+def frame_stack(frame):
     """Returns a deque of frame stack."""
     frames = deque()
     while frame is not None:
-        if frame is base_frame or frame.f_code is base_code:
-            break
-        if frame in ignored_frames or frame.f_code in ignored_codes:
-            pass
-        else:
-            frames.appendleft(frame)
+        frames.appendleft(frame)
         frame = frame.f_back
     return frames
 
@@ -169,6 +190,13 @@ def get_mac():
     mac_num = hex(uuid.getnode()).replace('0x', '').upper()
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
     return mac
+
+
+def get_device_ip():
+    try:
+        return get_ip()
+    except IpifyException:
+        return ''
 
 
 def setup_thread_excepthook():

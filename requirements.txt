@@ -2,5 +2,4 @@ six>=1.8.0
 yappi;python_version<"2.7"
 ipify
 kafka
-requests
 psutil

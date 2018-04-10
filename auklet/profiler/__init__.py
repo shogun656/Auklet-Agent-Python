@@ -13,33 +13,13 @@ __all__ = ['Profiler', 'SamplingProfiler']
 class Profiler(Runnable):
     """The base class for profiler."""
 
-    #: The root recording statistics.
-    stats = None
-
-    base_frame = None
-    base_code = None
-    ignored_frames = ()
-    ignored_codes = ()
-
-    def __init__(self, base_frame=None, base_code=None,
-                 ignored_frames=(), ignored_codes=()):
-        self.base_frame = base_frame
-        self.base_code = base_code
-        self.ignored_frames = ignored_frames
-        self.ignored_codes = ignored_codes
-
     def start(self):
         self._cpu_time_started = time.clock()
         self._wall_time_started = time.time()
         return super(Profiler, self).start()
 
     def frame_stack(self, frame):
-        return frame_stack(frame, self.base_frame, self.base_code,
-                           self.ignored_frames, self.ignored_codes)
-
-    def exclude_code(self, code):
-        """Excludes statistics of the given code."""
-        pass
+        return frame_stack(frame)
 
     def result(self):
         """Gets the frozen statistics to serialize by Pickle."""
@@ -57,13 +37,11 @@ class SamplingProfiler(Profiler):
     sampler = None
     profiler_tree = None
 
-    def __init__(self, apikey=None, app_id=None, base_frame=None,
-                 base_code=None, ignored_frames=(), ignored_codes=()):
-        client = Client(apikey, app_id)
+    def __init__(self, apikey=None, app_id=None, base_url=None):
+        client = Client(apikey, app_id, base_url)
         self.profiler_tree = AukletProfileTree()
         sampler = AukletSampler(client, self.profiler_tree)
-        super(SamplingProfiler, self).__init__(
-            base_frame, base_code, ignored_frames, ignored_codes)
+        super(SamplingProfiler, self).__init__()
         self.sampler = sampler
 
     def sample(self, frame, event):

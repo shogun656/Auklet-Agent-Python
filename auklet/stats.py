@@ -4,7 +4,6 @@ import psutil
 import pprint
 import inspect
 from uuid import uuid4
-from ipify import get_ip
 from datetime import datetime
 
 __all__ = ['AukletProfileTree', 'Event', 'SystemMetrics']
@@ -98,8 +97,8 @@ class AukletProfileTree(object):
     mac_address_hash = None
 
     def __init__(self):
-        from auklet.base import get_mac
-        self.public_ip = get_ip()
+        from auklet.base import get_mac, get_device_ip
+        self.public_ip = get_device_ip()
         self.mac_address_hash = get_mac()
 
     def _create_frame_func(self, frame, root=False, parent=None):
