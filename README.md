@@ -13,6 +13,7 @@ To install the agent:
 
 To setup your app to be profiled:
 
+    from auklet.profiler import SamplingProfiler
     samplingProfiler = SamplingProfiler("api_key", "app_id")
 
     samplingProfiler.start()
