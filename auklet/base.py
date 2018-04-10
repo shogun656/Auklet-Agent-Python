@@ -77,7 +77,7 @@ class Client(object):
         kafka_info = json.loads(res.read())
         self.brokers = kafka_info['brokers']
         self.producer_types = {
-            "profiler_data": kafka_info['prof_topic'],
+            "profiler": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
             "log": kafka_info['log_topic']
         }
@@ -88,9 +88,7 @@ class Client(object):
         try:
             res = urlopen(url)
         except HTTPError as e:
-            print e.geturl()
             res = urlopen(e.geturl())
-        print res
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename
@@ -111,9 +109,13 @@ class Client(object):
         return event_dict
 
     def produce(self, data, data_type="profiler"):
-        print data
         if self.producer is not None:
-            self.producer.send(self.producer_types[data_type], value=data)
+            try:
+                self.producer.send(self.producer_types[data_type], value=data)
+            except KafkaError:
+                # For now just drop the data, will want to write to a local
+                # file in the future
+                pass
 
 
 class Runnable(object):
