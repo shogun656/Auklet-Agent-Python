@@ -120,15 +120,15 @@ class Client(object):
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type], value=data)
-            except KafkaError as e:
+            except KafkaError:
                 # For now just drop the data, will want to write to a local
                 # file in the future
                 pass
 
 
 class Runnable(object):
-    """The base class for runnable classes such as :class:`profiling.monitoring.
-    Profiler`.
+    """The base class for runnable classes such as :class:`monitoring.
+    MonitoringBase`.
     """
 
     #: The generator :meth:`run` returns.  It will be set by :meth:`start`.

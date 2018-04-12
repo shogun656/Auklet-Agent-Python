@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import time
 
 from auklet.base import Runnable, frame_stack, Client, get_mac
-from auklet.stats import AukletProfileTree
+from auklet.stats import MonitoringTree
 from auklet.monitoring.sampling import AukletSampler
 
 
@@ -35,13 +35,13 @@ class Monitoring(MonitoringBase):
     #: The frames sampler.  Usually it is an instance of :class:`profiling.
     #: sampling.samplers.Sampler`.
     sampler = None
-    profiler_tree = None
+    tree = None
 
     def __init__(self, apikey=None, app_id=None, base_url=None):
         self.mac_hash = get_mac()
         client = Client(apikey, app_id, base_url, self.mac_hash)
-        self.profiler_tree = AukletProfileTree(self.mac_hash)
-        sampler = AukletSampler(client, self.profiler_tree)
+        self.tree = MonitoringTree(self.mac_hash)
+        sampler = AukletSampler(client, self.tree)
         super(Monitoring, self).__init__()
         self.sampler = sampler
 
@@ -55,7 +55,7 @@ class Monitoring(MonitoringBase):
         while frame:
             stack.append((frame, False))
             frame = frame.f_back
-        self.profiler_tree.update_hash(stack)
+        self.tree.update_hash(stack)
 
     def run(self):
         self.sampler.start(self)

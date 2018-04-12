@@ -6,7 +6,7 @@ import inspect
 from uuid import uuid4
 from datetime import datetime
 
-__all__ = ['AukletProfileTree', 'Event', 'SystemMetrics']
+__all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
 
 
 class Function(object):
@@ -90,7 +90,7 @@ class Event(object):
         self.trace = tb
 
 
-class AukletProfileTree(object):
+class MonitoringTree(object):
     git_hash = None
     root_func = None
     public_ip = None
@@ -169,7 +169,7 @@ class AukletProfileTree(object):
         self.root_func = None
         return True
 
-    def build_profiler_object(self, app_id):
+    def build_tree(self, app_id):
         return {
             "application": app_id,
             "publicIP": self.public_ip,
