@@ -1,6 +1,6 @@
 # Auklet Python Agent
 
-Auklet's IoT Python agent is built to run in both python 2.x and 3.x.
+Auklet's IoT Python Monitoring agent is built to run in both python 2.x and 3.x.
 
 # Installation
 
@@ -11,12 +11,12 @@ To install the agent:
 
 # Usage
 
-To setup your app to be profiled:
+To setup Auklet monitoring for you application:
 
-    from auklet.profiler import SamplingProfiler
-    samplingProfiler = SamplingProfiler("api_key", "app_id")
+    from auklet.monitoring import Monitoring
+    auklet_monitoring = Monitoring("api_key", "app_id")
 
-    samplingProfiler.start()
+    auklet_monitoring.start()
     # Call your main function
     main()
-    samplingProfiler.stop()
+    auklet_monitoring.stop()

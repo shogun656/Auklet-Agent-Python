@@ -38,12 +38,11 @@ class Client(object):
     commit_hash = None
     mac_hash = None
 
-    def __init__(self, apikey=None, app_id=None, base_url=None, mac_hash=None):
+    def __init__(self, apikey=None, app_id=None,
+                 base_url="https://api.auklet.io/", mac_hash=None):
         self.apikey = apikey
         self.app_id = app_id
-        self.base_url = "https://api.auklet.io/"
-        if base_url is not None:
-            self.base_url = base_url
+        self.base_url = base_url
         self.send_enabled = True
         self.producer = None
         self._get_kafka_brokers()
@@ -60,6 +59,7 @@ class Client(object):
                     "value_serializer": lambda m: json.dumps(m)
                 })
             except KafkaError:
+                # TODO log off to kafka if kafka fails to connect
                 pass
 
     def _build_url(self, extension):
@@ -81,7 +81,7 @@ class Client(object):
         kafka_info = json.loads(res.read())
         self.brokers = kafka_info['brokers']
         self.producer_types = {
-            "profiler": kafka_info['prof_topic'],
+            "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
             "log": kafka_info['log_topic']
         }
@@ -116,18 +116,18 @@ class Client(object):
         event_dict['macAddressHash'] = self.mac_hash
         return event_dict
 
-    def produce(self, data, data_type="profiler"):
+    def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type], value=data)
-            except KafkaError:
+            except KafkaError as e:
                 # For now just drop the data, will want to write to a local
                 # file in the future
                 pass
 
 
 class Runnable(object):
-    """The base class for runnable classes such as :class:`profiling.profiler.
+    """The base class for runnable classes such as :class:`profiling.monitoring.
     Profiler`.
     """
 
@@ -206,7 +206,8 @@ def get_device_ip():
     try:
         return get_ip()
     except IpifyException:
-        return ''
+        # TODO log to kafka if the ip service fails for any reason
+        return None
 
 
 def setup_thread_excepthook():

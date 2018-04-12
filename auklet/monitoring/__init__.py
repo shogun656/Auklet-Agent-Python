@@ -4,19 +4,19 @@ import time
 
 from auklet.base import Runnable, frame_stack, Client, get_mac
 from auklet.stats import AukletProfileTree
-from auklet.profiler.sampling import AukletSampler
+from auklet.monitoring.sampling import AukletSampler
 
 
-__all__ = ['Profiler', 'SamplingProfiler']
+__all__ = ['MonitoringBase', 'Monitoring']
 
 
-class Profiler(Runnable):
-    """The base class for profiler."""
+class MonitoringBase(Runnable):
+    """The base class for monitoring."""
 
     def start(self):
         self._cpu_time_started = time.clock()
         self._wall_time_started = time.time()
-        return super(Profiler, self).start()
+        return super(MonitoringBase, self).start()
 
     def frame_stack(self, frame):
         return frame_stack(frame)
@@ -31,7 +31,7 @@ class Profiler(Runnable):
         return 0, cpu_time, wall_time
 
 
-class SamplingProfiler(Profiler):
+class Monitoring(MonitoringBase):
     #: The frames sampler.  Usually it is an instance of :class:`profiling.
     #: sampling.samplers.Sampler`.
     sampler = None
@@ -42,7 +42,7 @@ class SamplingProfiler(Profiler):
         client = Client(apikey, app_id, base_url, self.mac_hash)
         self.profiler_tree = AukletProfileTree(self.mac_hash)
         sampler = AukletSampler(client, self.profiler_tree)
-        super(SamplingProfiler, self).__init__()
+        super(Monitoring, self).__init__()
         self.sampler = sampler
 
     def sample(self, frame, event):
