@@ -92,6 +92,8 @@ class Client(object):
         try:
             res = urlopen(url)
         except HTTPError as e:
+            # Allow for accessing redirect w/o including the
+            # Authorization token.
             res = urlopen(e.geturl())
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
@@ -238,7 +240,7 @@ def setup_thread_excepthook():
 
 @contextmanager
 def deferral():
-    """Defers a function call when it is being required like Go.
+    """Defers a function call when it is being required.
     ::
        with deferral() as defer:
            sys.setprofile(f)

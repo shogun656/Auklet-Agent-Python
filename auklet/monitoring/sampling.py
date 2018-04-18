@@ -43,6 +43,7 @@ class AukletSampler(Runnable):
         self.counter += 1
         if self.counter % 10000 == 0:
             # Produce tree to kafka every 10 seconds
+            # TODO read the produce interval from application on the backend
             self.client.produce(
                 self.tree.build_tree(self.client.app_id))
             self.tree.clear_root()
