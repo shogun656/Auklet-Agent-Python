@@ -138,8 +138,7 @@ class MonitoringTree(object):
             file_name = inspect.getsourcefile(frame[0]) or \
                         inspect.getfile(frame[0])
             if "site-packages" not in file_name and \
-                    "Python.framework" not in file_name and \
-                    "auklet" not in file_name:
+                    "Python.framework" not in file_name:
                 cleansed_stack.append(frame)
         return cleansed_stack
 
