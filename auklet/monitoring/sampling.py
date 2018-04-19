@@ -5,7 +5,7 @@ import functools
 import threading
 import six.moves._thread as _thread
 
-from auklet.base import thread_clock, deferral, Runnable, setup_thread_excepthook
+from auklet.base import deferral, Runnable, setup_thread_excepthook
 
 
 __all__ = ['AukletSampler']
@@ -33,12 +33,6 @@ class AukletSampler(Runnable):
         setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
-        t = thread_clock()
-        thread_id = _thread.get_ident()
-        sampled_at = self.sampled_times.get(thread_id, 0)
-        if t - sampled_at < self.interval:
-            return
-        self.sampled_times[thread_id] = t
         profiler.sample(frame, event)
         self.counter += 1
         if self.counter % 10000 == 0:
@@ -47,11 +41,6 @@ class AukletSampler(Runnable):
             self.client.produce(
                 self.tree.build_tree(self.client.app_id))
             self.tree.clear_root()
-            self._clear_for_dead_threads()
-
-    def _clear_for_dead_threads(self):
-        for thread_id in sys._current_frames().keys():
-            self.sampled_times.pop(thread_id, None)
 
     def handle_exc(self, type, value, traceback):
         event = self.client.build_event_data(type, value, traceback,

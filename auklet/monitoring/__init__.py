@@ -33,7 +33,7 @@ class MonitoringBase(Runnable):
 
 class Monitoring(MonitoringBase):
     #: The frames sampler.  Usually it is an instance of :class:`profiling.
-    #: sampling.samplers.Sampler`.
+    #: sampling.samplers.Sampler`
     sampler = None
     tree = None
 

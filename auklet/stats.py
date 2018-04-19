@@ -1,10 +1,16 @@
 from __future__ import absolute_import, division
 
-import psutil
 import pprint
 import inspect
 from uuid import uuid4
 from datetime import datetime
+
+try:
+    import psutil
+except ImportError:
+    # Some platforms that applications could be running on require specific
+    # installation of psutil which we cannot configure currently
+    psutil = None
 
 __all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
 
@@ -64,7 +70,8 @@ class Event(object):
 
     def _filter_frame(self, file_name):
         if "site-packages" in file_name or \
-                "Python.framework" in file_name:
+                "Python.framework" in file_name or \
+                "auklet" in file_name:
             return True
         return False
 
@@ -131,7 +138,8 @@ class MonitoringTree(object):
             file_name = inspect.getsourcefile(frame[0]) or \
                         inspect.getfile(frame[0])
             if "site-packages" not in file_name and \
-                    "Python.framework" not in file_name:
+                    "Python.framework" not in file_name and \
+                    "auklet" not in file_name:
                 cleansed_stack.append(frame)
         return cleansed_stack
 
@@ -187,11 +195,12 @@ class SystemMetrics(object):
     outbound_network = 0
 
     def __init__(self):
-        self.cpu_usage = psutil.cpu_percent(interval=1)
-        self.mem_usage = psutil.virtual_memory().used
-        network = psutil.net_io_counters()
-        self.inbound_network = network.bytes_recv
-        self.outbound_network = network.bytes_sent
+        if psutil is not None:
+            self.cpu_usage = psutil.cpu_percent(interval=1)
+            self.mem_usage = psutil.virtual_memory().used
+            network = psutil.net_io_counters()
+            self.inbound_network = network.bytes_recv
+            self.outbound_network = network.bytes_sent
 
     def __iter__(self):
         yield "cpuUsage", self.cpu_usage

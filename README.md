@@ -1,4 +1,6 @@
 # Auklet Python Agent
+[![Maintainability](https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/maintainability)](https://codeclimate.com/repos/5a54e10be3d6cb4d7d0007a8/maintainability)    [![Test Coverage](https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/test_coverage)](https://codeclimate.com/repos/5a54e10be3d6cb4d7d0007a8/test_coverage)
+
 
 Auklet's IoT Python Monitoring agent is built to run in both python 2.x and 3.x.
 

@@ -47,6 +47,7 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
+        self._get_commit_hash()
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -104,8 +105,12 @@ class Client(object):
         return True
 
     def _get_commit_hash(self):
-        with open(".auklet", "r") as file:
-            self.commit_hash = file.read()
+        try:
+            with open(".auklet", "r") as auklet_file:
+                self.commit_hash = auklet_file.read()
+        except IOError:
+            # TODO Error out app if no commit hash
+            self.commit_hash = ""
 
     def build_event_data(self, type, value, traceback, tree):
         event = Event(type, value, traceback, tree)
@@ -256,13 +261,3 @@ def deferral():
         while deferred:
             func, args, kwargs = deferred.pop()
             func(*args, **kwargs)
-
-
-if sys.version_info < (3, 3):
-    def thread_clock():
-        import yappi
-        return yappi.get_clock_time()
-else:
-    import time
-    def thread_clock():
-        return time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
