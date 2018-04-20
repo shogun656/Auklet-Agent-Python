@@ -110,7 +110,7 @@ class Client(object):
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = datetime.now()
+        event_dict['timestamp'] = datetime.now().isoformat()
         event_dict['systemMetrics'] = dict(SystemMetrics())
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash

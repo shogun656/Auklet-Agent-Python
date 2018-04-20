@@ -182,7 +182,7 @@ class MonitoringTree(object):
             "application": app_id,
             "publicIP": self.public_ip,
             "id": str(uuid4()),
-            "timestamp": datetime.now(),
+            "timestamp": datetime.now().isoformat(),
             "macAddressHash": self.mac_hash,
             "commitHash": self.commit_hash,
             "tree": dict(self.root_func)
