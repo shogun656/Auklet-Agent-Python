@@ -70,8 +70,7 @@ class Event(object):
 
     def _filter_frame(self, file_name):
         if "site-packages" in file_name or \
-                "Python.framework" in file_name or \
-                "auklet" in file_name:
+                "Python.framework" in file_name:
             return True
         return False
 
@@ -92,19 +91,21 @@ class Event(object):
             tb.append({"functionName": frame.f_code.co_name,
                        "filePath": path,
                        "lineNumber": frame.f_lineno,
-                       "locals": self._convert_locals_to_string(frame.f_locals)})
+                       "locals":
+                           self._convert_locals_to_string(frame.f_locals)})
             trace = trace.tb_next
         self.trace = tb
 
 
 class MonitoringTree(object):
-    git_hash = None
+    commit_hash = None
     root_func = None
     public_ip = None
     mac_hash = None
 
     def __init__(self, mac_hash=None):
-        from auklet.base import get_device_ip
+        from auklet.base import get_device_ip, get_commit_hash
+        self.commit_hash = get_commit_hash()
         self.public_ip = get_device_ip()
         self.mac_hash = mac_hash
 
@@ -183,6 +184,7 @@ class MonitoringTree(object):
             "id": str(uuid4()),
             "timestamp": datetime.now(),
             "macAddressHash": self.mac_hash,
+            "commitHash": self.commit_hash,
             "tree": dict(self.root_func)
         }
 

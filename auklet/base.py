@@ -28,7 +28,7 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError
 
-__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'thread_clock',
+__all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_mac', 'get_device_ip', 'setup_thread_excepthook']
 
 
@@ -47,7 +47,7 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
-        self._get_commit_hash()
+        self.commit_hash = get_commit_hash()
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -104,14 +104,6 @@ class Client(object):
             f.write(mlz.open(temp_file.filename).read())
         return True
 
-    def _get_commit_hash(self):
-        try:
-            with open(".auklet", "r") as auklet_file:
-                self.commit_hash = auklet_file.read()
-        except IOError:
-            # TODO Error out app if no commit hash
-            self.commit_hash = ""
-
     def build_event_data(self, type, value, traceback, tree):
         event = Event(type, value, traceback, tree)
         event_dict = dict(event)
@@ -121,6 +113,7 @@ class Client(object):
         event_dict['timestamp'] = datetime.now()
         event_dict['systemMetrics'] = dict(SystemMetrics())
         event_dict['macAddressHash'] = self.mac_hash
+        event_dict['commitHash'] = self.commit_hash
         return event_dict
 
     def produce(self, data, data_type="monitoring"):
@@ -207,6 +200,15 @@ def get_mac():
     mac_num = hex(uuid.getnode()).replace('0x', '').upper()
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
     return hashlib.md5(mac).hexdigest()
+
+
+def get_commit_hash():
+    try:
+        with open(".auklet", "r") as auklet_file:
+            return auklet_file.read()
+    except IOError:
+        # TODO Error out app if no commit hash
+        return ""
 
 
 def get_device_ip():
