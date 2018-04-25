@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division
 
+from time import time
 import pprint
 import inspect
 from uuid import uuid4
-from datetime import datetime
 
 try:
     import psutil
@@ -182,7 +182,7 @@ class MonitoringTree(object):
             "application": app_id,
             "publicIP": self.public_ip,
             "id": str(uuid4()),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": int(round(time() * 1000)),
             "macAddressHash": self.mac_hash,
             "commitHash": self.commit_hash,
             "tree": dict(self.root_func)

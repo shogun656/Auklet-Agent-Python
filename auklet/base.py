@@ -117,6 +117,7 @@ class Client(object):
         return event_dict
 
     def produce(self, data, data_type="monitoring"):
+        print data
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type], value=data)
@@ -204,7 +205,7 @@ def get_mac():
 
 def get_commit_hash():
     try:
-        with open(".auklet", "r") as auklet_file:
+        with open(".auklet/version", "r") as auklet_file:
             return auklet_file.read()
     except IOError:
         # TODO Error out app if no commit hash
