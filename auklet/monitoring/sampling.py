@@ -43,7 +43,7 @@ class AukletSampler(Runnable):
             self.tree.clear_root()
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, value, traceback,
+        event = self.client.build_event_data(type, traceback,
                                              self.tree)
         self.client.produce(event, "event")
 

@@ -59,7 +59,7 @@ class Event(object):
     exc_type = None
     line_num = 0
 
-    def __init__(self, exc_type, value, tb, tree):
+    def __init__(self, exc_type, tb, tree):
         self.exc_type = exc_type.__name__
         self.line_num = tb.tb_lineno
         self._build_traceback(tb, tree)

@@ -9,8 +9,8 @@ import errno
 import zipfile
 import hashlib
 
+from time import time
 from uuid import uuid4
-from datetime import datetime
 from contextlib import contextmanager
 from collections import deque
 from kafka import KafkaProducer
@@ -104,20 +104,19 @@ class Client(object):
             f.write(mlz.open(temp_file.filename).read())
         return True
 
-    def build_event_data(self, type, value, traceback, tree):
-        event = Event(type, value, traceback, tree)
+    def build_event_data(self, type, traceback, tree):
+        event = Event(type, traceback, tree)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = datetime.now().isoformat()
+        event_dict['timestamp'] = int(round(time() * 1000))
         event_dict['systemMetrics'] = dict(SystemMetrics())
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
         return event_dict
 
     def produce(self, data, data_type="monitoring"):
-        print data
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type], value=data)
@@ -207,7 +206,8 @@ def get_commit_hash():
     try:
         with open(".auklet/version", "r") as auklet_file:
             return auklet_file.read()
-    except IOError:
+    except IOError as e:
+        print e
         # TODO Error out app if no commit hash
         return ""
 
