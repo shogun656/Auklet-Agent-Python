@@ -198,7 +198,8 @@ class SystemMetrics(object):
     def __init__(self):
         if psutil is not None:
             self.cpu_usage = psutil.cpu_percent(interval=1)
-            self.mem_usage = psutil.virtual_memory().used
+            self.mem_usage = psutil.virtual_memory().percent
+            print self.mem_usage
             network = psutil.net_io_counters()
             self.inbound_network = network.bytes_recv
             self.outbound_network = network.bytes_sent
