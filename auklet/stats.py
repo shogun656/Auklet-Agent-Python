@@ -123,8 +123,8 @@ class MonitoringTree(object):
         if frame[1]:
             calls = 1
         frame = frame[0]
-
         file_path = inspect.getsourcefile(frame) or inspect.getfile(frame)
+
         return Function(
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,
@@ -199,7 +199,6 @@ class SystemMetrics(object):
         if psutil is not None:
             self.cpu_usage = psutil.cpu_percent(interval=1)
             self.mem_usage = psutil.virtual_memory().percent
-            print self.mem_usage
             network = psutil.net_io_counters()
             self.inbound_network = network.bytes_recv
             self.outbound_network = network.bytes_sent
