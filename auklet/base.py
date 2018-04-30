@@ -9,7 +9,6 @@ import errno
 import zipfile
 import hashlib
 
-from time import time
 from uuid import uuid4
 from datetime import datetime
 from contextlib import contextmanager
