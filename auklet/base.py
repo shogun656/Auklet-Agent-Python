@@ -11,6 +11,7 @@ import hashlib
 
 from time import time
 from uuid import uuid4
+from datetime import datetime
 from contextlib import contextmanager
 from collections import deque
 from kafka import KafkaProducer
@@ -110,7 +111,7 @@ class Client(object):
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = str(int(round(time() * 1000)))
+        event_dict['timestamp'] = str(datetime.utcnow())
         event_dict['systemMetrics'] = dict(SystemMetrics())
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
