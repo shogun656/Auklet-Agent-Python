@@ -70,7 +70,8 @@ class Event(object):
 
     def _filter_frame(self, file_name):
         if "site-packages" in file_name or \
-                "Python.framework" in file_name:
+                "Python.framework" in file_name or \
+                "auklet" in file_name:
             return True
         return False
 

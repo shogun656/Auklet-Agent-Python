@@ -110,7 +110,7 @@ class Client(object):
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = int(round(time() * 1000))
+        event_dict['timestamp'] = str(int(round(time() * 1000)))
         event_dict['systemMetrics'] = dict(SystemMetrics())
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
@@ -206,8 +206,7 @@ def get_commit_hash():
     try:
         with open(".auklet/version", "r") as auklet_file:
             return auklet_file.read()
-    except IOError as e:
-        print e
+    except IOError:
         # TODO Error out app if no commit hash
         return ""
 
