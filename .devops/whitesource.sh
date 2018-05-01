@@ -23,6 +23,8 @@ WS_CONFIG='whitesource-final.cfg'
 cp $WS_CONFIG_SRC $WS_CONFIG
 echo "apiKey=$WHITESOURCE_ORG_TOKEN" >> $WS_CONFIG
 echo "productToken=$WHITESOURCE_PRODUCT_TOKEN" >> $WS_CONFIG
+VERSION=$(cat ~/.version)
+echo "projectVersion=$VERSION" >> $WS_CONFIG
 
 echo 'Starting WhiteSource File System Agent...'
 $JAVA_HOME/bin/java -jar $WS_AGENT -c $WS_CONFIG -d $PACKAGES_DIR
