@@ -37,7 +37,7 @@ jobs:
                   git config --global user.email "$ESGBOT_GIT_EMAIL" && git config --global user.name "$ESGBOT_GIT_NAME"
                   bash .devops/calculate-app-version.sh
                   bash .devops/semverTo440.sh
-                  sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__init__.py
+                  sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__about__.py
 
             ##
             # RESTORE CACHES

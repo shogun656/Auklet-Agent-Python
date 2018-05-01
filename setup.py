@@ -21,7 +21,7 @@ def requirements(filename):
 
 
 # Get the version from the init file.
-execfile('auklet/__init__.py')
+execfile('auklet/__about__.py')
 
 
 setup(
