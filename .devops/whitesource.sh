@@ -12,7 +12,7 @@ curl -jLs -H "Cookie: oraclelicense=accept-securebackup-cookie" http://download.
 # We can't use the pip cache because results are not nearly as accurate.
 echo 'Downloading pip packages for WhiteSource analysis...'
 PACKAGES_DIR='.whitesource-pip'
-pip download -r requirements.txt -d $PACKAGES_DIR
+pip download -r app/requirements.txt -d $PACKAGES_DIR
 
 WS_AGENT_URL='https://s3.amazonaws.com/file-system-agent/whitesource-fs-agent-1.8.0.jar'
 WS_AGENT='whitesource.jar'
