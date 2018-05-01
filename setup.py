@@ -29,6 +29,14 @@ setup(
     version=__version__,
     platforms='linux',
     packages=find_packages(),
+    description = 'Auklet performance monitoring agent for Python IoT apps',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+    author = 'Auklet',
+    author_email = 'hello@auklet.io',
+    url = 'https://github.com/ESG-USA/Auklet-Agent-Python',
+    download_url = "https://github.com/ESG-USA/Auklet-Agent-Python/archive/{0}.tar.gz".format(__semver__),
+    keywords = ['iot', 'performance', 'monitoring'],
     entry_points={
     },
     classifiers=[
