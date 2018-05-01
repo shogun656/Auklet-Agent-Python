@@ -20,9 +20,13 @@ def requirements(filename):
         return [x.strip() for x in f.readlines() if x.strip()]
 
 
+# Get the version from the init file.
+execfile('auklet/__init__.py')
+
+
 setup(
     name='auklet',
-    version='0.1.0-a.local.build',
+    version=__version__,
     platforms='linux',
     packages=find_packages(),
     entry_points={
