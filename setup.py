@@ -20,7 +20,7 @@ def requirements(filename):
         return [x.strip() for x in f.readlines() if x.strip()]
 
 
-# Get the version from the init file.
+# Get the version from the about file.
 execfile('auklet/__about__.py')
 
 
