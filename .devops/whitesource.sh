@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+cd ~
 
 echo 'Installing Oracle JRE 8...'
 JAVA_HOME='jre'
@@ -9,7 +11,6 @@ curl -jLs -H "Cookie: oraclelicense=accept-securebackup-cookie" http://download.
 # Use the requirements file defined in the Dockerfile so we pull the correct packages.
 # We can't use the pip cache because results are not nearly as accurate.
 echo 'Downloading pip packages for WhiteSource analysis...'
-cd ~
 PACKAGES_DIR='.whitesource-pip'
 pip download -r requirements.txt -d $PACKAGES_DIR
 
