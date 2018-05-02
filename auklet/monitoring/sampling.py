@@ -1,9 +1,8 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import sys
 import functools
 import threading
-import six.moves._thread as _thread
 
 from auklet.base import deferral, Runnable, setup_thread_excepthook
 
