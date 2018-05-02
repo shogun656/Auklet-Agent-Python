@@ -248,6 +248,7 @@ def setup_thread_excepthook():
 
 
 if sys.version_info < (3,):
+    # Python 2 and 3 String Compatibility
     def b(x):
         return x
 
