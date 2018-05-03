@@ -255,12 +255,15 @@ if sys.version_info < (3,):
     def u(x):
         return x
 else:
+    # https://pythonhosted.org/six/#binary-and-text-data
     import codecs
 
     def b(x):
+        # Produces a unicode string to encoded bytes
         return codecs.utf_8_encode(x)[0]
 
     def u(x):
+        # Produces a byte string from a unicode object
         return codecs.utf_8_decode(x)[0]
 
 
