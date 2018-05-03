@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import io
@@ -21,9 +21,8 @@ from ipify.exceptions import IpifyException
 
 try:
     # For Python 3.0 and later
-    from urllib import urlopen
     from urllib.error import HTTPError
-    from urllib.request import Request
+    from urllib.request import Request, urlopen
 except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError
@@ -37,6 +36,8 @@ class Client(object):
     brokers = None
     commit_hash = None
     mac_hash = None
+
+    test_counter = 0
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
@@ -63,9 +64,6 @@ class Client(object):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
-    def _build_url(self, extension):
-        return '%s%s' % (self.base_url, extension)
-
     def _create_kafka_cert_location(self, filename):
         if not os.path.exists(os.path.dirname(filename)):
             try:
@@ -75,11 +73,14 @@ class Client(object):
                     raise
         return True
 
+    def _build_url(self, extension):
+        return '%s%s' % (self.base_url, extension)
+
     def _get_kafka_brokers(self):
         url = Request(self._build_url("private/devices/config/"),
                       headers={"Authorization": "JWT %s" % self.apikey})
         res = urlopen(url)
-        kafka_info = json.loads(res.read())
+        kafka_info = json.loads(u(res.read()))
         self.brokers = kafka_info['brokers']
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
@@ -119,7 +120,8 @@ class Client(object):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                self.producer.send(self.producer_types[data_type], value=data)
+                self.producer.send(self.producer_types[data_type],
+                                   value=b(json.dumps(data)))
             except KafkaError:
                 # For now just drop the data, will want to write to a local
                 # file in the future
@@ -199,7 +201,7 @@ def frame_stack(frame):
 def get_mac():
     mac_num = hex(uuid.getnode()).replace('0x', '').upper()
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
-    return hashlib.md5(mac).hexdigest()
+    return hashlib.md5(b(mac)).hexdigest()
 
 
 def get_commit_hash():
@@ -243,6 +245,26 @@ def setup_thread_excepthook():
         self.run = run_with_except_hook
 
     threading.Thread.__init__ = init
+
+
+if sys.version_info < (3,):
+    # Python 2 and 3 String Compatibility
+    def b(x):
+        return x
+
+    def u(x):
+        return x
+else:
+    # https://pythonhosted.org/six/#binary-and-text-data
+    import codecs
+
+    def b(x):
+        # Produces a unicode string to encoded bytes
+        return codecs.utf_8_encode(x)[0]
+
+    def u(x):
+        # Produces a byte string from a unicode object
+        return codecs.utf_8_decode(x)[0]
 
 
 @contextmanager
