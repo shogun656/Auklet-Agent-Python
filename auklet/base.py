@@ -36,7 +36,7 @@ class Client(object):
     brokers = None
     commit_hash = None
     mac_hash = None
-
+    offline_fliename = "tmp/local.txt"
     test_counter = 0
 
     def __init__(self, apikey=None, app_id=None,
@@ -49,6 +49,7 @@ class Client(object):
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
         self.commit_hash = get_commit_hash()
+        self._create_file(self.offline_fliename)
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -64,7 +65,7 @@ class Client(object):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
-    def _create_kafka_cert_location(self, filename):
+    def _create_file(self, filename):
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
@@ -100,10 +101,19 @@ class Client(object):
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
             filename = "tmp/%s.pem" % temp_file.filename
-            self._create_kafka_cert_location(filename)
+            self._create_file(filename)
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
         return True
+
+    def _write_to_local(self, data):
+        try:
+            with open(self.offline_fliename, "a") as offline:
+                offline.write(u("\n"))
+                offline.write(u(json.dumps(data)))
+        except IOError:
+            # TODO determine what to do with data we fail to write
+            return False
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree)
@@ -121,7 +131,7 @@ class Client(object):
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type],
-                                   value=b(json.dumps(data)))
+                                   value=b(data))
             except KafkaError:
                 # For now just drop the data, will want to write to a local
                 # file in the future
