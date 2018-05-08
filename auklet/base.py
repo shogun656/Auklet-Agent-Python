@@ -28,7 +28,8 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
-           'get_mac', 'get_device_ip', 'setup_thread_excepthook']
+           'get_mac', 'get_device_ip', 'setup_thread_excepthook',
+           'get_abs_path']
 
 
 class Client(object):
@@ -37,7 +38,7 @@ class Client(object):
     commit_hash = None
     mac_hash = None
     offline_fliename = "tmp/local.txt"
-    test_counter = 0
+    abs_path = None
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
@@ -48,8 +49,8 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
-        self.commit_hash = get_commit_hash()
         self._create_file(self.offline_fliename)
+        self.commit_hash, self.abs_path = get_commit_hash()
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -59,7 +60,7 @@ class Client(object):
                     "ssl_keyfile": "tmp/ck_private_key.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: json.dumps(m)
+                    "value_serializer": lambda m: b(json.dumps(m))
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
@@ -109,8 +110,8 @@ class Client(object):
     def _write_to_local(self, data):
         try:
             with open(self.offline_fliename, "a") as offline:
-                offline.write(u("\n"))
-                offline.write(u(json.dumps(data)))
+                offline.write(json.dumps(data))
+                offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
             return False
@@ -119,13 +120,19 @@ class Client(object):
         try:
             with open(self.offline_fliename, 'r+') as offline:
                 lines = offline.read().splitlines()
-                print(lines)
+                for line in lines:
+                    loaded = json.loads(line)
+                    if 'stackTrace' in loaded.keys():
+                        self.produce(loaded)
+                    else:
+                        self.produce(loaded, "event")
+                offline.truncate()
         except IOError:
             # TODO determine what to do if we can't read the file
             return False
 
     def build_event_data(self, type, traceback, tree):
-        event = Event(type, traceback, tree)
+        event = Event(type, traceback, tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
@@ -140,11 +147,10 @@ class Client(object):
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type],
-                                   value=b(data))
+                                   value=data)
+                self._produce_from_local()
             except KafkaError:
-                # For now just drop the data, will want to write to a local
-                # file in the future
-                pass
+                self._write_to_local(data)
 
 
 class Runnable(object):
@@ -226,10 +232,17 @@ def get_mac():
 def get_commit_hash():
     try:
         with open(".auklet/version", "r") as auklet_file:
-            return auklet_file.read()
+            return auklet_file.read(), get_abs_path(auklet_file.name)
     except IOError:
         # TODO Error out app if no commit hash
         return ""
+
+
+def get_abs_path(path):
+    try:
+        return os.path.abspath(path).split('.auklet')[0]
+    except IndexError:
+        return ''
 
 
 def get_device_ip():
