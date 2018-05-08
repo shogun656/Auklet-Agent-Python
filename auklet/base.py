@@ -58,7 +58,7 @@ class Client(object):
                     "ssl_keyfile": "tmp/ck_private_key.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: json.dumps(m)
+                    "value_serializer": lambda m: b(json.dumps(m))
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
@@ -121,7 +121,7 @@ class Client(object):
         if self.producer is not None:
             try:
                 self.producer.send(self.producer_types[data_type],
-                                   value=b(json.dumps(data)))
+                                   value=data)
             except KafkaError:
                 # For now just drop the data, will want to write to a local
                 # file in the future
