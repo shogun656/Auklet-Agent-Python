@@ -28,7 +28,8 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
-           'get_mac', 'get_device_ip', 'setup_thread_excepthook']
+           'get_mac', 'get_device_ip', 'setup_thread_excepthook',
+           'get_abs_path']
 
 
 class Client(object):
@@ -36,6 +37,7 @@ class Client(object):
     brokers = None
     commit_hash = None
     mac_hash = None
+    abs_path = None
 
     test_counter = 0
 
@@ -48,7 +50,7 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
-        self.commit_hash = get_commit_hash()
+        self.commit_hash, self.abs_path = get_commit_hash()
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -106,7 +108,7 @@ class Client(object):
         return True
 
     def build_event_data(self, type, traceback, tree):
-        event = Event(type, traceback, tree)
+        event = Event(type, traceback, tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
@@ -207,10 +209,17 @@ def get_mac():
 def get_commit_hash():
     try:
         with open(".auklet/version", "r") as auklet_file:
-            return auklet_file.read()
+            return auklet_file.read(), get_abs_path(auklet_file.name)
     except IOError:
         # TODO Error out app if no commit hash
         return ""
+
+
+def get_abs_path(path):
+    try:
+        return os.path.abspath(path).split('.auklet')[0]
+    except IndexError:
+        return ''
 
 
 def get_device_ip():

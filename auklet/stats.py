@@ -58,10 +58,12 @@ class Event(object):
     trace = []
     exc_type = None
     line_num = 0
+    abs_path = None
 
-    def __init__(self, exc_type, tb, tree):
+    def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
         self.line_num = tb.tb_lineno
+        self.abs_path = abs_path
         self._build_traceback(tb, tree)
 
     def __iter__(self):
@@ -90,6 +92,8 @@ class Event(object):
             if self._filter_frame(path):
                 trace = trace.tb_next
                 continue
+            if self.abs_path in path:
+                path.replace(self.abs_path, '')
             tb.append({"functionName": frame.f_code.co_name,
                        "filePath": path,
                        "lineNumber": frame.f_lineno,
@@ -104,11 +108,13 @@ class MonitoringTree(object):
     root_func = None
     public_ip = None
     mac_hash = None
+    abs_path = None
 
     def __init__(self, mac_hash=None):
-        from auklet.base import get_device_ip, get_commit_hash
+        from auklet.base import get_device_ip, get_commit_hash, get_abs_path
         self.commit_hash = get_commit_hash()
         self.public_ip = get_device_ip()
+        self.abs_path = get_abs_path('.auklet/version')
         self.mac_hash = mac_hash
 
     def _create_frame_func(self, frame, root=False, parent=None):
@@ -126,7 +132,8 @@ class MonitoringTree(object):
             calls = 1
         frame = frame[0]
         file_path = inspect.getsourcefile(frame) or inspect.getfile(frame)
-
+        if self.abs_path in file_path:
+            file_path.replace(self.abs_path, '')
         return Function(
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,

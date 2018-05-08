@@ -22,7 +22,7 @@ def requirements(filename):
 
 setup(
     name='auklet',
-    version='0.1.0-a.local.build',
+    version='0.0.16',
     platforms='linux',
     packages=find_packages(),
     entry_points={
