@@ -115,6 +115,15 @@ class Client(object):
             # TODO determine what to do with data we fail to write
             return False
 
+    def _produce_from_local(self):
+        try:
+            with open(self.offline_fliename, 'r+') as offline:
+                lines = offline.read().splitlines()
+                print(lines)
+        except IOError:
+            # TODO determine what to do if we can't read the file
+            return False
+
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree)
         event_dict = dict(event)
