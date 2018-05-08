@@ -127,9 +127,8 @@ class Client(object):
                     else:
                         self.produce(loaded)
                 offline.truncate()
-        except IOError as e:
+        except IOError:
             # TODO determine what to do if we can't read the file
-            print(e)
             return False
 
     def build_event_data(self, type, traceback, tree):
