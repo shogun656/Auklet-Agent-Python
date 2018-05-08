@@ -66,9 +66,6 @@ class Client(object):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
-    def _get_limits(self):
-
-
     def _create_file(self, filename):
         if not os.path.exists(os.path.dirname(filename)):
             try:
@@ -130,8 +127,9 @@ class Client(object):
                     else:
                         self.produce(loaded)
                 offline.truncate()
-        except IOError:
+        except IOError as e:
             # TODO determine what to do if we can't read the file
+            print(e)
             return False
 
     def build_event_data(self, type, traceback, tree):
