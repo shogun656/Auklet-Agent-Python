@@ -66,6 +66,9 @@ class Client(object):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
+    def _get_limits(self):
+
+
     def _create_file(self, filename):
         if not os.path.exists(os.path.dirname(filename)):
             try:
@@ -123,9 +126,9 @@ class Client(object):
                 for line in lines:
                     loaded = json.loads(line)
                     if 'stackTrace' in loaded.keys():
-                        self.produce(loaded)
-                    else:
                         self.produce(loaded, "event")
+                    else:
+                        self.produce(loaded)
                 offline.truncate()
         except IOError:
             # TODO determine what to do if we can't read the file
