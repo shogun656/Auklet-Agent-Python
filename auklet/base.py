@@ -50,7 +50,8 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
-        self.commit_hash, self.abs_path = get_commit_hash()
+        self.commit_hash = get_commit_hash()
+        self.abs_path = get_abs_path(".auklet/version")
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
@@ -209,7 +210,7 @@ def get_mac():
 def get_commit_hash():
     try:
         with open(".auklet/version", "r") as auklet_file:
-            return auklet_file.read(), get_abs_path(auklet_file.name)
+            return auklet_file.read().rstrip()
     except IOError:
         # TODO Error out app if no commit hash
         return ""

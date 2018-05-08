@@ -71,10 +71,7 @@ class Event(object):
         yield "excType", self.exc_type
 
     def _filter_frame(self, file_name):
-        if "site-packages" in file_name or \
-                "Python.framework" in file_name or \
-                "auklet" in file_name or \
-                "/usr/lib/python" not in file_name:
+        if "auklet" in file_name:
             return True
         return False
 
@@ -150,7 +147,8 @@ class MonitoringTree(object):
             if "site-packages" not in file_name and \
                     "Python.framework" not in file_name and \
                     "auklet" not in file_name and \
-                    "/usr/lib/python" not in file_name:
+                    "lib/python" not in file_name and \
+                    "importlib" not in file_name:
                 cleansed_stack.append(frame)
         return cleansed_stack
 
