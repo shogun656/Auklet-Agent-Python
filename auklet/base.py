@@ -37,8 +37,14 @@ class Client(object):
     brokers = None
     commit_hash = None
     mac_hash = None
-    offline_fliename = "tmp/local.txt"
+    offline_filename = "tmp/local.txt"
     abs_path = None
+
+    data_day = 1
+    data_limit = 0
+    data_current = 0
+    offline_limit = 0
+    offline_current = 0
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
@@ -49,7 +55,7 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
-        self._create_file(self.offline_fliename)
+        self._create_file(self.offline_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         if self._get_kafka_certs():
@@ -78,6 +84,14 @@ class Client(object):
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
+
+    def _get_config(self):
+        url = Request(
+            self._build_url("app/applications/{}/".format(self.app_id)),
+            headers={"Authorization": "JWT %s" % self.apikey}
+        )
+        res = urlopen(url)
+        return json.loads(u(res.read()))['data']['attributes']
 
     def _get_kafka_brokers(self):
         url = Request(self._build_url("private/devices/config/"),
@@ -110,7 +124,7 @@ class Client(object):
 
     def _write_to_local(self, data):
         try:
-            with open(self.offline_fliename, "a") as offline:
+            with open(self.offline_filename, "a") as offline:
                 offline.write(json.dumps(data))
                 offline.write("\n")
         except IOError:
@@ -119,7 +133,7 @@ class Client(object):
 
     def _produce_from_local(self):
         try:
-            with open(self.offline_fliename, 'r+') as offline:
+            with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
                     loaded = json.loads(line)
@@ -131,6 +145,14 @@ class Client(object):
         except IOError:
             # TODO determine what to do if we can't read the file
             return False
+
+    def update_limits(self, day, data_limit, offline_limit):
+        config = self._get_config()
+        self.data_day = config['normalized-cell-plan-date']
+        self.data_limit = config['cellular-data-limit']
+        self.offline_limit = config['storage-limit']
+        # return emission period in ms
+        return config['emission-period'] * 1000
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
