@@ -5,7 +5,6 @@ import io
 import sys
 import uuid
 import json
-import errno
 import zipfile
 import hashlib
 
@@ -38,9 +37,10 @@ class Client(object):
     commit_hash = None
     mac_hash = None
     offline_filename = "tmp/local.txt"
-    limits_filename = ".auklet/limits.txt"
+    limits_filename = ".auklet/limits"
     abs_path = None
 
+    reset_data = False
     data_day = 1
     data_limit = 20000
     data_current = 0
@@ -76,13 +76,7 @@ class Client(object):
                 pass
 
     def _create_file(self, filename):
-        if not os.path.exists(os.path.dirname(filename)):
-            try:
-                os.makedirs(os.path.dirname(filename))
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise
-        return True
+        open(filename, "w+").close()
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
@@ -126,9 +120,11 @@ class Client(object):
 
     def _write_to_local(self, data):
         try:
-            with open(self.offline_filename, "a") as offline:
-                offline.write(json.dumps(data))
-                offline.write("\n")
+
+            if self._check_offline_limits(data):
+                with open(self.offline_filename, "a") as offline:
+                    offline.write(json.dumps(data))
+                    offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
             return False
@@ -161,6 +157,14 @@ class Client(object):
         if temp_current >= self.offline_limit:
             return False
         return True
+
+    def check_date(self):
+        if datetime.today().day == self.data_day:
+            if self.reset_data:
+                self.data_current = 0
+                self.reset_data = False
+        else:
+            self.reset_data = True
 
     def update_limits(self):
         config = self._get_config()
@@ -199,9 +203,10 @@ class Client(object):
                     self.producer.send(self.producer_types[data_type],
                                        value=data)
                     self._produce_from_local()
-            except KafkaError:
-                if self._check_offline_limits(data):
+                else:
                     self._write_to_local(data)
+            except KafkaError:
+                self._write_to_local(data)
 
 
 class Runnable(object):
