@@ -38,12 +38,13 @@ class Client(object):
     commit_hash = None
     mac_hash = None
     offline_filename = "tmp/local.txt"
+    limits_filename = ".auklet/limits.txt"
     abs_path = None
 
     data_day = 1
-    data_limit = 0
+    data_limit = 20000
     data_current = 0
-    offline_limit = 0
+    offline_limit = 20000
     offline_current = 0
 
     def __init__(self, apikey=None, app_id=None,
@@ -56,6 +57,7 @@ class Client(object):
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
         self._create_file(self.offline_filename)
+        self._create_file(self.limits_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         if self._get_kafka_certs():
@@ -146,11 +148,35 @@ class Client(object):
             # TODO determine what to do if we can't read the file
             return False
 
-    def update_limits(self, day, data_limit, offline_limit):
+    def _check_data_limits(self, data):
+        data_size = len(json.dumps(data))
+        temp_current = self.data_current + data_size
+        if temp_current >= self.data_limit:
+            return False
+        return True
+
+    def _check_offline_limits(self, data):
+        data_size = len(json.dumps(data))
+        temp_current = self.offline_current + data_size
+        if temp_current >= self.offline_limit:
+            return False
+        return True
+
+    def update_limits(self):
         config = self._get_config()
-        self.data_day = config['normalized-cell-plan-date']
-        self.data_limit = config['cellular-data-limit']
-        self.offline_limit = config['storage-limit']
+        with open(self.limits_filename, 'a') as limits:
+            limits.truncate()
+            limits.write(json.dumps(config))
+        new_day = config['normalized-cell-plan-date']
+        new_data = config['cellular-data-limit'] * 1000
+        new_offline = config['storage-limit'] * 1000
+        if self.data_day != new_day:
+            self.data_day = new_day
+            self.data_current = 0
+        if self.data_limit != new_data:
+            self.data_limit = new_data
+        if self.offline_limit != new_offline:
+            self.offline_limit = new_offline
         # return emission period in ms
         return config['emission-period'] * 1000
 
@@ -169,11 +195,13 @@ class Client(object):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                self.producer.send(self.producer_types[data_type],
-                                   value=data)
-                self._produce_from_local()
+                if self._check_data_limits(data):
+                    self.producer.send(self.producer_types[data_type],
+                                       value=data)
+                    self._produce_from_local()
             except KafkaError:
-                self._write_to_local(data)
+                if self._check_offline_limits(data):
+                    self._write_to_local(data)
 
 
 class Runnable(object):

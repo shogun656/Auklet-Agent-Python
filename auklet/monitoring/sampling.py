@@ -21,7 +21,7 @@ class AukletSampler(Runnable):
     .. _Yappi: https://code.google.com/p/yappi/
     """
     client = None
-    emission_rate = 60000
+    emission_rate = 10000
     hour = 3600000
 
     def __init__(self, client, tree, *args, **kwargs):
@@ -32,7 +32,7 @@ class AukletSampler(Runnable):
         self.interval = INTERVAL
         self.client = client
         self.tree = tree
-        self.emission_rate = self.client.update_limits()
+        # self.emission_rate = self.client.update_limits()
         setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
@@ -43,8 +43,8 @@ class AukletSampler(Runnable):
             self.client.produce(
                 self.tree.build_tree(self.client.app_id))
             self.tree.clear_root()
-        if self.polling_counter % self.hour == 0:
-            self.emission_rate = self.client.update_limits()
+        # if self.polling_counter % self.hour == 0:
+        #     self.emission_rate = self.client.update_limits()
 
     def handle_exc(self, type, value, traceback):
         event = self.client.build_event_data(type, traceback,
