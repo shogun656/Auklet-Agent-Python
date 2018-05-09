@@ -30,6 +30,8 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_mac', 'get_device_ip', 'setup_thread_excepthook',
            'get_abs_path']
 
+MB_TO_B = 1e6
+
 
 class Client(object):
     producer_types = None
@@ -172,8 +174,8 @@ class Client(object):
             limits.truncate()
             limits.write(json.dumps(config))
         new_day = config['normalized-cell-plan-date']
-        new_data = config['cellular-data-limit'] * 1000
-        new_offline = config['storage-limit'] * 1000
+        new_data = config['cellular-data-limit'] * MB_TO_B
+        new_offline = config['storage-limit'] * MB_TO_B
         if self.data_day != new_day:
             self.data_day = new_day
             self.data_current = 0
