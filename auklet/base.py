@@ -31,6 +31,7 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_abs_path']
 
 MB_TO_B = 1e6
+S_TO_MS = 1000
 
 
 class Client(object):
@@ -137,7 +138,7 @@ class Client(object):
 
     def _write_to_local(self, data):
         try:
-            if self._check_offline_limits(data):
+            if self._check_data_limit(data, self.offline_current, True):
                 with open(self.offline_filename, "a") as offline:
                     offline.write(json.dumps(data))
                     offline.write("\n")
@@ -170,21 +171,15 @@ class Client(object):
         except IOError:
             return False
 
-    def _check_data_limits(self, data):
+    def _check_data_limit(self, data, current_use, offline=False):
         data_size = len(json.dumps(data))
-        temp_current = self.data_current + data_size
+        temp_current = current_use + data_size
         if temp_current >= self.data_limit:
             return False
-        self.data_current = temp_current
-        self._update_usage_file()
-        return True
-
-    def _check_offline_limits(self, data):
-        data_size = len(json.dumps(data))
-        temp_current = self.offline_current + data_size
-        if temp_current >= self.offline_limit:
-            return False
-        self.offline_filename = temp_current
+        if offline:
+            self.offline_current = temp_current
+        else:
+            self.data_current = temp_current
         self._update_usage_file()
         return True
 
@@ -212,7 +207,7 @@ class Client(object):
         if self.offline_limit != new_offline:
             self.offline_limit = new_offline
         # return emission period in ms
-        return config['emission-period'] * 1000
+        return config['emission-period'] * S_TO_MS
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
@@ -229,7 +224,7 @@ class Client(object):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                if self._check_data_limits(data):
+                if self._check_data_limits(data, self.data_current):
                     self.producer.send(self.producer_types[data_type],
                                        value=data)
                     self._produce_from_local()
