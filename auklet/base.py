@@ -38,15 +38,16 @@ class Client(object):
     brokers = None
     commit_hash = None
     mac_hash = None
-    offline_filename = "tmp/local.txt"
+    offline_filename = ".auklet/local.txt"
     limits_filename = ".auklet/limits"
+    usage_filename = ".auklet/usage"
     abs_path = None
 
     reset_data = False
     data_day = 1
-    data_limit = 20000
+    data_limit = 20000000  # 20mb
     data_current = 0
-    offline_limit = 20000
+    offline_limit = 20000000   # 20mb
     offline_current = 0
 
     def __init__(self, apikey=None, app_id=None,
@@ -58,17 +59,19 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
+        self._load_limits()
         self._create_file(self.offline_filename)
         self._create_file(self.limits_filename)
+        self._create_file(self.usage_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
                     "bootstrap_servers": self.brokers,
-                    "ssl_cafile": "tmp/ck_ca.pem",
-                    "ssl_certfile": "tmp/ck_cert.pem",
-                    "ssl_keyfile": "tmp/ck_private_key.pem",
+                    "ssl_cafile": ".auklet/ck_ca.pem",
+                    "ssl_certfile": ".auklet/ck_cert.pem",
+                    "ssl_keyfile": ".auklet/ck_private_key.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
                     "value_serializer": lambda m: b(json.dumps(m))
@@ -103,6 +106,18 @@ class Client(object):
             "log": kafka_info['log_topic']
         }
 
+    def _load_limits(self):
+        try:
+            with open(self.limits_filename, "r") as limits:
+                limits_str = limits.read()
+                if limits_str:
+                    data = json.loads(limits.read())
+                    self.data_day = data['normalized-cell-plan-date']
+                    self.data_limit = data['cellular-data-limit'] * MB_TO_B
+                    self.offline_limit = data['storage-limit'] * MB_TO_B
+        except IOError:
+            return
+
     def _get_kafka_certs(self):
         url = Request(self._build_url("private/devices/certificates/"),
                       headers={"Authorization": "JWT %s" % self.apikey})
@@ -114,7 +129,7 @@ class Client(object):
             res = urlopen(e.geturl())
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
-            filename = "tmp/%s.pem" % temp_file.filename
+            filename = ".auklet/%s.pem" % temp_file.filename
             self._create_file(filename)
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
@@ -122,7 +137,6 @@ class Client(object):
 
     def _write_to_local(self, data):
         try:
-
             if self._check_offline_limits(data):
                 with open(self.offline_filename, "a") as offline:
                     offline.write(json.dumps(data))
@@ -146,11 +160,23 @@ class Client(object):
             # TODO determine what to do if we can't read the file
             return False
 
+    def _build_usage_json(self):
+        return {"data": self.data_current, "offline": self.offline_current}
+
+    def _update_usage_file(self):
+        try:
+            with open(self.usage_filename, 'w') as usage:
+                usage.write(json.dumps(self._build_usage_json()))
+        except IOError:
+            return False
+
     def _check_data_limits(self, data):
         data_size = len(json.dumps(data))
         temp_current = self.data_current + data_size
         if temp_current >= self.data_limit:
             return False
+        self.data_current = temp_current
+        self._update_usage_file()
         return True
 
     def _check_offline_limits(self, data):
@@ -158,6 +184,8 @@ class Client(object):
         temp_current = self.offline_current + data_size
         if temp_current >= self.offline_limit:
             return False
+        self.offline_filename = temp_current
+        self._update_usage_file()
         return True
 
     def check_date(self):
