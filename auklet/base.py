@@ -233,7 +233,7 @@ def get_mac():
 def get_commit_hash():
     try:
         with open(".auklet/version", "r") as auklet_file:
-            return auklet_file.read()
+            return auklet_file.read().rstrip()
     except IOError:
         # TODO Error out app if no commit hash
         return ""
@@ -241,7 +241,7 @@ def get_commit_hash():
 
 def get_abs_path(path):
     try:
-        return os.path.abspath(path).split('.auklet')[0]
+        return os.path.abspath(path).split('/.auklet')[0]
     except IndexError:
         return ''
 
