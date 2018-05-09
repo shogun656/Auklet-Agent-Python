@@ -218,7 +218,7 @@ def get_commit_hash():
 
 def get_abs_path(path):
     try:
-        return os.path.abspath(path).split('.auklet')[0]
+        return os.path.abspath(path).split('/.auklet')[0]
     except IndexError:
         return ''
 
