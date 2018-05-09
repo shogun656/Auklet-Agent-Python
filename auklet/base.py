@@ -46,9 +46,9 @@ class Client(object):
 
     reset_data = False
     data_day = 1
-    data_limit = 20000000  # 20mb
+    data_limit = None
     data_current = 0
-    offline_limit = 20000000   # 20mb
+    offline_limit = None
     offline_current = 0
 
     def __init__(self, apikey=None, app_id=None,
@@ -89,11 +89,12 @@ class Client(object):
 
     def _get_config(self):
         url = Request(
-            self._build_url("app/applications/{}/".format(self.app_id)),
+            self._build_url("private/devices/app_config/{}/".format(
+                self.app_id)),
             headers={"Authorization": "JWT %s" % self.apikey}
         )
         res = urlopen(url)
-        return json.loads(u(res.read()))['data']['attributes']
+        return json.loads(u(res.read()))['data']['attributes']['config']
 
     def _get_kafka_brokers(self):
         url = Request(self._build_url("private/devices/config/"),
@@ -113,9 +114,19 @@ class Client(object):
                 limits_str = limits.read()
                 if limits_str:
                     data = json.loads(limits.read())
-                    self.data_day = data['normalized-cell-plan-date']
-                    self.data_limit = data['cellular-data-limit'] * MB_TO_B
-                    self.offline_limit = data['storage-limit'] * MB_TO_B
+                    self.data_day = data['data']['normalized-cell-plan-date']
+                    temp_limit = data['data']['cellular-data-limit']
+                    if temp_limit is not None:
+                        self.data_limit = data['data'][
+                                              'cellular-data-limit'] * MB_TO_B
+                    else:
+                        self.data_limit = temp_limit
+                    temp_offline = data['storage']['storage-limit']
+                    if temp_offline is not None:
+                        self.offline_limit = data['storage'][
+                                                 'storage-limit'] * MB_TO_B
+                    else:
+                        self.offline_limit = data['storage']['storage-limit']
         except IOError:
             return
 
@@ -172,6 +183,10 @@ class Client(object):
             return False
 
     def _check_data_limit(self, data, current_use, offline=False):
+        if self.offline_limit is None and offline:
+            return True
+        if self.data_limit is None and not offline:
+            return True
         data_size = len(json.dumps(data))
         temp_current = current_use + data_size
         if temp_current >= self.data_limit:
@@ -196,9 +211,17 @@ class Client(object):
         with open(self.limits_filename, 'a') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
-        new_day = config['normalized-cell-plan-date']
-        new_data = config['cellular-data-limit'] * MB_TO_B
-        new_offline = config['storage-limit'] * MB_TO_B
+        new_day = config['data']['normalized-cell-plan-date']
+        temp_limit = config['data']['cellular-data-limit']
+        if temp_limit is not None:
+            new_data = config['data']['cellular-data-limit'] * MB_TO_B
+        else:
+            new_data = temp_limit
+        temp_offline = config['storage']['storage-limit']
+        if temp_offline is not None:
+            new_offline = config['storage']['storage-limit'] * MB_TO_B
+        else:
+            new_offline = config['storage']['storage-limit']
         if self.data_day != new_day:
             self.data_day = new_day
             self.data_current = 0
