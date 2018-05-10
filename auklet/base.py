@@ -89,7 +89,7 @@ class Client(object):
 
     def _get_config(self):
         url = Request(
-            self._build_url("private/devices/app_config/{}/".format(
+            self._build_url("private/devices/{}/app_config/".format(
                 self.app_id)),
             headers={"Authorization": "JWT %s" % self.apikey}
         )
