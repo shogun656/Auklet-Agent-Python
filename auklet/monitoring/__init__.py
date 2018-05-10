@@ -41,7 +41,8 @@ class Monitoring(MonitoringBase):
     sampler = None
     tree = None
 
-    def __init__(self, apikey=None, app_id=None, base_url=None):
+    def __init__(self, apikey=None, app_id=None,
+                 base_url="https://api.auklet.io/"):
         self.mac_hash = get_mac()
         client = Client(apikey, app_id, base_url, self.mac_hash)
         self.tree = MonitoringTree(self.mac_hash)
