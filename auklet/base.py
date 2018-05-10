@@ -71,8 +71,6 @@ class Client(object):
                 self.producer = KafkaProducer(**{
                     "bootstrap_servers": self.brokers,
                     "ssl_cafile": ".auklet/ck_ca.pem",
-                    "ssl_certfile": ".auklet/ck_cert.pem",
-                    "ssl_keyfile": ".auklet/ck_private_key.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
                     "value_serializer": lambda m: b(json.dumps(m))
