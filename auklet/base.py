@@ -5,7 +5,6 @@ import io
 import sys
 import uuid
 import json
-import errno
 import zipfile
 import hashlib
 
@@ -31,14 +30,26 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_mac', 'get_device_ip', 'setup_thread_excepthook',
            'get_abs_path']
 
+MB_TO_B = 1e6
+S_TO_MS = 1000
+
 
 class Client(object):
     producer_types = None
     brokers = None
     commit_hash = None
     mac_hash = None
-    offline_fliename = "tmp/local.txt"
+    offline_filename = ".auklet/local.txt"
+    limits_filename = ".auklet/limits"
+    usage_filename = ".auklet/usage"
     abs_path = None
+
+    reset_data = False
+    data_day = 1
+    data_limit = None
+    data_current = 0
+    offline_limit = None
+    offline_current = 0
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
@@ -49,16 +60,19 @@ class Client(object):
         self.producer = None
         self._get_kafka_brokers()
         self.mac_hash = mac_hash
-        self._create_file(self.offline_fliename)
+        self._load_limits()
+        self._create_file(self.offline_filename)
+        self._create_file(self.limits_filename)
+        self._create_file(self.usage_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         if self._get_kafka_certs():
             try:
                 self.producer = KafkaProducer(**{
                     "bootstrap_servers": self.brokers,
-                    "ssl_cafile": "tmp/ck_ca.pem",
-                    "ssl_certfile": "tmp/ck_cert.pem",
-                    "ssl_keyfile": "tmp/ck_private_key.pem",
+                    "ssl_cafile": ".auklet/ck_ca.pem",
+                    "ssl_certfile": ".auklet/ck_cert.pem",
+                    "ssl_keyfile": ".auklet/ck_private_key.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
                     "value_serializer": lambda m: b(json.dumps(m))
@@ -68,16 +82,19 @@ class Client(object):
                 pass
 
     def _create_file(self, filename):
-        if not os.path.exists(os.path.dirname(filename)):
-            try:
-                os.makedirs(os.path.dirname(filename))
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise
-        return True
+        open(filename, "w+").close()
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
+
+    def _get_config(self):
+        url = Request(
+            self._build_url("private/devices/{}/app_config/".format(
+                self.app_id)),
+            headers={"Authorization": "JWT %s" % self.apikey}
+        )
+        res = urlopen(url)
+        return json.loads(u(res.read()))['data']['attributes']['config']
 
     def _get_kafka_brokers(self):
         url = Request(self._build_url("private/devices/config/"),
@@ -91,6 +108,28 @@ class Client(object):
             "log": kafka_info['log_topic']
         }
 
+    def _load_limits(self):
+        try:
+            with open(self.limits_filename, "r") as limits:
+                limits_str = limits.read()
+                if limits_str:
+                    data = json.loads(limits.read())
+                    self.data_day = data['data']['normalized-cell-plan-date']
+                    temp_limit = data['data']['cellular-data-limit']
+                    if temp_limit is not None:
+                        self.data_limit = data['data'][
+                                              'cellular-data-limit'] * MB_TO_B
+                    else:
+                        self.data_limit = temp_limit
+                    temp_offline = data['storage']['storage-limit']
+                    if temp_offline is not None:
+                        self.offline_limit = data['storage'][
+                                                 'storage-limit'] * MB_TO_B
+                    else:
+                        self.offline_limit = data['storage']['storage-limit']
+        except IOError:
+            return
+
     def _get_kafka_certs(self):
         url = Request(self._build_url("private/devices/certificates/"),
                       headers={"Authorization": "JWT %s" % self.apikey})
@@ -102,7 +141,7 @@ class Client(object):
             res = urlopen(e.geturl())
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
-            filename = "tmp/%s.pem" % temp_file.filename
+            filename = ".auklet/%s.pem" % temp_file.filename
             self._create_file(filename)
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
@@ -110,16 +149,17 @@ class Client(object):
 
     def _write_to_local(self, data):
         try:
-            with open(self.offline_fliename, "a") as offline:
-                offline.write(json.dumps(data))
-                offline.write("\n")
+            if self._check_data_limit(data, self.offline_current, True):
+                with open(self.offline_filename, "a") as offline:
+                    offline.write(json.dumps(data))
+                    offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
             return False
 
     def _produce_from_local(self):
         try:
-            with open(self.offline_fliename, 'r+') as offline:
+            with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
                     loaded = json.loads(line)
@@ -131,6 +171,66 @@ class Client(object):
         except IOError:
             # TODO determine what to do if we can't read the file
             return False
+
+    def _build_usage_json(self):
+        return {"data": self.data_current, "offline": self.offline_current}
+
+    def _update_usage_file(self):
+        try:
+            with open(self.usage_filename, 'w') as usage:
+                usage.write(json.dumps(self._build_usage_json()))
+        except IOError:
+            return False
+
+    def _check_data_limit(self, data, current_use, offline=False):
+        if self.offline_limit is None and offline:
+            return True
+        if self.data_limit is None and not offline:
+            return True
+        data_size = len(json.dumps(data))
+        temp_current = current_use + data_size
+        if temp_current >= self.data_limit:
+            return False
+        if offline:
+            self.offline_current = temp_current
+        else:
+            self.data_current = temp_current
+        self._update_usage_file()
+        return True
+
+    def check_date(self):
+        if datetime.today().day == self.data_day:
+            if self.reset_data:
+                self.data_current = 0
+                self.reset_data = False
+        else:
+            self.reset_data = True
+
+    def update_limits(self):
+        config = self._get_config()
+        with open(self.limits_filename, 'a') as limits:
+            limits.truncate()
+            limits.write(json.dumps(config))
+        new_day = config['data']['normalized-cell-plan-date']
+        temp_limit = config['data']['cellular-data-limit']
+        if temp_limit is not None:
+            new_data = config['data']['cellular-data-limit'] * MB_TO_B
+        else:
+            new_data = temp_limit
+        temp_offline = config['storage']['storage-limit']
+        if temp_offline is not None:
+            new_offline = config['storage']['storage-limit'] * MB_TO_B
+        else:
+            new_offline = config['storage']['storage-limit']
+        if self.data_day != new_day:
+            self.data_day = new_day
+            self.data_current = 0
+        if self.data_limit != new_data:
+            self.data_limit = new_data
+        if self.offline_limit != new_offline:
+            self.offline_limit = new_offline
+        # return emission period in ms
+        return config['emission-period'] * S_TO_MS
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
@@ -147,9 +247,12 @@ class Client(object):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                self.producer.send(self.producer_types[data_type],
-                                   value=data)
-                self._produce_from_local()
+                if self._check_data_limits(data, self.data_current):
+                    self.producer.send(self.producer_types[data_type],
+                                       value=data)
+                    self._produce_from_local()
+                else:
+                    self._write_to_local(data)
             except KafkaError:
                 self._write_to_local(data)
 

@@ -21,25 +21,31 @@ class AukletSampler(Runnable):
     .. _Yappi: https://code.google.com/p/yappi/
     """
     client = None
+    emission_rate = 10000
+    hour = 3600000
 
     def __init__(self, client, tree, *args, **kwargs):
         sys.excepthook = self.handle_exc
         self.sampled_times = {}
         self.counter = 0
+        self.polling_counter = 0
         self.interval = INTERVAL
         self.client = client
         self.tree = tree
+        self.emission_rate = self.client.update_limits()
         setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
         profiler.sample(frame, event)
         self.counter += 1
-        if self.counter % 10000 == 0:
-            # Produce tree to kafka every 10 seconds
-            # TODO read the produce interval from application on the backend
+        self.polling_counter += 1
+        if self.counter % self.emission_rate == 0:
             self.client.produce(
                 self.tree.build_tree(self.client.app_id))
             self.tree.clear_root()
+        if self.polling_counter % self.hour == 0:
+            self.emission_rate = self.client.update_limits()
+            self.client.check_date()
 
     def handle_exc(self, type, value, traceback):
         event = self.client.build_event_data(type, traceback,
