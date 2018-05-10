@@ -13,8 +13,11 @@ if [[ "$ENVDIR" == "production" ]]; then
   echo 'Deploying to PyPI...'
   # Update setuptools so we have a version that supports Markdown READMEs.
   # twine is also required.
-  pip install -U setuptools twine
+  pip install -U setuptools twine wheel
   # Make and upload the distribution.
-  python setup.py sdist
-  twine upload dist/*
+  python setup.py sdist bdist_wheel
+  twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+  # Push to public GitHub repo.
+  git remote add aukletio git@github.com:aukletio/Auklet-Agent-Python.git
+  git push aukletio HEAD:master
 fi

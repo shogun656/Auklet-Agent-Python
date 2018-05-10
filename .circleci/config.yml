@@ -63,6 +63,11 @@ jobs:
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     bash .devops/whitesource.sh
                   fi
+            - run:
+                name: Test PyPI deployment
+                command: |
+                  set -ou pipefail
+                  bash .devops/deploy.sh production
 
             ##
             # SAVE CACHES
