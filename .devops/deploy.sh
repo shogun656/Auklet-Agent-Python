@@ -17,8 +17,11 @@ sudo pip install -U setuptools twine wheel
 # Make and upload the distribution.
 python setup.py sdist bdist_wheel
 if [[ "$TWINE_REPOSITORY_URL" != "" ]]; then
-  twine register --repository-url $TWINE_REPOSITORY_URL $(cd dist ; ls *.gz)
-  twine upload --repository-url $TWINE_REPOSITORY_URL dist/*
+  echo '[pypitest]' > ~/.pypirc
+  echo "repository=$TWINE_REPOSITORY_URL" >> ~/.pypirc
+  chmod 600 ~/.pypirc
+  twine register -r pypitest $(cd dist ; ls *.gz)
+  twine upload -r pypitest dist/*
 else
   twine upload dist/*
 fi
