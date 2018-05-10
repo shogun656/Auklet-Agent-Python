@@ -17,9 +17,9 @@ sudo pip install -U setuptools twine wheel
 # Make and upload the distribution.
 python setup.py sdist bdist_wheel
 if [[ "$TWINE_REPOSITORY_URL" != "" ]]; then
-  twine upload --repository-url $TWINE_REPOSITORY_URL dist/*
+  #twine upload --repository-url $TWINE_REPOSITORY_URL dist/*
 else
-  twine upload dist/*
+  #twine upload dist/*
 fi
 if [[ "$ENVDIR" == "production" ]]; then
   # Push to public GitHub repo.
