@@ -1,3 +1,7 @@
+# Portions of this file are taken from
+# https://github.com/what-studio/profiling/tree/0.1.1,
+# the license for which can be found in the "licenses/profiling.txt" file
+# in this repository/package.
 from __future__ import absolute_import, unicode_literals
 
 import os
