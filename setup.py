@@ -21,7 +21,7 @@ def requirements(filename):
 
 
 # Get the version from the about file.
-execfile('auklet/__about__.py')
+exec(open('auklet/__about__.py').read())
 
 
 setup(
