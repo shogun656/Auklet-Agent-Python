@@ -23,7 +23,12 @@ sudo pip install -U setuptools twine wheel
 # fi
 if [[ "$ENVDIR" == "production" ]]; then
   # Push to public GitHub repo.
-  # The name of the id_rsa file below is NOT sensitive, but should be better parameterized in the future.
-  git remote add aukletio git@github.com:aukletio/Auklet-Agent-Python.git
-  GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa_e2051dd2cf60b4adf0f3a92f8aec574c' git push aukletio HEAD:master
+  # The hostname "aukletio.github.com" is intentional and it matches the "ssh-config-aukletio" file.
+  mv ~/.ssh/config ~/.ssh/config-bak
+  cp .devops/ssh-config-aukletio ~/.ssh/config
+  chmod 400 ~/.ssh/config
+  git remote add aukletio git@aukletio.github.com:aukletio/Auklet-Agent-Python.git
+  git push aukletio HEAD:master
+  rm -f ~/.ssh/config
+  mv ~/.ssh/config-bak ~/.ssh/config
 fi
