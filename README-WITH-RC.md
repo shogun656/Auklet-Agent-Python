@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.1.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.0)
+
 ### [0.1.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.0-rc.1)
 
 **Implemented enhancements:**
