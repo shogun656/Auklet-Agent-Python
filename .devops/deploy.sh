@@ -13,7 +13,7 @@ if [[ "$ENVDIR" == "production" ]]; then
   echo 'Deploying to PyPI...'
   # Update setuptools so we have a version that supports Markdown READMEs.
   # twine is also required.
-  pip install -U setuptools twine wheel
+  sudo pip install -U setuptools twine wheel
   # Make and upload the distribution.
   python setup.py sdist bdist_wheel
   twine upload --repository-url https://test.pypi.org/legacy/ dist/*
