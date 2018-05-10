@@ -34,8 +34,7 @@ setup(
     long_description_content_type='text/markdown',
     author = 'Auklet',
     author_email = 'hello@auklet.io',
-    url = 'https://github.com/ESG-USA/Auklet-Agent-Python',
-    download_url = "https://github.com/ESG-USA/Auklet-Agent-Python/archive/{0}.tar.gz".format(__semver__),
+    url = 'https://github.com/aukletio/Auklet-Agent-Python',
     keywords = ['iot', 'performance', 'monitoring'],
     entry_points={
     },
