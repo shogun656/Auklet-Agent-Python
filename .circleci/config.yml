@@ -67,6 +67,7 @@ jobs:
                 name: Test PyPI deployment
                 command: |
                   set -ou pipefail
+                  export TWINE_REPOSITORY_URL='https://test.pypi.org/legacy/'
                   bash .devops/deploy.sh production
 
             ##
