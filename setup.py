@@ -29,6 +29,7 @@ setup(
     version=__version__,
     platforms='linux',
     packages=find_packages(),
+    include_package_data=True,
     description = 'Auklet performance monitoring agent for Python IoT apps',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
