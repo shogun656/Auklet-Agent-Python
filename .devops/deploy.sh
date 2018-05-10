@@ -16,6 +16,8 @@ if [[ "$ENVDIR" == "production" ]]; then
   sudo pip install -U setuptools twine wheel
   # Make and upload the distribution.
   python setup.py sdist bdist_wheel
+  ls -al dist
+  #twine register --repository-url https://test.pypi.org/legacy/ ???
   twine upload --repository-url https://test.pypi.org/legacy/ dist/*
   # Push to public GitHub repo.
   git remote add aukletio git@github.com:aukletio/Auklet-Agent-Python.git
