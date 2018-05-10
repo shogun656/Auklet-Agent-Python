@@ -20,10 +20,7 @@ if [[ "$TWINE_REPOSITORY_URL" != "" ]]; then
   echo '[pypitest]' > ~/.pypirc
   echo "repository=$TWINE_REPOSITORY_URL" >> ~/.pypirc
   chmod 600 ~/.pypirc
-  cd dist
-  twine register -r pypitest $(ls *.gz)
-  twine upload -r pypitest *
-  cd ..
+  twine upload -r pypitest dist/*
 else
   twine upload dist/*
 fi
