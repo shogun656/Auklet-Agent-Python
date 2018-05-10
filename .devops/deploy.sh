@@ -16,14 +16,7 @@ echo 'Deploying to PyPI...'
 sudo pip install -U setuptools twine wheel
 # Make and upload the distribution.
 python setup.py sdist bdist_wheel
-if [[ "$TWINE_REPOSITORY_URL" != "" ]]; then
-  echo '[pypitest]' > ~/.pypirc
-  echo "repository=$TWINE_REPOSITORY_URL" >> ~/.pypirc
-  chmod 600 ~/.pypirc
-  twine upload -r pypitest dist/*
-else
-  twine upload dist/*
-fi
+twine upload dist/*
 if [[ "$ENVDIR" == "production" ]]; then
   # Push to public GitHub repo.
   git remote add aukletio git@github.com:aukletio/Auklet-Agent-Python.git
