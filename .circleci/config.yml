@@ -6,7 +6,7 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         docker:
-            - image: circleci/node:9-stretch
+            - image: circleci/python:3.6-jessie-node
         steps:
 
             ##
@@ -36,19 +36,45 @@ jobs:
                 command: |
                   git config --global user.email "$ESGBOT_GIT_EMAIL" && git config --global user.name "$ESGBOT_GIT_NAME"
                   bash .devops/calculate-app-version.sh
-                  cp ~/.version VERSION
+                  bash .devops/semverTo440.sh
+                  sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__about__.py
+                  VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
+                  sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
 
             ##
             # RESTORE CACHES
             ##
+            - restore_cache:
+                key: v1-whitesource-cache-{{ checksum "requirements.txt" }}
+            - restore_cache:
+                key: v1-pip-cache-{{ arch }}-{{ checksum "requirements.txt" }}
+            - run:
+                name: Ensure caches exist
+                command: |
+                  mkdir -p ~/.cache/pip ~/.whitesource-pip
 
             ##
             # TESTS
             ##
+            - run:
+                name: Run Whitesource
+                command: |
+                  set -ou pipefail
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    bash .devops/whitesource.sh
+                  fi
 
             ##
             # SAVE CACHES
             ##
+            - save_cache:
+                key: v1-whitesource-cache-{{ checksum "requirements.txt" }}
+                paths:
+                    - /home/circleci/.whitesource-pip
+            - save_cache:
+                key: v1-pip-cache-{{ arch }}-{{ checksum "requirements.txt" }}
+                paths:
+                    - /home/circleci/.cache/pip
 
             ##
             # DEPLOYMENT

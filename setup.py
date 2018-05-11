@@ -20,11 +20,23 @@ def requirements(filename):
         return [x.strip() for x in f.readlines() if x.strip()]
 
 
+# Get the version from the about file.
+exec(open('auklet/__about__.py').read())
+
+
 setup(
     name='auklet',
-    version='0.1.0-a.local.build',
+    version=__version__,
     platforms='linux',
     packages=find_packages(),
+    include_package_data=True,
+    description = 'Auklet performance monitoring agent for Python IoT apps',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+    author = 'Auklet',
+    author_email = 'hello@auklet.io',
+    url = 'https://github.com/aukletio/Auklet-Agent-Python',
+    keywords = ['iot', 'performance', 'monitoring'],
     entry_points={
     },
     classifiers=[
