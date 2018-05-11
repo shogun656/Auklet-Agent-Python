@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- App Config Endpoint and Function Name Fixes [#15](https://github.com/ESG-USA/Auklet-Agent-Python/pull/15) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.1.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.0)
 
 **Implemented enhancements:**
