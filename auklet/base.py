@@ -98,7 +98,7 @@ class Client(object):
             headers={"Authorization": "JWT %s" % self.apikey}
         )
         res = urlopen(url)
-        return json.loads(u(res.read()))['data']['attributes']['config']
+        return json.loads(u(res.read()))['config']
 
     def _get_kafka_brokers(self):
         url = Request(self._build_url("private/devices/config/"),
@@ -117,20 +117,20 @@ class Client(object):
             with open(self.limits_filename, "r") as limits:
                 limits_str = limits.read()
                 if limits_str:
-                    data = json.loads(limits.read())
-                    self.data_day = data['data']['normalized-cell-plan-date']
-                    temp_limit = data['data']['cellular-data-limit']
+                    data = json.loads(limits_str)
+                    self.data_day = data['data']['normalized_cell_plan_date']
+                    temp_limit = data['data']['cellular_data_limit']
                     if temp_limit is not None:
                         self.data_limit = data['data'][
-                                              'cellular-data-limit'] * MB_TO_B
+                                              'cellular_data_limit'] * MB_TO_B
                     else:
                         self.data_limit = temp_limit
-                    temp_offline = data['storage']['storage-limit']
+                    temp_offline = data['storage']['storage_limit']
                     if temp_offline is not None:
                         self.offline_limit = data['storage'][
-                                                 'storage-limit'] * MB_TO_B
+                                                 'storage_limit'] * MB_TO_B
                     else:
-                        self.offline_limit = data['storage']['storage-limit']
+                        self.offline_limit = data['storage']['storage_limit']
         except IOError:
             return
 
@@ -215,17 +215,17 @@ class Client(object):
         with open(self.limits_filename, 'a') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
-        new_day = config['data']['normalized-cell-plan-date']
-        temp_limit = config['data']['cellular-data-limit']
+        new_day = config['data']['normalized_cell_plan_date']
+        temp_limit = config['data']['cellular_data_limit']
         if temp_limit is not None:
-            new_data = config['data']['cellular-data-limit'] * MB_TO_B
+            new_data = config['data']['cellular_data_limit'] * MB_TO_B
         else:
             new_data = temp_limit
-        temp_offline = config['storage']['storage-limit']
+        temp_offline = config['storage']['storage_limit']
         if temp_offline is not None:
-            new_offline = config['storage']['storage-limit'] * MB_TO_B
+            new_offline = config['storage']['storage_limit'] * MB_TO_B
         else:
-            new_offline = config['storage']['storage-limit']
+            new_offline = config['storage']['storage_limit']
         if self.data_day != new_day:
             self.data_day = new_day
             self.data_current = 0
@@ -234,7 +234,7 @@ class Client(object):
         if self.offline_limit != new_offline:
             self.offline_limit = new_offline
         # return emission period in ms
-        return config['emission-period'] * S_TO_MS
+        return config['emission_period'] * S_TO_MS
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
@@ -251,7 +251,7 @@ class Client(object):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                if self._check_data_limits(data, self.data_current):
+                if self._check_data_limit(data, self.data_current):
                     self.producer.send(self.producer_types[data_type],
                                        value=data)
                     self._produce_from_local()
