@@ -214,7 +214,7 @@ class Client(object):
 
     def update_limits(self):
         config = self._get_config()
-        with open(self.limits_filename, 'a') as limits:
+        with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
         new_day = config['data']['normalized_cell_plan_date']
