@@ -197,3 +197,5 @@ dist/*
 build/*
 auklet.egg-info/*
 tmp/*
+.auklet/*
+auklet/example_app.py

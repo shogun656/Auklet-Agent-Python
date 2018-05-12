@@ -38,6 +38,10 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
 MB_TO_B = 1e6
 S_TO_MS = 1000
 
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='(%(threadName)-10s) %(message)s')
+
 
 class Client(object):
     producer_types = None
@@ -81,7 +85,8 @@ class Client(object):
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
                     "value_serializer": lambda m: b(json.dumps(m)),
-                    "ssl_context": ctx
+                    "ssl_context": ctx,
+                    "api_version": "0.10.1"
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
@@ -214,7 +219,7 @@ class Client(object):
 
     def update_limits(self):
         config = self._get_config()
-        with open(self.limits_filename, 'a') as limits:
+        with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
         new_day = config['data']['normalized_cell_plan_date']
