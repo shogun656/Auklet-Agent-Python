@@ -7,6 +7,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import io
 import sys
+import ssl
 import uuid
 import json
 import zipfile
@@ -72,12 +73,15 @@ class Client(object):
         self.abs_path = get_abs_path(".auklet/version")
         if self._get_kafka_certs():
             try:
+                ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+                ctx.options &= ~ssl.OP_NO_SSLv3
                 self.producer = KafkaProducer(**{
                     "bootstrap_servers": self.brokers,
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(json.dumps(m))
+                    "value_serializer": lambda m: b(json.dumps(m)),
+                    "ssl_context": ctx
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
