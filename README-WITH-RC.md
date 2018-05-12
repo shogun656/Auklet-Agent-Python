@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.1.2-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.2-rc.1)
+
+**Fixed bugs:**
+
+- Don't Append To Local Limits File [#19](https://github.com/ESG-USA/Auklet-Agent-Python/pull/19) ([tylerwiersing](https://github.com/tylerwiersing))
+- Only CA Cert [#13](https://github.com/ESG-USA/Auklet-Agent-Python/pull/13) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.1.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.1)
 
 ### [0.1.1-rc.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.1-rc.2)
