@@ -38,6 +38,10 @@ __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
 MB_TO_B = 1e6
 S_TO_MS = 1000
 
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='(%(threadName)-10s) %(message)s')
+
 
 class Client(object):
     producer_types = None
