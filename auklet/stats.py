@@ -85,7 +85,7 @@ class Event(object):
         tb = []
         while trace:
             frame = trace.tb_frame
-            path = inspect.getsourcefile(frame) or inspect.getfile(frame)
+            path = tree.get_filename(frame.f_code, frame)
             if self._filter_frame(path):
                 trace = trace.tb_next
                 continue
@@ -106,6 +106,7 @@ class MonitoringTree(object):
     public_ip = None
     mac_hash = None
     abs_path = None
+    cached_filenames = {}
 
     def __init__(self, mac_hash=None):
         from auklet.base import get_device_ip, get_commit_hash, get_abs_path
@@ -113,6 +114,15 @@ class MonitoringTree(object):
         self.public_ip = get_device_ip()
         self.abs_path = get_abs_path('.auklet/version')
         self.mac_hash = mac_hash
+
+    def get_filename(self, code, frame):
+        key = code.co_code
+        file_name = self.cached_filenames.get(code.co_code, None)
+        if file_name is None:
+            file_name = inspect.getsourcefile(frame) or \
+                        inspect.getfile(frame)
+            self.cached_filenames[key] = file_name
+        return file_name
 
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
@@ -128,7 +138,8 @@ class MonitoringTree(object):
         if frame[1]:
             calls = 1
         frame = frame[0]
-        file_path = inspect.getsourcefile(frame) or inspect.getfile(frame)
+
+        file_path = self.get_filename(frame.f_code, frame)
         if self.abs_path in file_path:
             file_path = file_path.replace(self.abs_path, '')
         return Function(
@@ -139,26 +150,23 @@ class MonitoringTree(object):
             calls=calls
         )
 
-    def _remove_ignored_frames(self, new_stack):
-        cleansed_stack = []
-        for frame in new_stack:
-            file_name = inspect.getsourcefile(frame[0]) or \
-                        inspect.getfile(frame[0])
-            if "site-packages" not in file_name and \
-                    "Python.framework" not in file_name and \
-                    "auklet" not in file_name and \
-                    "lib/python" not in file_name and \
-                    "importlib" not in file_name:
-                cleansed_stack.append(frame)
-        return cleansed_stack
+    def _filter_frame(self, file_name):
+        if "site-packages" in file_name and \
+                "Python.framework" in file_name and \
+                "auklet" in file_name and \
+                "lib/python" in file_name and \
+                "importlib" in file_name:
+            return True
+        return False
 
     def _build_tree(self, new_stack):
-        new_stack = self._remove_ignored_frames(new_stack)
         root_func = self._create_frame_func(None, True)
         parent_func = root_func
         for frame in reversed(new_stack):
             current_func = self._create_frame_func(
                 frame, parent=parent_func)
+            if self._filter_frame(current_func.file_path):
+                continue
             parent_func.children.append(current_func)
             parent_func = current_func
         return root_func
