@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- Frame Loop Optimization [#21](https://github.com/ESG-USA/Auklet-Agent-Python/pull/21) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.1.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.2)
 
 **Fixed bugs:**
