@@ -251,7 +251,7 @@ class Client(object):
         return event_dict
 
     def build_log_data(self, record):
-        log_dict = {
+        return {
             "message": record.message,
             "level": record.levelname,
             "application": self.app_id,
@@ -263,8 +263,6 @@ class Client(object):
             "macAddressHash": self.mac_hash,
             "commitHash": self.commit_hash
         }
-        print(log_dict)
-        return log_dict
 
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
