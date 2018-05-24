@@ -250,19 +250,21 @@ class Client(object):
         event_dict['commitHash'] = self.commit_hash
         return event_dict
 
-    def build_log_data(self, record):
-        return {
-            "message": record.message,
-            "level": record.levelname,
+    def build_log_data(self, msg, data_type, level):
+        log_dict = {
+            "message": msg,
+            "type": data_type,
+            "level": level,
             "application": self.app_id,
             "publicIP": get_device_ip(),
             "id": str(uuid4()),
-            "created": record.created,
             "timestamp": str(datetime.utcnow()),
             "systemMetrics": dict(SystemMetrics()),
             "macAddressHash": self.mac_hash,
             "commitHash": self.commit_hash
         }
+        print(log_dict)
+        return log_dict
 
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
