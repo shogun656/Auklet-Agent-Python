@@ -71,7 +71,7 @@ class Event(object):
         yield "excType", self.exc_type
 
     def _filter_frame(self, file_name):
-        if "auklet" in file_name:
+        if "auklet" in file_name or file_name is None:
             return True
         return False
 
@@ -119,8 +119,13 @@ class MonitoringTree(object):
         key = code.co_code
         file_name = self.cached_filenames.get(code.co_code, None)
         if file_name is None:
-            file_name = inspect.getsourcefile(frame) or \
-                        inspect.getfile(frame)
+            try:
+                file_name = inspect.getsourcefile(frame) or \
+                            inspect.getfile(frame)
+            except (TypeError, AttributeError):
+                # These functions will fail if the frame is of a
+                # built-in module, class or function
+                return None
             self.cached_filenames[key] = file_name
         return file_name
 
@@ -140,6 +145,7 @@ class MonitoringTree(object):
         frame = frame[0]
 
         file_path = self.get_filename(frame.f_code, frame)
+
         if self.abs_path in file_path:
             file_path = file_path.replace(self.abs_path, '')
         return Function(
@@ -151,11 +157,12 @@ class MonitoringTree(object):
         )
 
     def _filter_frame(self, file_name):
-        if "site-packages" in file_name and \
-                "Python.framework" in file_name and \
-                "auklet" in file_name and \
-                "lib/python" in file_name and \
-                "importlib" in file_name:
+        if "site-packages" in file_name or \
+                "Python.framework" in file_name or \
+                "auklet" in file_name or \
+                "lib/python" in file_name or \
+                "importlib" in file_name or \
+                file_name is None:
             return True
         return False
 
