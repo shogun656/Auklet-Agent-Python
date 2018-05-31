@@ -59,6 +59,7 @@ class Event(object):
     exc_type = None
     line_num = 0
     abs_path = None
+    filters = ["auklet"]
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
@@ -71,7 +72,8 @@ class Event(object):
         yield "excType", self.exc_type
 
     def _filter_frame(self, file_name):
-        if "auklet" in file_name or file_name is None:
+        if any(filter_str in file_name for filter_str in self.filters) or \
+                file_name is None:
             return True
         return False
 
@@ -107,6 +109,8 @@ class MonitoringTree(object):
     mac_hash = None
     abs_path = None
     cached_filenames = {}
+    filters = ["site-packages", "Python.framework", "auklet", "lib/python",
+               "importlib"]
 
     def __init__(self, mac_hash=None):
         from auklet.base import get_device_ip, get_commit_hash, get_abs_path
@@ -157,11 +161,7 @@ class MonitoringTree(object):
         )
 
     def _filter_frame(self, file_name):
-        if "site-packages" in file_name or \
-                "Python.framework" in file_name or \
-                "auklet" in file_name or \
-                "lib/python" in file_name or \
-                "importlib" in file_name or \
+        if any(filter_str in file_name for filter_str in self.filters) or \
                 file_name is None:
             return True
         return False
