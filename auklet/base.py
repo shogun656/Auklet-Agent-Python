@@ -257,7 +257,6 @@ class Client(object):
         return event_dict
 
     def produce(self, data, data_type="monitoring"):
-        # print("{}:  {}".format(data_type, data))
         if self.producer is not None:
             try:
                 if self._check_data_limit(data, self.data_current):
