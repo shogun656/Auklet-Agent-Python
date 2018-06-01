@@ -59,6 +59,7 @@ class Event(object):
     exc_type = None
     line_num = 0
     abs_path = None
+    filters = ["auklet"]
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
@@ -71,7 +72,8 @@ class Event(object):
         yield "excType", self.exc_type
 
     def _filter_frame(self, file_name):
-        if "auklet" in file_name:
+        if any(filter_str in file_name for filter_str in self.filters) or \
+                file_name is None:
             return True
         return False
 
@@ -107,6 +109,8 @@ class MonitoringTree(object):
     mac_hash = None
     abs_path = None
     cached_filenames = {}
+    filters = ["site-packages", "Python.framework", "auklet", "lib/python",
+               "importlib"]
 
     def __init__(self, mac_hash=None):
         from auklet.base import get_device_ip, get_commit_hash, get_abs_path
@@ -119,8 +123,13 @@ class MonitoringTree(object):
         key = code.co_code
         file_name = self.cached_filenames.get(code.co_code, None)
         if file_name is None:
-            file_name = inspect.getsourcefile(frame) or \
-                        inspect.getfile(frame)
+            try:
+                file_name = inspect.getsourcefile(frame) or \
+                            inspect.getfile(frame)
+            except (TypeError, AttributeError):
+                # These functions will fail if the frame is of a
+                # built-in module, class or function
+                return None
             self.cached_filenames[key] = file_name
         return file_name
 
@@ -140,6 +149,7 @@ class MonitoringTree(object):
         frame = frame[0]
 
         file_path = self.get_filename(frame.f_code, frame)
+
         if self.abs_path in file_path:
             file_path = file_path.replace(self.abs_path, '')
         return Function(
@@ -151,11 +161,8 @@ class MonitoringTree(object):
         )
 
     def _filter_frame(self, file_name):
-        if "site-packages" in file_name and \
-                "Python.framework" in file_name and \
-                "auklet" in file_name and \
-                "lib/python" in file_name and \
-                "importlib" in file_name:
+        if any(filter_str in file_name for filter_str in self.filters) or \
+                file_name is None:
             return True
         return False
 
