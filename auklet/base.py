@@ -56,6 +56,8 @@ class Client(object):
     offline_limit = None
     offline_current = 0
 
+    system_metrics = None
+
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
         self.apikey = apikey
@@ -71,6 +73,7 @@ class Client(object):
         self._create_file(self.usage_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
+        self.system_metrics = SystemMetrics()
         if self._get_kafka_certs():
             try:
                 ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -204,6 +207,9 @@ class Client(object):
         self._update_usage_file()
         return True
 
+    def update_network_metrics(self, interval):
+        self.system_metrics.update_network(interval)
+
     def check_date(self):
         if datetime.today().day == self.data_day:
             if self.reset_data:
@@ -245,7 +251,7 @@ class Client(object):
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = str(datetime.utcnow())
-        event_dict['systemMetrics'] = dict(SystemMetrics())
+        event_dict['systemMetrics'] = dict(self.system_metrics)
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
         return event_dict

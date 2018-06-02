@@ -5,6 +5,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import sys
+import time
 import functools
 import threading
 
@@ -25,31 +26,37 @@ class AukletSampler(Runnable):
     .. _Yappi: https://code.google.com/p/yappi/
     """
     client = None
-    emission_rate = 10000
-    hour = 3600000
+    emission_rate = 10  # 10 seconds
+    network_rate = 10  # 10 seconds
+    hour = 3600  # 1 hour
 
     def __init__(self, client, tree, *args, **kwargs):
         sys.excepthook = self.handle_exc
         self.sampled_times = {}
-        self.counter = 0
-        self.polling_counter = 0
         self.interval = INTERVAL
         self.client = client
         self.tree = tree
         self.emission_rate = self.client.update_limits()
+        self.start_time = int(time.time())
+        self.prev_diff = 0
         setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
+        time_diff = int(time.time()) - self.start_time
         profiler.sample(frame, event)
-        self.counter += 1
-        self.polling_counter += 1
-        if self.counter % self.emission_rate == 0:
-            self.client.produce(
-                self.tree.build_tree(self.client.app_id))
-            self.tree.clear_root()
-        if self.polling_counter % self.hour == 0:
-            self.emission_rate = self.client.update_limits()
-            self.client.check_date()
+        if self.prev_diff != 0 and self.prev_diff != time_diff:
+            if time_diff % (self.emission_rate / 1000) == 0:
+                self.client.produce(
+                    self.tree.build_tree(self.client.app_id))
+                self.tree.clear_root()
+
+            if time_diff % self.network_rate == 0:
+                self.client.update_network_metrics(self.network_rate)
+
+            if time_diff % self.hour == 0:
+                self.emission_rate = self.client.update_limits()
+                self.client.check_date()
+        self.prev_diff = time_diff
 
     def handle_exc(self, type, value, traceback):
         event = self.client.build_event_data(type, traceback,
