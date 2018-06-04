@@ -59,6 +59,7 @@ class Event(object):
     exc_type = None
     line_num = 0
     abs_path = None
+    filters = ["auklet"]
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
@@ -71,7 +72,8 @@ class Event(object):
         yield "excType", self.exc_type
 
     def _filter_frame(self, file_name):
-        if "auklet" in file_name:
+        if any(filter_str in file_name for filter_str in self.filters) or \
+                file_name is None:
             return True
         return False
 
@@ -85,7 +87,7 @@ class Event(object):
         tb = []
         while trace:
             frame = trace.tb_frame
-            path = inspect.getsourcefile(frame) or inspect.getfile(frame)
+            path = tree.get_filename(frame.f_code, frame)
             if self._filter_frame(path):
                 trace = trace.tb_next
                 continue
@@ -106,6 +108,9 @@ class MonitoringTree(object):
     public_ip = None
     mac_hash = None
     abs_path = None
+    cached_filenames = {}
+    filters = ["site-packages", "Python.framework", "auklet", "lib/python",
+               "importlib"]
 
     def __init__(self, mac_hash=None):
         from auklet.base import get_device_ip, get_commit_hash, get_abs_path
@@ -113,6 +118,20 @@ class MonitoringTree(object):
         self.public_ip = get_device_ip()
         self.abs_path = get_abs_path('.auklet/version')
         self.mac_hash = mac_hash
+
+    def get_filename(self, code, frame):
+        key = code.co_code
+        file_name = self.cached_filenames.get(code.co_code, None)
+        if file_name is None:
+            try:
+                file_name = inspect.getsourcefile(frame) or \
+                            inspect.getfile(frame)
+            except (TypeError, AttributeError):
+                # These functions will fail if the frame is of a
+                # built-in module, class or function
+                return None
+            self.cached_filenames[key] = file_name
+        return file_name
 
     def _create_frame_func(self, frame, root=False, parent=None):
         if root:
@@ -128,7 +147,9 @@ class MonitoringTree(object):
         if frame[1]:
             calls = 1
         frame = frame[0]
-        file_path = inspect.getsourcefile(frame) or inspect.getfile(frame)
+
+        file_path = self.get_filename(frame.f_code, frame)
+
         if self.abs_path in file_path:
             file_path = file_path.replace(self.abs_path, '')
         return Function(
@@ -139,26 +160,20 @@ class MonitoringTree(object):
             calls=calls
         )
 
-    def _remove_ignored_frames(self, new_stack):
-        cleansed_stack = []
-        for frame in new_stack:
-            file_name = inspect.getsourcefile(frame[0]) or \
-                        inspect.getfile(frame[0])
-            if "site-packages" not in file_name and \
-                    "Python.framework" not in file_name and \
-                    "auklet" not in file_name and \
-                    "lib/python" not in file_name and \
-                    "importlib" not in file_name:
-                cleansed_stack.append(frame)
-        return cleansed_stack
+    def _filter_frame(self, file_name):
+        if any(filter_str in file_name for filter_str in self.filters) or \
+                file_name is None:
+            return True
+        return False
 
     def _build_tree(self, new_stack):
-        new_stack = self._remove_ignored_frames(new_stack)
         root_func = self._create_frame_func(None, True)
         parent_func = root_func
         for frame in reversed(new_stack):
             current_func = self._create_frame_func(
                 frame, parent=parent_func)
+            if self._filter_frame(current_func.file_path):
+                continue
             parent_func.children.append(current_func)
             parent_func = current_func
         return root_func
@@ -203,17 +218,29 @@ class SystemMetrics(object):
     mem_usage = 0.0
     inbound_network = 0
     outbound_network = 0
+    prev_inbound = 0
+    prev_outbound = 0
 
     def __init__(self):
         if psutil is not None:
             self.cpu_usage = psutil.cpu_percent(interval=1)
             self.mem_usage = psutil.virtual_memory().percent
             network = psutil.net_io_counters()
-            self.inbound_network = network.bytes_recv
-            self.outbound_network = network.bytes_sent
+            self.prev_inbound = network.bytes_recv
+            self.prev_outbound = network.bytes_sent
 
     def __iter__(self):
         yield "cpuUsage", self.cpu_usage
         yield "memoryUsage", self.mem_usage
         yield "inboundNetwork", self.inbound_network
         yield "outboundNetwork", self.outbound_network
+
+    def update_network(self, interval):
+        if psutil is not None:
+            network = psutil.net_io_counters()
+            self.inbound_network = (network.bytes_recv -
+                                    self.prev_inbound) / interval
+            self.outbound_network = (network.bytes_sent -
+                                     self.prev_outbound) / interval
+            self.prev_inbound = network.bytes_recv
+            self.prev_outbound = network.bytes_sent

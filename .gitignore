@@ -48,7 +48,7 @@ htmlcov
 # git update-index --assume-unchanged .idea/test.iml
 !.idea/runConfigurations/
 !.idea/test.iml
-!.idea/vcs.xml
+.idea/vcs.xml
 !.idea/webResources.xml
 
 
