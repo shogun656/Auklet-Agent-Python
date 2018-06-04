@@ -2,9 +2,23 @@
 
 ## Merged But Unreleased
 
+**Implemented enhancements:**
+
+- APM-1303 Custom Logging Agent [#24](https://github.com/ESG-USA/Auklet-Agent-Python/pull/24) ([tylerwiersing](https://github.com/tylerwiersing))
+
 **Fixed bugs:**
 
+- Polling Interval Fix [#28](https://github.com/ESG-USA/Auklet-Agent-Python/pull/28) ([tylerwiersing](https://github.com/tylerwiersing))
+- Fix builtin filepath lookup [#26](https://github.com/ESG-USA/Auklet-Agent-Python/pull/26) ([tylerwiersing](https://github.com/tylerwiersing))
 - Frame Loop Optimization [#21](https://github.com/ESG-USA/Auklet-Agent-Python/pull/21) ([tylerwiersing](https://github.com/tylerwiersing))
+
+**DevOps changes:**
+
+- Fix prod PR update script [#32](https://github.com/ESG-USA/Auklet-Agent-Python/pull/32) ([rjenkinsjr](https://github.com/rjenkinsjr))
+- Fix changelog generation syntax [#31](https://github.com/ESG-USA/Auklet-Agent-Python/pull/31) ([rjenkinsjr](https://github.com/rjenkinsjr))
+- TS-419: Stop using GitHub API for gathering commit lists [#29](https://github.com/ESG-USA/Auklet-Agent-Python/pull/29) ([rjenkinsjr](https://github.com/rjenkinsjr))
+- TS-417: update prod release PR after QA release finishes [#27](https://github.com/ESG-USA/Auklet-Agent-Python/pull/27) ([rjenkinsjr](https://github.com/rjenkinsjr))
+- APM-1329: Fix GitHub API abuse rate limits [#25](https://github.com/ESG-USA/Auklet-Agent-Python/pull/25) ([rjenkinsjr](https://github.com/rjenkinsjr))
 
 ## [0.1.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.1.2)
 
