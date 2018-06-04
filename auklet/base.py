@@ -111,15 +111,11 @@ class Client(object):
         res = urlopen(url)
         kafka_info = json.loads(u(res.read()))
         self.brokers = kafka_info['brokers']
-        try:
-            user_metrics = kafka_info['user_metrics_topic']
-        except KeyError:
-            user_metrics = ''
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
             "log": kafka_info['log_topic'],
-            "user_metrics": user_metrics
+            "user_metrics": kafka_info.get('user_metrics_topic', '')
         }
 
     def _load_limits(self):
