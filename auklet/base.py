@@ -174,6 +174,8 @@ class Client(object):
                     loaded = json.loads(line)
                     if 'stackTrace' in loaded.keys():
                         self.produce(loaded, "event")
+                    elif 'message' in loaded.keys():
+                        self.produce(loaded, "log")
                     else:
                         self.produce(loaded)
                 offline.truncate()
@@ -255,6 +257,21 @@ class Client(object):
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
         return event_dict
+
+    def build_log_data(self, msg, data_type, level):
+        log_dict = {
+            "message": msg,
+            "type": data_type,
+            "level": level,
+            "application": self.app_id,
+            "publicIP": get_device_ip(),
+            "id": str(uuid4()),
+            "timestamp": str(datetime.utcnow()),
+            "systemMetrics": dict(SystemMetrics()),
+            "macAddressHash": self.mac_hash,
+            "commitHash": self.commit_hash
+        }
+        return log_dict
 
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
