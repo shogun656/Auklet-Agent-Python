@@ -82,11 +82,9 @@ class Client(object):
                     "bootstrap_servers": self.brokers,
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
-                    "ssl_check_hostname": True,
+                    "ssl_check_hostname": False,
                     "value_serializer": lambda m: b(json.dumps(m)),
-                    "ssl_context": ctx,
-                    "retries": 5,
-                    "batch_size": 0,
+                    "ssl_context": ctx
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
