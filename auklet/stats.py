@@ -161,8 +161,8 @@ class MonitoringTree(object):
         )
 
     def _filter_frame(self, file_name):
-        if any(filter_str in file_name for filter_str in self.filters) or \
-                file_name is None:
+        if  file_name is None or \
+                any(filter_str in file_name for filter_str in self.filters):
             return True
         return False
 
