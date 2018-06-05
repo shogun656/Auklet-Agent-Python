@@ -114,8 +114,7 @@ class Client(object):
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
-            "log": kafka_info['log_topic'],
-            "user_metrics": kafka_info.get('user_metrics_topic', '')
+            "log": kafka_info['log_topic']
         }
 
     def _load_limits(self):
@@ -176,7 +175,7 @@ class Client(object):
                     if 'stackTrace' in loaded.keys():
                         self.produce(loaded, "event")
                     elif 'message' in loaded.keys():
-                        self.produce(loaded, "user_metrics")
+                        self.produce(loaded, "event")
                     else:
                         self.produce(loaded)
                 offline.truncate()
