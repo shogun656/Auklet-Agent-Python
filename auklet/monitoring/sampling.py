@@ -4,8 +4,11 @@
 # in this repository/package.
 from __future__ import absolute_import, unicode_literals
 
-
-from auklet.base import Runnable
+import sys
+import functools
+import threading
+from time import time
+from auklet.base import Runnable, setup_thread_excepthook, deferral
 
 
 __all__ = ['AukletSampler']
@@ -27,9 +30,6 @@ class AukletSampler(Runnable):
     hour = 3600  # 1 hour
 
     def __init__(self, client, tree, *args, **kwargs):
-        from time import time
-        import sys
-        from auklet.base import setup_thread_excepthook
         sys.excepthook = self.handle_exc
         self.sampled_times = {}
         self.interval = INTERVAL
@@ -41,7 +41,6 @@ class AukletSampler(Runnable):
         setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
-        from time import time
         time_diff = int(time()) - self.start_time
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:
@@ -64,11 +63,6 @@ class AukletSampler(Runnable):
         self.client.produce(event, "event")
 
     def run(self, profiler):
-        import functools
-        import sys
-        from auklet.base import deferral
-        import threading
-
         profile = functools.partial(self._profile, profiler)
         with deferral() as defer:
             sys.setprofile(profile)
