@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.2.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.1-rc.1)
+
+**Fixed bugs:**
+
+- Fix none type issue [#36](https://github.com/ESG-USA/Auklet-Agent-Python/pull/36) ([tylerwiersing](https://github.com/tylerwiersing))
+- Producer Type Population Fix [#34](https://github.com/ESG-USA/Auklet-Agent-Python/pull/34) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.2.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.0)
 
 ### [0.2.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.0-rc.1)
