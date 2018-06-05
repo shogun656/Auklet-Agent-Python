@@ -1,5 +1,12 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- Fixing file name logic [#40](https://github.com/ESG-USA/Auklet-Agent-Python/pull/40) ([bleib1dj](https://github.com/bleib1dj))
+- Increasing batch size [#38](https://github.com/ESG-USA/Auklet-Agent-Python/pull/38) ([bleib1dj](https://github.com/bleib1dj))
+
 ## [0.2.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.1)
 
 **Fixed bugs:**
