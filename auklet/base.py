@@ -176,7 +176,7 @@ class Client(object):
                     if 'stackTrace' in loaded.keys():
                         self.produce(loaded, "event")
                     elif 'message' in loaded.keys():
-                        self.produce(loaded, "log")
+                        self.produce(loaded, "user_metrics")
                     else:
                         self.produce(loaded)
                 offline.truncate()
