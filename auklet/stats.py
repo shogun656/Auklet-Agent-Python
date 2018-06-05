@@ -149,7 +149,7 @@ class MonitoringTree(object):
         frame = frame[0]
 
         file_path = self.get_filename(frame.f_code, frame)
-        if file_path is None:
+        if file_path is not None:
             if self.abs_path in file_path:
                 file_path = file_path.replace(self.abs_path, '')
         return Function(
