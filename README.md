@@ -1,6 +1,6 @@
 # Changelog
 
-## Merged But Unreleased
+## [0.2.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.1)
 
 **Fixed bugs:**
 
