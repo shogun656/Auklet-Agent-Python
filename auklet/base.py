@@ -82,9 +82,11 @@ class Client(object):
                     "bootstrap_servers": self.brokers,
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
-                    "ssl_check_hostname": False,
+                    "ssl_check_hostname": True,
                     "value_serializer": lambda m: b(json.dumps(m)),
-                    "ssl_context": ctx
+                    "ssl_context": ctx,
+                    "retries": 5,
+                    "batch_size": 0,
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
@@ -114,8 +116,7 @@ class Client(object):
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
-            "log": kafka_info['log_topic'],
-            "user_metrics": kafka_info.get('user_metrics_topic', '')
+            "log": kafka_info['log_topic']
         }
 
     def _load_limits(self):
@@ -176,7 +177,7 @@ class Client(object):
                     if 'stackTrace' in loaded.keys():
                         self.produce(loaded, "event")
                     elif 'message' in loaded.keys():
-                        self.produce(loaded, "user_metrics")
+                        self.produce(loaded, "event")
                     else:
                         self.produce(loaded)
                 offline.truncate()

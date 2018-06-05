@@ -77,4 +77,4 @@ class Monitoring(MonitoringBase, AukletLogging):
 
     def log(self, msg, data_type, level="INFO"):
         self.client.produce(
-            self.client.build_log_data(msg, data_type, level), "user_metrics")
+            self.client.build_log_data(msg, data_type, level), "event")
