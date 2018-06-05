@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.2.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.2)
+
 ### [0.2.2-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.2-rc.1)
 
 **Fixed bugs:**
