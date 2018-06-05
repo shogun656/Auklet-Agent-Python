@@ -149,9 +149,9 @@ class MonitoringTree(object):
         frame = frame[0]
 
         file_path = self.get_filename(frame.f_code, frame)
-
-        if self.abs_path in file_path:
-            file_path = file_path.replace(self.abs_path, '')
+        if file_path is not None:
+            if self.abs_path in file_path:
+                file_path = file_path.replace(self.abs_path, '')
         return Function(
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,

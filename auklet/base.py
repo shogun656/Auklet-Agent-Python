@@ -114,7 +114,8 @@ class Client(object):
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
-            "log": kafka_info['log_topic']
+            "log": kafka_info['log_topic'],
+            "user_metrics": kafka_info.get('user_metrics_topic', '')
         }
 
     def _load_limits(self):
