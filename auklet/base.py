@@ -84,7 +84,8 @@ class Client(object):
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
                     "value_serializer": lambda m: b(json.dumps(m)),
-                    "ssl_context": ctx
+                    "ssl_context": ctx,
+                    "batch_size": 64000  # 8 KB
                 })
             except KafkaError:
                 # TODO log off to kafka if kafka fails to connect
