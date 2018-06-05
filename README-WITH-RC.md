@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.2.4-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.4-rc.1)
+
+**Fixed bugs:**
+
+- Revert Import Changes [#45](https://github.com/ESG-USA/Auklet-Agent-Python/pull/45) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.2.3](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.3)
 
 ### [0.2.3-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.3-rc.1)
