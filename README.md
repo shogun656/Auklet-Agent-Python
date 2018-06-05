@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- Use events topic for custom metrics [#48](https://github.com/ESG-USA/Auklet-Agent-Python/pull/48) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.2.4](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.4)
 
 **Fixed bugs:**
