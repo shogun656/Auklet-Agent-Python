@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.2.3-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.3-rc.1)
+
+**Fixed bugs:**
+
+- Fixing potential threading issue [#42](https://github.com/ESG-USA/Auklet-Agent-Python/pull/42) ([bleib1dj](https://github.com/bleib1dj))
+
 ## [0.2.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.2)
 
 ### [0.2.2-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.2-rc.1)
