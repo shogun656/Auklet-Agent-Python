@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- IPAPI Exception Handling [#51](https://github.com/ESG-USA/Auklet-Agent-Python/pull/51) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.2.5](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.5)
 
 **Fixed bugs:**
