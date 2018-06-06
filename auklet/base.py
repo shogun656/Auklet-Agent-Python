@@ -381,7 +381,7 @@ def get_abs_path(path):
 def get_device_ip():
     try:
         return get_ip()
-    except IpifyException:
+    except (IpifyException, Exception):
         # TODO log to kafka if the ip service fails for any reason
         return None
 
