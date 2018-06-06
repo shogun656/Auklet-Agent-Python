@@ -20,16 +20,17 @@ from collections import deque
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
+from auklet.errors import AukletConfigurationError, AukletConnectionError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
 
 try:
     # For Python 3.0 and later
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
     from urllib.request import Request, urlopen
 except ImportError:
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, Request, HTTPError
+    from urllib2 import urlopen, Request, HTTPError, URLError
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_mac', 'get_device_ip', 'setup_thread_excepthook',
@@ -47,6 +48,7 @@ class Client(object):
     offline_filename = ".auklet/local.txt"
     limits_filename = ".auklet/limits"
     usage_filename = ".auklet/usage"
+    kafka_config_filename = ".auklet/kafka_conf"
     abs_path = None
 
     reset_data = False
@@ -71,6 +73,7 @@ class Client(object):
         self._create_file(self.offline_filename)
         self._create_file(self.limits_filename)
         self._create_file(self.usage_filename)
+        self._create_file(self.kafka_config_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
@@ -91,31 +94,64 @@ class Client(object):
                 pass
 
     def _create_file(self, filename):
-        open(filename, "w+").close()
+        open(filename, "a").close()
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
 
+    def _open_auklet_url(self, url):
+        url = Request(url, headers={"Authorization": "JWT %s" % self.apikey})
+        try:
+            res = urlopen(url)
+        except HTTPError as e:
+            if e.code == 401:
+                raise AukletConfigurationError(
+                    "Invalid configuration of Auklet Monitoring, "
+                    "ensure proper API key and app ID passed to "
+                    "Monitoring class"
+                )
+            raise e
+        return res
+
     def _get_config(self):
-        url = Request(
-            self._build_url("private/devices/{}/app_config/".format(
-                self.app_id)),
-            headers={"Authorization": "JWT %s" % self.apikey}
-        )
-        res = urlopen(url)
+        res = self._open_auklet_url(
+            self._build_url(
+                "private/devices/{}/app_config/".format(self.app_id)))
         return json.loads(u(res.read()))['config']
 
     def _get_kafka_brokers(self):
-        url = Request(self._build_url("private/devices/config/"),
-                      headers={"Authorization": "JWT %s" % self.apikey})
-        res = urlopen(url)
+        try:
+            res = self._open_auklet_url(
+                self._build_url("private/devices/config/"))
+        except URLError:
+            return self._load_kafka_conf()
         kafka_info = json.loads(u(res.read()))
+        self._write_kafka_conf(kafka_info)
         self.brokers = kafka_info['brokers']
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
             "log": kafka_info['log_topic']
         }
+
+    def _write_kafka_conf(self, info):
+        with open(self.kafka_config_filename, "w") as conf:
+            conf.write(json.dumps(info))
+
+    def _load_kafka_conf(self):
+        with open(self.kafka_config_filename, "r") as conf:
+            kafka_str = conf.read()
+            if kafka_str:
+                data = json.loads(kafka_str)
+                self.brokers = data['brokers']
+                self.producer_types = {
+                    "monitoring": data['prof_topic'],
+                    "event": data['event_topic'],
+                    "log": data['log_topic']
+                }
+                return True
+            else:
+                return False
 
     def _load_limits(self):
         try:
@@ -209,6 +245,14 @@ class Client(object):
         self._update_usage_file()
         return True
 
+    def _kafka_success_callback(self, record_metadata):
+        self.online = True
+
+    def _kafka_error_callback(self, error, msg):
+        self.online = False
+        print(error)
+        print(msg)
+
     def update_network_metrics(self, interval):
         self.system_metrics.update_network(interval)
 
@@ -278,7 +322,9 @@ class Client(object):
             try:
                 if self._check_data_limit(data, self.data_current):
                     self.producer.send(self.producer_types[data_type],
-                                       value=data)
+                                       value=data)\
+                        .add_callback(self._kafka_success_callback)\
+                        .add_errback(self._kafka_error_callback, msg=data)
                     self._produce_from_local()
                 else:
                     self._write_to_local(data)
