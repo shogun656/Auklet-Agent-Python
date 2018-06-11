@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- Re-license under Apache 2.0 [#54](https://github.com/ESG-USA/Auklet-Agent-Python/pull/54) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ## [0.2.6](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.2.6)
 
 **Fixed bugs:**
