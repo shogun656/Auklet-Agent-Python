@@ -202,19 +202,25 @@ class Client(object):
             # TODO determine what to do with data we fail to write
             return False
 
+    def _clear_file(self, file_name):
+        open(file_name, "w").close()
+
     def _produce_from_local(self):
         try:
             with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
                     loaded = json.loads(line)
-                    if 'stackTrace' in loaded.keys():
-                        self.produce(loaded, "event")
-                    elif 'message' in loaded.keys():
-                        self.produce(loaded, "event")
+                    print(loaded)
+                    if 'stackTrace' in loaded.keys() \
+                            or 'message' in loaded.keys():
+                        data_type = "event"
                     else:
-                        self.produce(loaded)
-                offline.truncate()
+                        data_type = "monitoring"
+
+                    if self._check_data_limit(loaded, self.data_current):
+                        self._produce(loaded, data_type)
+            self._clear_file(self.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file
             return False
@@ -245,13 +251,8 @@ class Client(object):
         self._update_usage_file()
         return True
 
-    def _kafka_success_callback(self, record_metadata):
-        self.online = True
-
     def _kafka_error_callback(self, error, msg):
-        self.online = False
-        print(error)
-        print(msg)
+        self._write_to_local(msg)
 
     def update_network_metrics(self, interval):
         self.system_metrics.update_network(interval)
@@ -317,14 +318,16 @@ class Client(object):
         }
         return log_dict
 
+    def _produce(self, data, data_type="monitoring"):
+        self.producer.send(self.producer_types[data_type],
+                           value=data) \
+            .add_errback(self._kafka_error_callback, msg=data)
+
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
                 if self._check_data_limit(data, self.data_current):
-                    self.producer.send(self.producer_types[data_type],
-                                       value=data)\
-                        .add_callback(self._kafka_success_callback)\
-                        .add_errback(self._kafka_error_callback, msg=data)
+                    self._produce(data, data_type)
                     self._produce_from_local()
                 else:
                     self._write_to_local(data)
