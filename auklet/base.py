@@ -20,7 +20,7 @@ from collections import deque
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
-from auklet.errors import AukletConfigurationError, AukletConnectionError
+from auklet.errors import AukletConfigurationError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
 
@@ -89,7 +89,10 @@ class Client(object):
                     "value_serializer": lambda m: b(json.dumps(m)),
                     "ssl_context": ctx
                 })
-            except KafkaError:
+            except (KafkaError, Exception) as e:
+                print(e)
+                import traceback
+                traceback.print_exc()
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
@@ -111,19 +114,21 @@ class Client(object):
                     "Monitoring class"
                 )
             raise e
+        except URLError:
+            return None
         return res
 
     def _get_config(self):
         res = self._open_auklet_url(
             self._build_url(
                 "private/devices/{}/app_config/".format(self.app_id)))
-        return json.loads(u(res.read()))['config']
+        if res is not None:
+            return json.loads(u(res.read()))['config']
 
     def _get_kafka_brokers(self):
-        try:
-            res = self._open_auklet_url(
-                self._build_url("private/devices/config/"))
-        except URLError:
+        res = self._open_auklet_url(
+            self._build_url("private/devices/config/"))
+        if res is None:
             return self._load_kafka_conf()
         kafka_info = json.loads(u(res.read()))
         self._write_kafka_conf(kafka_info)
@@ -139,19 +144,22 @@ class Client(object):
             conf.write(json.dumps(info))
 
     def _load_kafka_conf(self):
-        with open(self.kafka_config_filename, "r") as conf:
-            kafka_str = conf.read()
-            if kafka_str:
-                data = json.loads(kafka_str)
-                self.brokers = data['brokers']
-                self.producer_types = {
-                    "monitoring": data['prof_topic'],
-                    "event": data['event_topic'],
-                    "log": data['log_topic']
-                }
-                return True
-            else:
-                return False
+        try:
+            with open(self.kafka_config_filename, "r") as conf:
+                kafka_str = conf.read()
+                if kafka_str:
+                    data = json.loads(kafka_str)
+                    self.brokers = data['brokers']
+                    self.producer_types = {
+                        "monitoring": data['prof_topic'],
+                        "event": data['event_topic'],
+                        "log": data['log_topic']
+                    }
+                    return True
+                else:
+                    return False
+        except OSError:
+            return False
 
     def _load_limits(self):
         try:
@@ -179,11 +187,14 @@ class Client(object):
         url = Request(self._build_url("private/devices/certificates/"),
                       headers={"Authorization": "JWT %s" % self.apikey})
         try:
-            res = urlopen(url)
-        except HTTPError as e:
-            # Allow for accessing redirect w/o including the
-            # Authorization token.
-            res = urlopen(e.geturl())
+            try:
+                res = urlopen(url)
+            except HTTPError as e:
+                # Allow for accessing redirect w/o including the
+                # Authorization token.
+                res = urlopen(e.geturl())
+        except URLError:
+            return False
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
             filename = ".auklet/%s.pem" % temp_file.filename
@@ -211,7 +222,6 @@ class Client(object):
                 lines = offline.read().splitlines()
                 for line in lines:
                     loaded = json.loads(line)
-                    print(loaded)
                     if 'stackTrace' in loaded.keys() \
                             or 'message' in loaded.keys():
                         data_type = "event"
@@ -267,6 +277,8 @@ class Client(object):
 
     def update_limits(self):
         config = self._get_config()
+        if config is None:
+            return 60
         with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
@@ -430,8 +442,10 @@ def get_abs_path(path):
 def get_device_ip():
     try:
         return get_ip()
-    except (IpifyException, Exception):
+    except IpifyException:
         # TODO log to kafka if the ip service fails for any reason
+        return None
+    except Exception:
         return None
 
 
