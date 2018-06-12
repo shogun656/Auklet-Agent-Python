@@ -48,7 +48,7 @@ class Client(object):
     offline_filename = ".auklet/local.txt"
     limits_filename = ".auklet/limits"
     usage_filename = ".auklet/usage"
-    kafka_config_filename = ".auklet/kafka_conf"
+    com_config_filename = ".auklet/communication"
     abs_path = None
 
     reset_data = False
@@ -73,7 +73,7 @@ class Client(object):
         self._create_file(self.offline_filename)
         self._create_file(self.limits_filename)
         self._create_file(self.usage_filename)
-        self._create_file(self.kafka_config_filename)
+        self._create_file(self.com_config_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
@@ -140,12 +140,12 @@ class Client(object):
         }
 
     def _write_kafka_conf(self, info):
-        with open(self.kafka_config_filename, "w") as conf:
+        with open(self.com_config_filename, "w") as conf:
             conf.write(json.dumps(info))
 
     def _load_kafka_conf(self):
         try:
-            with open(self.kafka_config_filename, "r") as conf:
+            with open(self.com_config_filename, "r") as conf:
                 kafka_str = conf.read()
                 if kafka_str:
                     data = json.loads(kafka_str)
