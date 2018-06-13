@@ -89,10 +89,7 @@ class Client(object):
                     "value_serializer": lambda m: b(json.dumps(m)),
                     "ssl_context": ctx
                 })
-            except (KafkaError, Exception) as e:
-                print(e)
-                import traceback
-                traceback.print_exc()
+            except (KafkaError, Exception):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
