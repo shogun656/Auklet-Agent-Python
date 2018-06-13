@@ -123,7 +123,6 @@ def auklet_benchmark_main():
             "BzeZjxTWtAw8ar2sdkrzZd", base_url="https://api-staging.auklet.io/")
         auklet_monitoring.start()
         run_tests()
-        auklet_monitoring.stop()
     except Exception as e:
         import traceback
         traceback.print_exc()
