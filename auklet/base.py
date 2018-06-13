@@ -20,16 +20,17 @@ from collections import deque
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
+from auklet.errors import AukletConfigurationError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
 
 try:
     # For Python 3.0 and later
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
     from urllib.request import Request, urlopen
 except ImportError:
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, Request, HTTPError
+    from urllib2 import urlopen, Request, HTTPError, URLError
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_mac', 'get_device_ip', 'setup_thread_excepthook',
@@ -47,6 +48,7 @@ class Client(object):
     offline_filename = ".auklet/local.txt"
     limits_filename = ".auklet/limits"
     usage_filename = ".auklet/usage"
+    com_config_filename = ".auklet/communication"
     abs_path = None
 
     reset_data = False
@@ -71,6 +73,7 @@ class Client(object):
         self._create_file(self.offline_filename)
         self._create_file(self.limits_filename)
         self._create_file(self.usage_filename)
+        self._create_file(self.com_config_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
@@ -86,36 +89,74 @@ class Client(object):
                     "value_serializer": lambda m: b(json.dumps(m)),
                     "ssl_context": ctx
                 })
-            except KafkaError:
+            except (KafkaError, Exception):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
     def _create_file(self, filename):
-        open(filename, "w+").close()
+        open(filename, "a").close()
 
     def _build_url(self, extension):
         return '%s%s' % (self.base_url, extension)
 
+    def _open_auklet_url(self, url):
+        url = Request(url, headers={"Authorization": "JWT %s" % self.apikey})
+        try:
+            res = urlopen(url)
+        except HTTPError as e:
+            if e.code == 401:
+                raise AukletConfigurationError(
+                    "Invalid configuration of Auklet Monitoring, "
+                    "ensure proper API key and app ID passed to "
+                    "Monitoring class"
+                )
+            raise e
+        except URLError:
+            return None
+        return res
+
     def _get_config(self):
-        url = Request(
-            self._build_url("private/devices/{}/app_config/".format(
-                self.app_id)),
-            headers={"Authorization": "JWT %s" % self.apikey}
-        )
-        res = urlopen(url)
-        return json.loads(u(res.read()))['config']
+        res = self._open_auklet_url(
+            self._build_url(
+                "private/devices/{}/app_config/".format(self.app_id)))
+        if res is not None:
+            return json.loads(u(res.read()))['config']
 
     def _get_kafka_brokers(self):
-        url = Request(self._build_url("private/devices/config/"),
-                      headers={"Authorization": "JWT %s" % self.apikey})
-        res = urlopen(url)
+        res = self._open_auklet_url(
+            self._build_url("private/devices/config/"))
+        if res is None:
+            return self._load_kafka_conf()
         kafka_info = json.loads(u(res.read()))
+        self._write_kafka_conf(kafka_info)
         self.brokers = kafka_info['brokers']
         self.producer_types = {
             "monitoring": kafka_info['prof_topic'],
             "event": kafka_info['event_topic'],
             "log": kafka_info['log_topic']
         }
+
+    def _write_kafka_conf(self, info):
+        with open(self.com_config_filename, "w") as conf:
+            conf.write(json.dumps(info))
+
+    def _load_kafka_conf(self):
+        try:
+            with open(self.com_config_filename, "r") as conf:
+                kafka_str = conf.read()
+                if kafka_str:
+                    data = json.loads(kafka_str)
+                    self.brokers = data['brokers']
+                    self.producer_types = {
+                        "monitoring": data['prof_topic'],
+                        "event": data['event_topic'],
+                        "log": data['log_topic']
+                    }
+                    return True
+                else:
+                    return False
+        except OSError:
+            return False
 
     def _load_limits(self):
         try:
@@ -143,11 +184,14 @@ class Client(object):
         url = Request(self._build_url("private/devices/certificates/"),
                       headers={"Authorization": "JWT %s" % self.apikey})
         try:
-            res = urlopen(url)
-        except HTTPError as e:
-            # Allow for accessing redirect w/o including the
-            # Authorization token.
-            res = urlopen(e.geturl())
+            try:
+                res = urlopen(url)
+            except HTTPError as e:
+                # Allow for accessing redirect w/o including the
+                # Authorization token.
+                res = urlopen(e.geturl())
+        except URLError:
+            return False
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
             filename = ".auklet/%s.pem" % temp_file.filename
@@ -166,19 +210,24 @@ class Client(object):
             # TODO determine what to do with data we fail to write
             return False
 
+    def _clear_file(self, file_name):
+        open(file_name, "w").close()
+
     def _produce_from_local(self):
         try:
             with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
                     loaded = json.loads(line)
-                    if 'stackTrace' in loaded.keys():
-                        self.produce(loaded, "event")
-                    elif 'message' in loaded.keys():
-                        self.produce(loaded, "event")
+                    if 'stackTrace' in loaded.keys() \
+                            or 'message' in loaded.keys():
+                        data_type = "event"
                     else:
-                        self.produce(loaded)
-                offline.truncate()
+                        data_type = "monitoring"
+
+                    if self._check_data_limit(loaded, self.data_current):
+                        self._produce(loaded, data_type)
+            self._clear_file(self.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file
             return False
@@ -209,6 +258,9 @@ class Client(object):
         self._update_usage_file()
         return True
 
+    def _kafka_error_callback(self, error, msg):
+        self._write_to_local(msg)
+
     def update_network_metrics(self, interval):
         self.system_metrics.update_network(interval)
 
@@ -222,6 +274,8 @@ class Client(object):
 
     def update_limits(self):
         config = self._get_config()
+        if config is None:
+            return 60
         with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
@@ -273,12 +327,16 @@ class Client(object):
         }
         return log_dict
 
+    def _produce(self, data, data_type="monitoring"):
+        self.producer.send(self.producer_types[data_type],
+                           value=data) \
+            .add_errback(self._kafka_error_callback, msg=data)
+
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
                 if self._check_data_limit(data, self.data_current):
-                    self.producer.send(self.producer_types[data_type],
-                                       value=data)
+                    self._produce(data, data_type)
                     self._produce_from_local()
                 else:
                     self._write_to_local(data)
@@ -381,8 +439,10 @@ def get_abs_path(path):
 def get_device_ip():
     try:
         return get_ip()
-    except (IpifyException, Exception):
+    except IpifyException:
         # TODO log to kafka if the ip service fails for any reason
+        return None
+    except Exception:
         return None
 
 
