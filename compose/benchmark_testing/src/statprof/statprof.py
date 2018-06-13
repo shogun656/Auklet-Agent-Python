@@ -380,6 +380,7 @@ def display(
         fp = sys.stdout
     if state.sample_count == 0:
         p('No samples recorded.')
+        # Alteration to the source to write to file--------------------
         with open("tmp/benchmark_results", 'a') as file:
             file.write("0" + "\n")
         return
@@ -411,6 +412,7 @@ def display(
     p('---')
     p('Sample count: %d' % state.sample_count)
     p('Total time: %f seconds' % state.accumulated_time)
+    # Alteration to the source to write to file--------------------
     with open("tmp/benchmark_results", 'a') as file:
         file.write(str(state.accumulated_time) + "\n")
 

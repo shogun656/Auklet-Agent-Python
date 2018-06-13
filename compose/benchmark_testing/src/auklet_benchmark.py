@@ -1,4 +1,3 @@
-import os
 import time
 import itertools
 import logging
@@ -12,8 +11,15 @@ if parentPath not in sys.path:
 
 from auklet.monitoring import Monitoring
 
+# The tests are the same for both control_benchmark.py and auklet_benchmark.py. The comments are also alike.
+
 class ThreadRing:
+    """This test keeps 503 threads open"""
     def test(self, loop_counter):
+        """
+        The following descriptions are the same for all three test classes:
+        - The test function is responsible for setting and running the test as well as capturing the results.
+        """
         statprof.start()
         try:
             print("Starting Thread Ring tests...")
@@ -27,6 +33,9 @@ class ThreadRing:
 
     @staticmethod
     def generator(n=2000000, n_threads=503, cycle=itertools.cycle):
+        """
+        - The generator function is responsible for a majority of the load.  This is the test.
+        """
         def worker(worker_id):
 
             n = 1
@@ -46,6 +55,11 @@ class ThreadRing:
                 break
 
     def display(self):
+        """
+        - The display function is responsible for writing the test results to a file to be used for comparing.
+        -  The 'statprof' library required alteration in order to write the time to the file
+            - Those changes can be found /compose/benchmark_testing/src/statprof/statprof.py:382 & 414
+        """
         with open("tmp/benchmark_results", 'a') as file:
             file.write(os.path.basename(__file__) + " " + self.__class__.__name__ + " ")
         statprof.display()
@@ -53,7 +67,8 @@ class ThreadRing:
 
 
 class Fibonacci:
-    def test(self, loop_counter, fibonacci_range=15):
+    """This test finds the fibonacci sequence up to term 33"""
+    def test(self, loop_counter, fibonacci_range=33):
         statprof.start()
         try:
             print("\nStarting Fibonacci Sequence tests...")
@@ -79,7 +94,8 @@ class Fibonacci:
 
 
 class Pi:
-    def test(self, loop_counter, number_of_pi_digits=500):
+    """This test finds the first 10,000 digits of pi"""
+    def test(self, loop_counter, number_of_pi_digits=10000):
         statprof.start()
         try:
             print("\nStarting Pi Generator tests...")
@@ -120,12 +136,11 @@ def auklet_benchmark_main():
     try:
         auklet_monitoring = Monitoring(
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNTYwODYyMTQtNGFlYy00NDAzLTkyMzAtMDcwOGI0MTVlYjhhIiwidXNlcm5hbWUiOiJmNjExNzRiNy1mMGRhLTQ4ODYtYjYxNC00ODUzYWJiOGYyYjEiLCJleHAiOjE1Mjg3MjY3MjAsImVtYWlsIjoiIn0.P8p4qJV7U-P4po-Rnh4g_LQxtkvgqz88nvmLvAf0F-I",
-            "BzeZjxTWtAw8ar2sdkrzZd", base_url="https://api-staging.auklet.io/")
+            "BzeZjxTWtAw8ar2sdkrzZd",
+            base_url="https://api-staging.auklet.io/")
         auklet_monitoring.start()
         run_tests()
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(e)
+    except TypeError:
+        pass
 
     print("Time to complete all tests: %f seconds" % (time.time()-start))

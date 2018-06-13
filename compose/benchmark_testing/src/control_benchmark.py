@@ -5,6 +5,7 @@ import logging
 from statprof import statprof
 from pidigits import piGenerator
 
+# Refer to auklet_benchmark.py for comments
 
 class ThreadRing:
     def test(self, loop_counter):
@@ -47,7 +48,7 @@ class ThreadRing:
 
 
 class Fibonacci:
-    def test(self, loop_counter, fibonacci_range=15):
+    def test(self, loop_counter, fibonacci_range=33):
         statprof.start()
         try:
             print("\nStarting Fibonacci Sequence tests...")
@@ -73,7 +74,7 @@ class Fibonacci:
 
 
 class Pi:
-    def test(self, loop_counter, number_of_pi_digits=500):
+    def test(self, loop_counter, number_of_pi_digits=10000):
         statprof.start()
         try:
             print("\nStarting Pi Generator tests...")

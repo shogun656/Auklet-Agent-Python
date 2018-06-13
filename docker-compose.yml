@@ -6,10 +6,4 @@ services:
       dockerfile: ./compose/benchmark_testing/Dockerfile
     environment:
       - PYTHONUNBUFFERED=0
-    command: bash /src/waitForKafka.sh
-
-#  kafka:
-#    build:
-#      context: .
-#      dockerfile: ./compose/kafka/Dockerfile
-#    command: bash /startKafka.sh
+    command: python3 /src/run_tests.py
