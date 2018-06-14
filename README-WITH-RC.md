@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.3.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.1-rc.1)
+
+**Fixed bugs:**
+
+- APM-1331 Offline Storage and Startup Fixes [#55](https://github.com/ESG-USA/Auklet-Agent-Python/pull/55) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.3.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.0)
 
 ### [0.3.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.0-rc.1)
