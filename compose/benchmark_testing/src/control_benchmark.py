@@ -21,7 +21,7 @@ class ThreadRing:
             self.display()
 
     @staticmethod
-    def generator(n=2000000, n_threads=503, cycle=itertools.cycle):
+    def generator(n=50000, n_threads=400, cycle=itertools.cycle):
         def worker(worker_id):
 
             n = 1
@@ -48,7 +48,7 @@ class ThreadRing:
 
 
 class Fibonacci:
-    def test(self, loop_counter, fibonacci_range=33):
+    def test(self, loop_counter, fibonacci_range=20):
         statprof.start()
         try:
             print("\nStarting Fibonacci Sequence tests...")
@@ -74,7 +74,7 @@ class Fibonacci:
 
 
 class Pi:
-    def test(self, loop_counter, number_of_pi_digits=10000):
+    def test(self, loop_counter, number_of_pi_digits=1000):
         statprof.start()
         try:
             print("\nStarting Pi Generator tests...")
@@ -108,7 +108,4 @@ def run_tests():
 
 
 def control_benchmark_main():
-    start = time.time()
-    logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s')
     run_tests()
-    print("Time to complete all tests: %f seconds" % (time.time()-start))

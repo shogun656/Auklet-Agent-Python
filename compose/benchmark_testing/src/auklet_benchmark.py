@@ -3,6 +3,7 @@ import itertools
 import logging
 from statprof import statprof
 from pidigits import piGenerator
+from mock import patch
 
 import os, sys
 parentPath = os.path.abspath("..")
@@ -32,7 +33,7 @@ class ThreadRing:
             self.display()
 
     @staticmethod
-    def generator(n=2000000, n_threads=503, cycle=itertools.cycle):
+    def generator(n=50000, n_threads=400, cycle=itertools.cycle):
         """
         - The generator function is responsible for a majority of the load.  This is the test.
         """
@@ -68,12 +69,12 @@ class ThreadRing:
 
 class Fibonacci:
     """This test finds the fibonacci sequence up to term 33"""
-    def test(self, loop_counter, fibonacci_range=33):
+    def test(self, loop_counter, fibonacci_range=20):
         statprof.start()
         try:
             print("\nStarting Fibonacci Sequence tests...")
             print("Running Fibonacci Sequence tests...")
-            for _ in range(loop_counter):
+            for i in range(loop_counter):
                 self.generator(fibonacci_range)
         finally:
             statprof.stop()
@@ -95,7 +96,7 @@ class Fibonacci:
 
 class Pi:
     """This test finds the first 10,000 digits of pi"""
-    def test(self, loop_counter, number_of_pi_digits=10000):
+    def test(self, loop_counter, number_of_pi_digits=1000):
         statprof.start()
         try:
             print("\nStarting Pi Generator tests...")
@@ -128,19 +129,23 @@ def run_tests():
     Pi().test(loop_counter)
 
 
-def auklet_benchmark_main():
-    logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s')
+@patch('auklet.base.Client.update_limits')
+@patch('auklet.base.Client._get_kafka_certs')
+def auklet_benchmark_main(get_kafka_certs_mock, update_limits_mock):
+    def _get_kafka_brokers(self):
+        self.brokers = ["kafka:9093"]
+        self.producer_types = {
+            "monitoring": "profiling",
+            "event": "events",
+            "log": "logging"
+        }
+    update_limits_mock.return_value = 10000
+    get_kafka_certs_mock.return_value = True
 
-    start = time.time()
-
-    try:
-        auklet_monitoring = Monitoring(
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNTYwODYyMTQtNGFlYy00NDAzLTkyMzAtMDcwOGI0MTVlYjhhIiwidXNlcm5hbWUiOiJmNjExNzRiNy1mMGRhLTQ4ODYtYjYxNC00ODUzYWJiOGYyYjEiLCJleHAiOjE1Mjg3MjY3MjAsImVtYWlsIjoiIn0.P8p4qJV7U-P4po-Rnh4g_LQxtkvgqz88nvmLvAf0F-I",
-            "BzeZjxTWtAw8ar2sdkrzZd",
-            base_url="https://api-staging.auklet.io/")
-        auklet_monitoring.start()
-        run_tests()
-    except TypeError:
-        pass
-
-    print("Time to complete all tests: %f seconds" % (time.time()-start))
+    patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+    patcher.start()
+    auklet_monitoring = Monitoring("", "", monitoring=True)
+    auklet_monitoring.start()
+    run_tests()
+    auklet_monitoring.stop()
+    patcher.stop()

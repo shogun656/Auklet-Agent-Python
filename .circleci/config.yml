@@ -54,6 +54,26 @@ jobs:
                   mkdir -p ~/.cache/pip ~/.whitesource-pip
 
             ##
+            # DOCKER
+            ##
+            - run:
+                name: Show Docker Versions
+                command: |
+                  set -x
+                  docker --version
+                  docker-compose --version
+            - run:
+                name: Build Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose build
+            - run:
+                name: Run Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose up
+
+            ##
             # TESTS
             ##
             - run:
