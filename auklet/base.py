@@ -259,7 +259,6 @@ class Client(object):
         return True
 
     def _kafka_error_callback(self, error, msg):
-        print(error)
         self._write_to_local(msg)
 
     def update_network_metrics(self, interval):
