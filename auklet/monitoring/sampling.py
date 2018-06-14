@@ -25,7 +25,7 @@ class AukletSampler(Runnable):
     .. _Yappi: https://code.google.com/p/yappi/
     """
     client = None
-    emission_rate = 10  # 10 seconds
+    emission_rate = 60  # 10 seconds
     network_rate = 10  # 10 seconds
     hour = 3600  # 1 hour
 
