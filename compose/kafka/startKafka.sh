@@ -19,4 +19,6 @@ echo 'Creating Kafka topic...'
 ./kafka/bin/kafka-topics.sh --create --if-not-exists --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic events
 ./kafka/bin/kafka-topics.sh --create --if-not-exists --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic logging
 
-tail -f /dev/null
+echo 'Kafka log is below.'
+echo '-------------------------'
+tail -f -n +1 ./kafka/log/kafka.log

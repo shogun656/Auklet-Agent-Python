@@ -75,15 +75,15 @@ jobs:
                 command: |
                   set -x
                   docker-compose build
-            - run:
-                name: Run Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose up
 
             ##
             # TESTS
             ##
+            - run:
+                name: Run Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose run benchmark_testing bash /startBenchmarkTesting.sh
             - run:
                 name: Run Whitesource
                 command: |
