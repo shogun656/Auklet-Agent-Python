@@ -5,8 +5,7 @@ jobs:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
-        docker:
-            - image: circleci/python:3.6-jessie-node
+        machine: true
         steps:
 
             ##
@@ -17,6 +16,8 @@ jobs:
                 command: |
                   if [[ "$CIRCLE_BUILD_NUM" == '' ]]; then
                     touch ~/.localCircleBuild
+                    echo 'ERROR: this repo does not support local CircleCI builds because it requires the "machine" executor type.'
+                    exit 1
                   fi
             - add_ssh_keys
             - checkout
@@ -40,6 +41,13 @@ jobs:
                   sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__about__.py
                   VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
                   sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
+            - run:
+                name: Upgrade Docker Compose
+                command: |
+                  set -x
+                  curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > ./docker-compose
+                  chmod +x ./docker-compose
+                  sudo mv ./docker-compose /usr/local/bin
 
             ##
             # RESTORE CACHES
