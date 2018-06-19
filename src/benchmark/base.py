@@ -1,11 +1,11 @@
+from __future__ import absolute_import
 import os
-import time
 import itertools
-import logging
-from statprof import statprof
+from src.benchmark.statprof import statprof
 from pidigits import piGenerator
 
-# Refer to auklet_benchmark.py for comments
+__all__ = ['start']
+
 
 class ThreadRing:
     def test(self, loop_counter):
@@ -98,14 +98,8 @@ class Pi:
         statprof.reset()
 
 
-def run_tests():
-    print("\n\nStarting benchmark tests without the Auklet Agent...")
+def start():
     loop_counter = 10
-
     ThreadRing().test(loop_counter)
     Fibonacci().test(loop_counter)
     Pi().test(loop_counter)
-
-
-def control_benchmark_main():
-    run_tests()

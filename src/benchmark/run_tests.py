@@ -1,5 +1,34 @@
-from control_benchmark import control_benchmark_main
-from auklet_benchmark import auklet_benchmark_main
+from mock import patch
+
+from auklet.monitoring import Monitoring
+from src.benchmark import base
+
+
+@patch('auklet.base.Client.update_limits')
+@patch('auklet.base.Client._get_kafka_certs')
+def auklet_benchmark(get_kafka_certs_mock, update_limits_mock):
+    def _get_kafka_brokers(self):
+        self.brokers = ["kafka:9093"]
+        self.producer_types = {
+            "monitoring": "profiling",
+            "event": "events",
+            "log": "logging"
+        }
+    update_limits_mock.return_value = 10000
+    get_kafka_certs_mock.return_value = True
+
+    patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+    patcher.start()
+    auklet_monitoring = Monitoring("", "", monitoring=True)
+    auklet_monitoring.start()
+    base.start()
+    auklet_monitoring.stop()
+    patcher.stop()
+
+
+def control_benchmark():
+    print("\n\nStarting benchmark tests without the Auklet Agent...")
+    base.start()
 
 
 def display_complete_results():
@@ -32,8 +61,8 @@ def p3(column_1, column_2, column_3):
 
 
 def main():
-    control_benchmark_main()
-    auklet_benchmark_main()
+    control_benchmark()
+    auklet_benchmark()
     display_complete_results()
 
 

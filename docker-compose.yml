@@ -1,12 +1,12 @@
 version: '2'
 services:
-  benchmark_testing:
+  benchmark:
     build:
       context: .
-      dockerfile: ./compose/benchmark_testing/Dockerfile
+      dockerfile: ./compose/benchmark/Dockerfile
     environment:
       - PYTHONUNBUFFERED=0
-    command: bash /startBenchmarkTesting.sh
+    command: bash /compose/benchmark/startBenchmark.sh
     depends_on:
       - kafka
 

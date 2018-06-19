@@ -83,7 +83,7 @@ jobs:
                 name: Run Docker Benchmark Tests
                 command: |
                   set -x
-                  docker-compose run benchmark_testing bash /startBenchmarkTesting.sh
+                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
             - run:
                 name: Run Whitesource
                 command: |
