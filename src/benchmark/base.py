@@ -7,6 +7,26 @@ __all__ = ['start']
 
 
 class ThreadRing:
+    @staticmethod
+    def worker():
+        n = 1
+        while True:
+            if n > 0:
+                n = (yield (n - 1))
+            else:
+                raise StopIteration
+
+    def generator(self, n=50000, n_threads=400, cycle=itertools.cycle):     # 50000, 400
+        thread_ring = [self.worker() for _ in range(1, n_threads + 1)]
+        for t in thread_ring:
+            next(t)  # start exec. gen. funcs
+        send_function_ring = [t.send for t in thread_ring]  # speed...
+        for send in cycle(send_function_ring):
+            try:
+                n = send(n)
+            except StopIteration:
+                break
+
     def test(self, loop_counter, state):
         statprof.start()
         try:
@@ -19,28 +39,14 @@ class ThreadRing:
             print("Thread Ring test results...")
             display(state, __class__.__name__)
 
-    @staticmethod
-    def generator(n=50000, n_threads=400, cycle=itertools.cycle):     # 50000, 400
-        def worker(worker_id):
-
-            n = 1
-            while True:
-                if n > 0:
-                    n = (yield (n - 1))
-                else:
-                    raise StopIteration
-
-        thread_ring = [worker(w) for w in range(1, n_threads + 1)]
-        for t in thread_ring: foo = next(t)  # start exec. gen. funcs
-        send_function_ring = [t.send for t in thread_ring]  # speed...
-        for send in cycle(send_function_ring):
-            try:
-                n = send(n)
-            except StopIteration:
-                break
-
 
 class Fibonacci:
+    def generator(self, fibonacci_range):
+        if fibonacci_range <= 1:
+            return fibonacci_range
+        else:
+            return self.generator(fibonacci_range-1) + self.generator(fibonacci_range-2)
+
     def test(self, loop_counter, state, fibonacci_range=20):        # 20
         statprof.start()
         try:
@@ -53,14 +59,13 @@ class Fibonacci:
             print("Fibonacci sequence test results...")
             display(state, __class__.__name__)
 
-    def generator(self, fibonacci_range):
-        if fibonacci_range <= 1:
-            return fibonacci_range
-        else:
-            return self.generator(fibonacci_range-1) + self.generator(fibonacci_range-2)
-
 
 class Pi:
+    @staticmethod
+    def generator(number_of_digits):
+        my_pi = piGenerator()
+        return [next(my_pi) for _ in range(number_of_digits)]
+
     def test(self, loop_counter, state, number_of_pi_digits=1000):      # 1000
         statprof.start()
         try:
@@ -72,11 +77,6 @@ class Pi:
             statprof.stop()
             print("Pi Generator test results...")
             display(state, __class__.__name__)
-
-    @staticmethod
-    def generator(number_of_digits):
-        my_pi = piGenerator()
-        return [next(my_pi) for _ in range(number_of_digits)]
 
 
 def display(state, class_name):
