@@ -4,9 +4,14 @@ from auklet.monitoring import Monitoring
 from src.benchmark import base
 
 
+def without_auklet():
+    print("\n\nStarting benchmark tests without the Auklet Agent...")
+    base.start(state="WithoutAuklet")
+
+
 @patch('auklet.base.Client.update_limits')
 @patch('auklet.base.Client._get_kafka_certs')
-def auklet_benchmark(get_kafka_certs_mock, update_limits_mock):
+def with_auklet(get_kafka_certs_mock, update_limits_mock):
     def _get_kafka_brokers(self):
         self.brokers = ["kafka:9093"]
         self.producer_types = {
@@ -21,14 +26,9 @@ def auklet_benchmark(get_kafka_certs_mock, update_limits_mock):
     patcher.start()
     auklet_monitoring = Monitoring("", "", monitoring=True)
     auklet_monitoring.start()
-    base.start()
+    base.start(state="WithAuklet")
     auklet_monitoring.stop()
     patcher.stop()
-
-
-def control_benchmark():
-    print("\n\nStarting benchmark tests without the Auklet Agent...")
-    base.start()
 
 
 def display_complete_results():
@@ -37,7 +37,7 @@ def display_complete_results():
         my_list = tuple(tuple(map(str, line.split())) for line in file)
 
     try:
-        print("\n\nTest comparison for run time only of " + my_list[0][0] + " and " + my_list[3][0])
+        print("\n\nTest comparison for run time only for with the Auklet Agent versus without the Auklet Agent")
         p2(my_list[0][0].split('_')[0], my_list[3][0].split('_')[0])
         p3("seconds", "seconds", "name")
         for i in range(0, 3):
@@ -57,12 +57,12 @@ def p2(column1, column2):
 
 
 def p3(column_1, column_2, column_3):
-    print(column_1, column_2, column_3, sep='\t')
+    print(column_1, column_2, column_3, sep='\t\t')
 
 
 def main():
-    control_benchmark()
-    auklet_benchmark()
+    without_auklet()
+    with_auklet()
     display_complete_results()
 
 

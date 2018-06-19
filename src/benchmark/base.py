@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import os
 import itertools
 from src.benchmark.statprof import statprof
 from pidigits import piGenerator
@@ -8,7 +7,7 @@ __all__ = ['start']
 
 
 class ThreadRing:
-    def test(self, loop_counter):
+    def test(self, loop_counter, state):
         statprof.start()
         try:
             print("Starting Thread Ring tests...")
@@ -18,10 +17,10 @@ class ThreadRing:
         finally:
             statprof.stop()
             print("Thread Ring test results...")
-            self.display()
+            display(state, __class__.__name__)
 
     @staticmethod
-    def generator(n=50000, n_threads=400, cycle=itertools.cycle):
+    def generator(n=50000, n_threads=400, cycle=itertools.cycle):     # 50000, 400
         def worker(worker_id):
 
             n = 1
@@ -40,15 +39,9 @@ class ThreadRing:
             except StopIteration:
                 break
 
-    def display(self):
-        with open("tmp/benchmark_results", 'a') as file:
-            file.write(os.path.basename(__file__) + " " + self.__class__.__name__ + " ")
-        statprof.display()
-        statprof.reset()
-
 
 class Fibonacci:
-    def test(self, loop_counter, fibonacci_range=20):
+    def test(self, loop_counter, state, fibonacci_range=20):        # 20
         statprof.start()
         try:
             print("\nStarting Fibonacci Sequence tests...")
@@ -58,7 +51,7 @@ class Fibonacci:
         finally:
             statprof.stop()
             print("Fibonacci sequence test results...")
-            self.display()
+            display(state, __class__.__name__)
 
     def generator(self, fibonacci_range):
         if fibonacci_range <= 1:
@@ -66,15 +59,9 @@ class Fibonacci:
         else:
             return self.generator(fibonacci_range-1) + self.generator(fibonacci_range-2)
 
-    def display(self):
-        with open("tmp/benchmark_results", 'a') as file:
-            file.write(os.path.basename(__file__) + " " + self.__class__.__name__ + " ")
-        statprof.display()
-        statprof.reset()
-
 
 class Pi:
-    def test(self, loop_counter, number_of_pi_digits=1000):
+    def test(self, loop_counter, state, number_of_pi_digits=1000):      # 1000
         statprof.start()
         try:
             print("\nStarting Pi Generator tests...")
@@ -84,22 +71,23 @@ class Pi:
         finally:
             statprof.stop()
             print("Pi Generator test results...")
-            self.display()
+            display(state, __class__.__name__)
 
     @staticmethod
     def generator(number_of_digits):
         my_pi = piGenerator()
         return [next(my_pi) for _ in range(number_of_digits)]
 
-    def display(self):
-        with open("tmp/benchmark_results", 'a') as file:
-            file.write(os.path.basename(__file__) + " " + self.__class__.__name__ + " ")
-        statprof.display()
-        statprof.reset()
+
+def display(state, class_name):
+    with open("tmp/benchmark_results", 'a') as file:
+        file.write(state + " " + class_name + " ")
+    statprof.display()
+    statprof.reset()
 
 
-def start():
+def start(state):
     loop_counter = 10
-    ThreadRing().test(loop_counter)
-    Fibonacci().test(loop_counter)
-    Pi().test(loop_counter)
+    ThreadRing().test(loop_counter, state)
+    Fibonacci().test(loop_counter, state)
+    Pi().test(loop_counter, state)
