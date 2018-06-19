@@ -113,7 +113,7 @@ class MonitoringTree(object):
                "importlib"]
 
     def __init__(self, mac_hash=None):
-        from auklet.base import get_device_ip, get_commit_hash, get_abs_path
+        from auklet.utils import get_device_ip, get_commit_hash, get_abs_path
         self.commit_hash = get_commit_hash()
         self.public_ip = get_device_ip()
         self.abs_path = get_abs_path('.auklet/version')
