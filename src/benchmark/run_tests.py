@@ -47,32 +47,32 @@ def display_complete_results():
     with_auklet_run_time = 0
     number_of_tests = int(len(my_list) / 2)
 
-    # try:
-    print("\n\nTest comparison for run time only for with the Auklet Agent versus without the Auklet Agent")
-    print(my_list[0][0].split('_')[0], my_list[number_of_tests][0].split('_')[0], sep='\t')     # Prints header
-    print("seconds", "seconds", "name", "\ttimes faster without agent", sep='\t\t')
-
-    for i in range(0, number_of_tests):     # Organizes, calculates, and prints data from file
-        without_auklet = round(float(my_list[i][2]), 6)     # Individual test runtime
-        with_auklet = round(float(my_list[i+number_of_tests][2]), 6)
-        try:
-            times_slower = round(with_auklet / without_auklet, 6)
-        except ZeroDivisionError:
-            times_slower = 0
-        print(without_auklet, with_auklet, my_list[i][1], times_slower, sep='\t\t')
-
-    for i in range(0, number_of_tests):     # Calculates total runtime
-        without_auklet_run_time = without_auklet_run_time + float(my_list[i][2])
-        with_auklet_run_time = with_auklet_run_time + float(my_list[number_of_tests+i][2])
-
     try:
-        total_times_slower = round(with_auklet_run_time / without_auklet_run_time, 6)
-    except ZeroDivisionError:
-        total_times_slower = 0
-    print("---")
-    print(str(round(without_auklet_run_time, 6)), str(round(with_auklet_run_time, 6)), "Total Run Time", total_times_slower, sep='\t\t')
-    # except IndexError:
-    #     print("Tests did not fully complete.")
+        print("\n\nTest comparison for run time only for with the Auklet Agent versus without the Auklet Agent")
+        print(my_list[0][0].split('_')[0], my_list[number_of_tests][0].split('_')[0], sep='\t')     # Prints header
+        print("seconds", "seconds", "name", "\ttimes faster without agent", sep='\t\t')
+
+        for i in range(0, number_of_tests):     # Organizes, calculates, and prints data from file
+            without_auklet = round(float(my_list[i][2]), 6)     # Individual test runtime
+            with_auklet = round(float(my_list[i+number_of_tests][2]), 6)
+            try:
+                times_slower = round(with_auklet / without_auklet, 6)
+            except ZeroDivisionError:
+                times_slower = 0
+            print(without_auklet, with_auklet, my_list[i][1], times_slower, sep='\t\t')
+
+        for i in range(0, number_of_tests):     # Calculates total runtime
+            without_auklet_run_time = without_auklet_run_time + float(my_list[i][2])
+            with_auklet_run_time = with_auklet_run_time + float(my_list[number_of_tests+i][2])
+
+        try:
+            total_times_slower = round(with_auklet_run_time / without_auklet_run_time, 6)
+        except ZeroDivisionError:
+            total_times_slower = 0
+        print("---")
+        print(str(round(without_auklet_run_time, 6)), str(round(with_auklet_run_time, 6)), "Total Run Time", total_times_slower, sep='\t\t')
+    except IndexError:
+        print("Tests did not fully complete.")
 
 
 def main():
