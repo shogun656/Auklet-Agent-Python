@@ -14,3 +14,19 @@ services:
       DOCKER_VERNEMQ_LISTENER.ssl.default: '127.0.0.1:8883'
       DOCKER_VERNEMQ_LISTENER.ssl.require_certificate: 'on'
       DOCKER_VERNEMQ_ALLOW_ANONYMOUS: 'on'
+
+  kafka:
+    build:
+      context: .
+      dockerfile: ./compose/kafka/Dockerfile
+    command: bash /startKafka.sh
+
+  benchmark:
+    build:
+      context: .
+      dockerfile: ./compose/benchmark/Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=0
+    command: bash /compose/benchmark/startBenchmark.sh
+    depends_on:
+      - kafka
