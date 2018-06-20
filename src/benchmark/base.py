@@ -104,8 +104,8 @@ def display(state, test_name):
 
 
 def start(state):
-    tests = [ThreadRing(), Fibonacci(), PiDigits(), Addition(), Multiplication(), Division(), WriteToDisk(), ReadFromDisk()]
+    tests = [ThreadRing, Fibonacci, PiDigits, Addition, Multiplication, Division, WriteToDisk, ReadFromDisk]
 
     for test in tests:
-        runtest(state, test)
+        runtest(state, test())
 
