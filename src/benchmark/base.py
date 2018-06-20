@@ -66,7 +66,7 @@ class Division:
     def test(number_of_iterations=50000):
         total = 1
         for i in range(1, number_of_iterations):
-            total = total * i
+            total = total / i
 
 
 class WriteToDisk:
