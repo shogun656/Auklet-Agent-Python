@@ -5,6 +5,9 @@ from src.benchmark import base
 
 
 def without_auklet():
+    """
+    Runs tests for a baseline number on how long the tests should take.
+    """
     print("\n\nStarting benchmark tests without the Auklet Agent...")
     base.start(state="WithoutAuklet")
 
@@ -12,6 +15,10 @@ def without_auklet():
 @patch('auklet.base.Client.update_limits')
 @patch('auklet.base.Client._get_kafka_certs')
 def with_auklet(get_kafka_certs_mock, update_limits_mock):
+    """
+    With a little help from mock, this test will push data that
+    would normally go to the front end, to a kafka container created locally.
+    """
     def _get_kafka_brokers(self):
         self.brokers = ["kafka:9093"]
         self.producer_types = {
@@ -36,28 +43,36 @@ def display_complete_results():
     with open('tmp/benchmark_results') as file:
         my_list = tuple(tuple(map(str, line.split())) for line in file)
 
+    without_auklet_run_time = 0
+    with_auklet_run_time = 0
+    number_of_tests = int(len(my_list) / 2)
+
+    # try:
+    print("\n\nTest comparison for run time only for with the Auklet Agent versus without the Auklet Agent")
+    print(my_list[0][0].split('_')[0], my_list[number_of_tests][0].split('_')[0], sep='\t')     # Prints header
+    print("seconds", "seconds", "name", "\ttimes faster without agent", sep='\t\t')
+
+    for i in range(0, number_of_tests):     # Organizes, calculates, and prints data from file
+        without_auklet = round(float(my_list[i][2]), 6)     # Individual test runtime
+        with_auklet = round(float(my_list[i+number_of_tests][2]), 6)
+        try:
+            times_slower = round(with_auklet / without_auklet, 6)
+        except ZeroDivisionError:
+            times_slower = 0
+        print(without_auklet, with_auklet, my_list[i][1], times_slower, sep='\t\t')
+
+    for i in range(0, number_of_tests):     # Calculates total runtime
+        without_auklet_run_time = without_auklet_run_time + float(my_list[i][2])
+        with_auklet_run_time = with_auklet_run_time + float(my_list[number_of_tests+i][2])
+
     try:
-        print("\n\nTest comparison for run time only for with the Auklet Agent versus without the Auklet Agent")
-        p2(my_list[0][0].split('_')[0], my_list[3][0].split('_')[0])
-        p3("seconds", "seconds", "name")
-        for i in range(0, 3):
-            p3(str(round(float(my_list[i][2]), 6)), str(round(float(my_list[i+3][2]), 6)), my_list[i][1])
-
-        control_run_time = float(my_list[0][2]) + float(my_list[1][2]) + float(my_list[2][2])
-        auklet_run_time = float(my_list[3][2]) + float(my_list[4][2]) + float(my_list[5][2])
-
-        print("---")
-        p3(str(round(control_run_time, 6)), str(round(auklet_run_time, 6)), "Total Run Time")
-    except IndexError:
-        print("Tests did not fully complete.")
-
-
-def p2(column1, column2):
-    print(column1, column2, sep='\t')
-
-
-def p3(column_1, column_2, column_3):
-    print(column_1, column_2, column_3, sep='\t\t')
+        total_times_slower = round(with_auklet_run_time / without_auklet_run_time, 6)
+    except ZeroDivisionError:
+        total_times_slower = 0
+    print("---")
+    print(str(round(without_auklet_run_time, 6)), str(round(with_auklet_run_time, 6)), "Total Run Time", total_times_slower, sep='\t\t')
+    # except IndexError:
+    #     print("Tests did not fully complete.")
 
 
 def main():

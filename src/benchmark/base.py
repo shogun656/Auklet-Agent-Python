@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+import random
+import string
 import itertools
 from src.benchmark.statprof import statprof
 from pidigits import piGenerator
@@ -16,7 +18,7 @@ class ThreadRing:
             else:
                 raise StopIteration
 
-    def generator(self, n=50000, n_threads=400, cycle=itertools.cycle):     # 50000, 400
+    def test(self, n=500000, n_threads=400, cycle=itertools.cycle):     # 50000, 400
         thread_ring = [self.worker() for _ in range(1, n_threads + 1)]
         for t in thread_ring:
             next(t)  # start exec. gen. funcs
@@ -27,67 +29,86 @@ class ThreadRing:
             except StopIteration:
                 break
 
-    def test(self, loop_counter, state):
-        statprof.start()
-        try:
-            print("Starting Thread Ring tests...")
-            print("Running Thread Ring tests...")
-            for _ in range(loop_counter):
-                self.generator()
-        finally:
-            statprof.stop()
-            print("Thread Ring test results...")
-            display(state, __class__.__name__)
-
 
 class Fibonacci:
-    def generator(self, fibonacci_range):
+    def test(self, fibonacci_range=25):
         if fibonacci_range <= 1:
             return fibonacci_range
         else:
-            return self.generator(fibonacci_range-1) + self.generator(fibonacci_range-2)
-
-    def test(self, loop_counter, state, fibonacci_range=20):        # 20
-        statprof.start()
-        try:
-            print("\nStarting Fibonacci Sequence tests...")
-            print("Running Fibonacci Sequence tests...")
-            for _ in range(loop_counter):
-                self.generator(fibonacci_range)
-        finally:
-            statprof.stop()
-            print("Fibonacci sequence test results...")
-            display(state, __class__.__name__)
+            return self.test(fibonacci_range-1) + self.test(fibonacci_range-2)
 
 
-class Pi:
+class PiDigits:
     @staticmethod
-    def generator(number_of_digits):
+    def test(number_of_digits=10000):
         my_pi = piGenerator()
         return [next(my_pi) for _ in range(number_of_digits)]
 
-    def test(self, loop_counter, state, number_of_pi_digits=1000):      # 1000
-        statprof.start()
-        try:
-            print("\nStarting Pi Generator tests...")
-            print("Running Pi Generator tests...")
-            for _ in range(loop_counter):
-                self.generator(number_of_pi_digits)
-        finally:
-            statprof.stop()
-            print("Pi Generator test results...")
-            display(state, __class__.__name__)
+
+class Addition:
+    @staticmethod
+    def test(number_of_iterations=1000000):
+        total = 0
+        for i in range(1, number_of_iterations):
+            total = total + i
 
 
-def display(state, class_name):
-    with open("tmp/benchmark_results", 'a') as file:
-        file.write(state + " " + class_name + " ")
+class Multiplication:
+    @staticmethod
+    def test(number_of_iterations=50000):
+        total = 1
+        for i in range(1, number_of_iterations):
+            total = total * i
+
+
+class Division:
+    @staticmethod
+    def test(number_of_iterations=50000):
+        total = 1
+        for i in range(1, number_of_iterations):
+            total = total * i
+
+
+class WriteToDisk:
+    @staticmethod
+    def test():
+        with open("tmp/write-read", "w") as file:
+            file.write(''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(50000)))
+
+
+class ReadFromDisk:
+    @staticmethod
+    def test():
+        with open("tmp/write-read", "r") as file:
+            _ = file.read()
+
+
+def test(state, object):
+    statprof.start()
+    test_name = object.__class__.__name__
+    try:
+        print("\nStarting %s tests..." % test_name)
+        print("Running %s tests..." % test_name)
+        object.test()
+    finally:
+        statprof.stop()
+        print("%s test results..." % test_name)
+        display(state, test_name)
+
+
+def display(state, test_name):
+    with open("tmp/benchmark_results", "a") as file:
+        file.write(state + " " + test_name + " ")
     statprof.display()
     statprof.reset()
 
 
 def start(state):
-    loop_counter = 10
-    ThreadRing().test(loop_counter, state)
-    Fibonacci().test(loop_counter, state)
-    Pi().test(loop_counter, state)
+    test(state, ThreadRing())
+    test(state, Fibonacci())
+    test(state, PiDigits())
+    test(state, Addition())
+    test(state, Multiplication())
+    test(state, Division())
+    test(state, WriteToDisk())
+    test(state, ReadFromDisk())

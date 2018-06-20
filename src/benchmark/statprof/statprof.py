@@ -379,10 +379,11 @@ def display(
     if fp is None:
         fp = sys.stdout
     if state.sample_count == 0:
-        p('No samples recorded.')
+        p('Test not long enough to create a statistical analysis...')
         # Alteration to the source to write to file--------------------
         with open("tmp/benchmark_results", 'a') as file:
-            file.write("0" + "\n")
+            file.write("0\n")
+        file.close()
         return
 
     stats = [CallStats(x) for x in itervalues(CallData.all_calls)]
@@ -415,6 +416,7 @@ def display(
     # Alteration to the source to write to file--------------------
     with open("tmp/benchmark_results", 'a') as file:
         file.write(str(state.accumulated_time) + "\n")
+    file.close()
 
 
 def display_by_line(stats, fp, order):
