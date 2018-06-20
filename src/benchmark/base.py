@@ -14,11 +14,11 @@ class ThreadRing:
         n = 1
         while True:
             if n > 0:
-                n = (yield (n - 1))
+                n = (yield(n - 1))
             else:
                 raise StopIteration
 
-    def test(self, n=500000, n_threads=400, cycle=itertools.cycle):     # 50000, 400
+    def test(self, n=500000, n_threads=400, cycle=itertools.cycle):
         thread_ring = [self.worker() for _ in range(1, n_threads + 1)]
         for t in thread_ring:
             next(t)  # start exec. gen. funcs
@@ -83,7 +83,7 @@ class ReadFromDisk:
             _ = file.read()
 
 
-def test(state, object):
+def runtest(state, object):
     statprof.start()
     test_name = object.__class__.__name__
     try:
@@ -104,11 +104,8 @@ def display(state, test_name):
 
 
 def start(state):
-    test(state, ThreadRing())
-    test(state, Fibonacci())
-    test(state, PiDigits())
-    test(state, Addition())
-    test(state, Multiplication())
-    test(state, Division())
-    test(state, WriteToDisk())
-    test(state, ReadFromDisk())
+    tests = [ThreadRing(), Fibonacci(), PiDigits(), Addition(), Multiplication(), Division(), WriteToDisk(), ReadFromDisk()]
+
+    for test in tests:
+        runtest(state, test)
+
