@@ -1,11 +1,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import abc
-
 import io
 import ssl
 import json
 import zipfile
+import paho.mqtt.client as mqtt
+
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from auklet import utils
@@ -106,6 +107,35 @@ class KafkaClient(Profiler):
             "log": data['log_topic']
         }
 
+    def _write_to_local(self, data):
+        try:
+            if self._check_data_limit(data, self.offline_current, True):
+                with open(self.offline_filename, "a") as offline:
+                    offline.write(json.dumps(data))
+                    offline.write("\n")
+        except IOError:
+            # TODO determine what to do with data we fail to write
+            return False
+
+    def _produce_from_local(self):
+        try:
+            with open(self.offline_filename, 'r+') as offline:
+                lines = offline.read().splitlines()
+                for line in lines:
+                    loaded = json.loads(line)
+                    if 'stackTrace' in loaded.keys() \
+                            or 'message' in loaded.keys():
+                        data_type = "event"
+                    else:
+                        data_type = "monitoring"
+
+                    if self._check_data_limit(loaded, self.data_current):
+                        self._produce(loaded, data_type)
+            self._clear_file(self.offline_filename)
+        except IOError:
+            # TODO determine what to do if we can't read the file
+            return False
+
     def _kafka_error_callback(self, error, msg):
         self._write_to_local(msg)
 
@@ -126,10 +156,21 @@ class KafkaClient(Profiler):
                 # TODO log off to kafka if kafka fails to connect
                 pass
 
-    def produce(self, data, data_type="monitoring"):
+    def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],
                            value=data) \
             .add_errback(self._kafka_error_callback, msg=data)
+
+    def produce(self, data, data_type="monitoring"):
+        if self.producer is not None:
+            try:
+                if self._check_data_limit(data, self.data_current):
+                    self._produce(data, data_type)
+                    self._produce_from_local()
+                else:
+                    self._write_to_local(data)
+            except KafkaError:
+                self._write_to_local(data)
 
 
 class MQTTClient(Profiler):
@@ -144,27 +185,22 @@ class MQTTClient(Profiler):
             "log": data['log_topic']
         }
 
-    def _kafka_error_callback(self, error, msg):
-        self._write_to_local(msg)
+    def on_disconnect(self, userdata, rc):
+        if rc != 0:
+            print("Unexpected disconnection.")
 
     def create_producer(self):
         if self._get_certs():
-            try:
-                ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-                ctx.options &= ~ssl.OP_NO_SSLv3
-                self.producer = KafkaProducer(**{
-                    "bootstrap_servers": self.brokers,
-                    "ssl_cafile": ".auklet/ck_ca.pem",
-                    "security_protocol": "SSL",
-                    "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(json.dumps(m)),
-                    "ssl_context": ctx
-                })
-            except (KafkaError, Exception):
-                # TODO log off to kafka if kafka fails to connect
-                pass
+            ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ctx.options &= ~ssl.OP_NO_SSLv3
+
+            self.producer = mqtt.Client()
+            self.producer.tls_set(ca_certs="./certs/ck_ca")
+            self.producer.tls_set_context(ctx)
+
+            self.producer.on_disconnect = self.on_disconnect
+            self.producer.connect_async("localhost", 8883, 60)
+            self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
-        self.producer.send(self.producer_types[data_type],
-                           value=data) \
-            .add_errback(self._kafka_error_callback, msg=data)
+        self.producer.publish(self.producer_types[data_type], payload=data)

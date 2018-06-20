@@ -56,17 +56,17 @@ class Client(object):
         self.producer = None
         self.mac_hash = mac_hash
         self._load_limits()
-        self._create_file(self.offline_filename)
-        self._create_file(self.limits_filename)
-        self._create_file(self.usage_filename)
-        self._create_file(self.com_config_filename)
+        utils.create_file(self.offline_filename)
+        utils.create_file(self.limits_filename)
+        utils.create_file(self.usage_filename)
+        utils.create_file(self.com_config_filename)
         self.commit_hash = utils.get_commit_hash()
         self.abs_path = utils.get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
 
     def _get_config(self):
-        res = self._open_auklet_url(
-            self._build_url(
+        res = utils.open_auklet_url(
+            utils.build_url(
                 "private/devices/{}/app_config/".format(self.app_id)))
         if res is not None:
             return json.loads(u(res.read()))['config']
@@ -92,35 +92,6 @@ class Client(object):
                         self.offline_limit = data['storage']['storage_limit']
         except IOError:
             return
-
-    def _write_to_local(self, data):
-        try:
-            if self._check_data_limit(data, self.offline_current, True):
-                with open(self.offline_filename, "a") as offline:
-                    offline.write(json.dumps(data))
-                    offline.write("\n")
-        except IOError:
-            # TODO determine what to do with data we fail to write
-            return False
-
-    def _produce_from_local(self):
-        try:
-            with open(self.offline_filename, 'r+') as offline:
-                lines = offline.read().splitlines()
-                for line in lines:
-                    loaded = json.loads(line)
-                    if 'stackTrace' in loaded.keys() \
-                            or 'message' in loaded.keys():
-                        data_type = "event"
-                    else:
-                        data_type = "monitoring"
-
-                    if self._check_data_limit(loaded, self.data_current):
-                        self._produce(loaded, data_type)
-            self._clear_file(self.offline_filename)
-        except IOError:
-            # TODO determine what to do if we can't read the file
-            return False
 
     def _build_usage_json(self):
         return {"data": self.data_current, "offline": self.offline_current}
@@ -213,22 +184,6 @@ class Client(object):
             "commitHash": self.commit_hash
         }
         return log_dict
-
-    def _produce(self, data, data_type="monitoring"):
-        self.producer.send(self.producer_types[data_type],
-                           value=data) \
-            .add_errback(self._kafka_error_callback, msg=data)
-
-    def produce(self, data, data_type="monitoring"):
-        if self.producer is not None:
-            try:
-                if self._check_data_limit(data, self.data_current):
-                    self._produce(data, data_type)
-                    self._produce_from_local()
-                else:
-                    self._write_to_local(data)
-            except KafkaError:
-                self._write_to_local(data)
 
 
 class Runnable(object):
