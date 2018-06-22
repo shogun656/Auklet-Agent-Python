@@ -6,7 +6,9 @@ from __future__ import absolute_import
 
 import time
 
-from auklet.base import Runnable, frame_stack, Client, get_mac
+from auklet.base import Runnable, Client
+from auklet.broker import KafkaClient, MQTTClient
+from auklet.utils import frame_stack, get_mac
 from auklet.stats import MonitoringTree
 from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring.logging import AukletLogging
@@ -42,14 +44,17 @@ class Monitoring(MonitoringBase, AukletLogging):
     sampler = None
     tree = None
     client = None
+    broker = None
     monitor = True
 
     def __init__(self, apikey=None, app_id=None,
-                 base_url="https://api.auklet.io/", monitoring=False):
+                 base_url="https://api.auklet.io/", monitoring=False,
+                 kafka=False):
         self.mac_hash = get_mac()
         self.client = Client(apikey, app_id, base_url, self.mac_hash)
         self.tree = MonitoringTree(self.mac_hash)
-        sampler = AukletSampler(self.client, self.tree)
+        self.broker = KafkaClient(base_url) if kafka else MQTTClient(base_url)
+        sampler = AukletSampler(self.client, self.broker, self.tree)
         super(Monitoring, self).__init__()
         self.sampler = sampler
         self.monitor = monitoring

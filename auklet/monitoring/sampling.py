@@ -8,7 +8,8 @@ import sys
 import functools
 import threading
 from time import time
-from auklet.base import Runnable, setup_thread_excepthook, deferral
+from auklet.base import Runnable
+from auklet.utils import setup_thread_excepthook, deferral
 
 
 __all__ = ['AukletSampler']
@@ -25,15 +26,17 @@ class AukletSampler(Runnable):
     .. _Yappi: https://code.google.com/p/yappi/
     """
     client = None
+    broker = None
     emission_rate = 60  # 10 seconds
     network_rate = 10  # 10 seconds
     hour = 3600  # 1 hour
 
-    def __init__(self, client, tree, *args, **kwargs):
+    def __init__(self, client, broker,  tree, *args, **kwargs):
         sys.excepthook = self.handle_exc
         self.sampled_times = {}
         self.interval = INTERVAL
         self.client = client
+        self.broker = broker
         self.tree = tree
         self.emission_rate = self.client.update_limits()
         self.start_time = int(time())
@@ -45,7 +48,7 @@ class AukletSampler(Runnable):
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:
             if time_diff % (self.emission_rate / 1000) == 0:
-                self.client.produce(
+                self.broker.produce(
                     self.tree.build_tree(self.client.app_id))
                 self.tree.clear_root()
 
@@ -58,9 +61,8 @@ class AukletSampler(Runnable):
         self.prev_diff = time_diff
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, traceback,
-                                             self.tree)
-        self.client.produce(event, "event")
+        event = self.client.build_event_data(type, traceback, self.tree)
+        self.broker.produce(event, "event")
 
     def run(self, profiler):
         profile = functools.partial(self._profile, profiler)

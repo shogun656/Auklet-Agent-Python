@@ -8,7 +8,6 @@ import json
 
 from uuid import uuid4
 from datetime import datetime
-from kafka.errors import KafkaError
 from auklet import utils
 from auklet.utils import u
 from auklet.stats import Event, SystemMetrics
@@ -28,7 +27,6 @@ S_TO_MS = 1000
 
 
 class Client(object):
-    producer_types = None
     brokers = None
     commit_hash = None
     mac_hash = None
@@ -53,7 +51,6 @@ class Client(object):
         self.app_id = app_id
         self.base_url = base_url
         self.send_enabled = True
-        self.producer = None
         self.mac_hash = mac_hash
         self._load_limits()
         utils.create_file(self.offline_filename)
@@ -67,6 +64,7 @@ class Client(object):
     def _get_config(self):
         res = utils.open_auklet_url(
             utils.build_url(
+                self.base_url,
                 "private/devices/{}/app_config/".format(self.app_id)))
         if res is not None:
             return json.loads(u(res.read()))['config']

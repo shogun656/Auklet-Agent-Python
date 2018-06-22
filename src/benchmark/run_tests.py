@@ -13,13 +13,13 @@ def without_auklet():
 
 
 @patch('auklet.base.Client.update_limits')
-@patch('auklet.base.Client._get_kafka_certs')
-def with_auklet(get_kafka_certs_mock, update_limits_mock):
+@patch('auklet.broker.KafkaClient._get_certs')
+def with_auklet_and_kafka(get_certs_mock, update_limits_mock):
     """
     With a little help from mock, this test will push data that
     would normally go to the front end, to a kafka container created locally.
     """
-    def _get_kafka_brokers(self):
+    def _read_from_conf(self):
         self.brokers = ["kafka:9093"]
         self.producer_types = {
             "monitoring": "profiling",
@@ -27,9 +27,37 @@ def with_auklet(get_kafka_certs_mock, update_limits_mock):
             "log": "logging"
         }
     update_limits_mock.return_value = 10000
-    get_kafka_certs_mock.return_value = True
+    get_certs_mock.return_value = True
 
-    patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+    patcher = patch('auklet.broker.KafkaClient._read_from_conf',
+                    new=_read_from_conf)
+    patcher.start()
+    auklet_monitoring = Monitoring("", "", monitoring=True)
+    auklet_monitoring.start()
+    base.start(state="WithAuklet")
+    auklet_monitoring.stop()
+    patcher.stop()
+
+@patch('auklet.base.Client.update_limits')
+@patch('auklet.broker.MQTTClient._get_certs')
+def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
+    """
+    With a little help from mock, this test will push data that
+    would normally go to the front end, to a kafka container created locally.
+    """
+    def _read_from_conf(self):
+        self.brokers = ["mqtt"]
+        self.port = 1883
+        self.producer_types = {
+            "monitoring": "python/agent/profiling",
+            "event": "python/agent/events",
+            "log": "python/agent/logging"
+        }
+    update_limits_mock.return_value = 10000
+    get_certs_mock.return_value = True
+
+    patcher = patch('auklet.broker.MQTTClient._read_from_conf',
+                    new=_read_from_conf)
     patcher.start()
     auklet_monitoring = Monitoring("", "", monitoring=True)
     auklet_monitoring.start()
@@ -77,7 +105,8 @@ def display_complete_results():
 
 def main():
     without_auklet()
-    with_auklet()
+    # with_auklet_and_kafka()
+    with_auklet_and_mqtt()
     display_complete_results()
 
 

@@ -8,11 +8,11 @@ services:
     volumes:
       - .:/app
     environment:
-      DOCKER_VERNEMQ_LISTENER.ssl.cafile: 'app/certs/ck_ca'
-      DOCKER_VERNEMQ_LISTENER.ssl.certfile: 'app/certs/ck_cert'
-      DOCKER_VERNEMQ_LISTENER.ssl.keyfile: 'app/certs/ck_private_key'
-      DOCKER_VERNEMQ_LISTENER.ssl.default: '127.0.0.1:8883'
-      DOCKER_VERNEMQ_LISTENER.ssl.require_certificate: 'on'
+#      DOCKER_VERNEMQ_LISTENER.ssl.cafile: 'app/certs/ck_ca'
+#      DOCKER_VERNEMQ_LISTENER.ssl.certfile: 'app/certs/ck_cert'
+#      DOCKER_VERNEMQ_LISTENER.ssl.keyfile: 'app/certs/ck_private_key'
+#      DOCKER_VERNEMQ_LISTENER.ssl.default: '127.0.0.1:8883'
+#      DOCKER_VERNEMQ_LISTENER.ssl.require_certificate: 'on'
       DOCKER_VERNEMQ_ALLOW_ANONYMOUS: 'on'
 
   kafka:
@@ -30,3 +30,4 @@ services:
     command: bash /compose/benchmark/startBenchmark.sh
     depends_on:
       - kafka
+      - mqtt

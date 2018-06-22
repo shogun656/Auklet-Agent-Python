@@ -32,13 +32,14 @@ class Profiler(ABC):
     brokers = None
     com_config_filename = ".auklet/communication"
 
-    def __init__(self):
+    def __init__(self, base_url):
         self._load_conf()
         self.create_producer()
+        self.base_url = base_url
 
     def _get_brokers(self):
         res = utils.open_auklet_url(
-            self._build_url("private/devices/config/"))
+            utils.build_url(self.base_url, "private/devices/config/"))
         if res is None:
             return self._load_conf()
         info = json.loads(u(res.read()))
@@ -63,8 +64,9 @@ class Profiler(ABC):
             return False
 
     def _get_certs(self):
-        url = Request(self._build_url("private/devices/certificates/"),
-                      headers={"Authorization": "JWT %s" % self.apikey})
+        url = Request(
+            utils.build_url(self.base_url, "private/devices/certificates/"),
+            headers={"Authorization": "JWT %s" % self.apikey})
         try:
             try:
                 res = urlopen(url)
@@ -96,9 +98,6 @@ class Profiler(ABC):
 
 
 class KafkaClient(Profiler):
-    def __init__(self):
-        super(KafkaClient, self).__init__()
-
     def _read_from_conf(self, data):
         self.brokers = data['brokers']
         self.producer_types = {
@@ -174,11 +173,9 @@ class KafkaClient(Profiler):
 
 
 class MQTTClient(Profiler):
-    def __init__(self):
-        super(MQTTClient, self).__init__()
-
     def _read_from_conf(self, data):
         self.brokers = data['brokers']
+        self.port = data["port"]
         self.producer_types = {
             "monitoring": data['prof_topic'],
             "event": data['event_topic'],
@@ -195,11 +192,11 @@ class MQTTClient(Profiler):
             ctx.options &= ~ssl.OP_NO_SSLv3
 
             self.producer = mqtt.Client()
-            self.producer.tls_set(ca_certs="./certs/ck_ca")
+            self.producer.tls_set(ca_certs=".auklet/ck_ca.pem")
             self.producer.tls_set_context(ctx)
 
             self.producer.on_disconnect = self.on_disconnect
-            self.producer.connect_async("localhost", 8883, 60)
+            self.producer.connect_async(self.brokers, self.port)
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):

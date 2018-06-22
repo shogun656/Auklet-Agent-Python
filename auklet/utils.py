@@ -39,16 +39,16 @@ def open_auklet_url(self, url):
     return res
 
 
-def create_file(self, filename):
+def create_file(filename):
     open(filename, "a").close()
 
 
-def clear_file(self, file_name):
+def clear_file(file_name):
     open(file_name, "w").close()
 
 
-def build_url(self, extension):
-    return '%s%s' % (self.base_url, extension)
+def build_url(base_url, extension):
+    return '%s%s' % (base_url, extension)
 
 
 def frame_stack(frame):
@@ -71,7 +71,8 @@ def get_commit_hash():
         with open(".auklet/version", "r") as auklet_file:
             return auklet_file.read().rstrip()
     except IOError:
-        sys.exit("No Commit Hash found")
+        # TODO Error out app if no commit hash
+        return ""
 
 
 def get_abs_path(path):
