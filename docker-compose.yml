@@ -5,8 +5,8 @@ services:
     image: erlio/docker-vernemq
     env_file:
       - .env
-    volumes:
-      - .:/app
+    ports:
+      - "1883:1883"
     environment:
 #      DOCKER_VERNEMQ_LISTENER.ssl.cafile: 'app/certs/ck_ca'
 #      DOCKER_VERNEMQ_LISTENER.ssl.certfile: 'app/certs/ck_cert'
@@ -27,7 +27,9 @@ services:
       dockerfile: ./compose/benchmark/Dockerfile
     environment:
       - PYTHONUNBUFFERED=0
-    command: bash /compose/benchmark/startBenchmark.sh
+    command: bash /startBenchmark.sh
+    volumes:
+      - .:/app
     depends_on:
       - kafka
       - mqtt

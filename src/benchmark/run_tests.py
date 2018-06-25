@@ -1,5 +1,7 @@
 from mock import patch
+import paho.mqtt.client as mqtt
 
+from auklet.broker import KafkaClient
 from auklet.monitoring import Monitoring
 from src.benchmark import base
 
@@ -19,33 +21,40 @@ def with_auklet_and_kafka(get_certs_mock, update_limits_mock):
     With a little help from mock, this test will push data that
     would normally go to the front end, to a kafka container created locally.
     """
-    def _read_from_conf(self):
+    print("\n\nStarting benchmark tests with the Auklet Agent and Kafka...")
+
+    def _load_conf(self):
         self.brokers = ["kafka:9093"]
         self.producer_types = {
             "monitoring": "profiling",
             "event": "events",
             "log": "logging"
         }
+
     update_limits_mock.return_value = 10000
     get_certs_mock.return_value = True
 
-    patcher = patch('auklet.broker.KafkaClient._read_from_conf',
-                    new=_read_from_conf)
-    patcher.start()
-    auklet_monitoring = Monitoring("", "", monitoring=True)
+    conf_patcher = patch('auklet.broker.KafkaClient._load_conf',
+                         new=_load_conf)
+    conf_patcher.start()
+
+    auklet_monitoring = Monitoring("", "", monitoring=True, kafka=True)
     auklet_monitoring.start()
-    base.start(state="WithAuklet")
+    base.start(state="WithAukletKafka")
     auklet_monitoring.stop()
-    patcher.stop()
+
+    conf_patcher.stop()
 
 @patch('auklet.base.Client.update_limits')
 @patch('auklet.broker.MQTTClient._get_certs')
 def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
     """
     With a little help from mock, this test will push data that
-    would normally go to the front end, to a kafka container created locally.
+    would normally go to the front end, to a MQTT container created locally.
     """
-    def _read_from_conf(self):
+    print("\n\nStarting benchmark tests with the Auklet Agent and MQTT...")
+
+    def _load_conf(self):
         self.brokers = ["mqtt"]
         self.port = 1883
         self.producer_types = {
@@ -53,32 +62,51 @@ def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
             "event": "python/agent/events",
             "log": "python/agent/logging"
         }
+
+    def create_producer(self):
+        # Make non SSL producer for testing
+        self.producer = mqtt.Client()
+        self.producer.on_disconnect = self.on_disconnect
+        self.producer.connect_async(self.brokers, self.port)
+        self.producer.loop_start()
+
     update_limits_mock.return_value = 10000
     get_certs_mock.return_value = True
 
-    patcher = patch('auklet.broker.MQTTClient._read_from_conf',
-                    new=_read_from_conf)
-    patcher.start()
+    conf_patcher = patch('auklet.broker.MQTTClient._load_conf',
+                         new=_load_conf)
+    producer_patcher = patch('auklet.broker.MQTTClient.create_producer',
+                             new=create_producer)
+    conf_patcher.start()
+    producer_patcher.start()
+
     auklet_monitoring = Monitoring("", "", monitoring=True)
     auklet_monitoring.start()
-    base.start(state="WithAuklet")
+    base.start(state="WithAukletMQTT")
     auklet_monitoring.stop()
-    patcher.stop()
+
+    conf_patcher.stop()
+    producer_patcher.stop()
 
 
 def display_complete_results():
     """This function displays the final compared result.  Results are in table format."""
     with open('tmp/benchmark_results') as file:
         my_list = tuple(tuple(map(str, line.split())) for line in file)
+    print(my_list)
 
     without_auklet_run_time = 0
-    with_auklet_run_time = 0
-    number_of_tests = int(len(my_list) / 2)
+    with_auklet_kafka_run_time = 0
+    with_auklet_mqtt_run_time = 0
+    number_of_tests = int(len(my_list) / 3)
 
     try:
         print("\n\nTest comparison for run time only for with the Auklet Agent versus without the Auklet Agent")
-        print(my_list[0][0].split('_')[0], my_list[number_of_tests][0].split('_')[0], sep='\t')     # Prints header
-        print("seconds", "seconds", "name", "\ttimes faster without agent", sep='\t\t')
+        print(my_list[0][0].split('_')[0],
+              my_list[number_of_tests][0].split('_')[0],
+              sep='\t')  # Prints header
+        print("seconds", "seconds", "seconds", "name",
+              "\ttimes faster without agent", sep='\t\t')
 
         for i in range(0, number_of_tests):     # Organizes, calculates, and prints data from file
             without_auklet = round(float(my_list[i][2]), 6)     # Individual test runtime
@@ -105,7 +133,7 @@ def display_complete_results():
 
 def main():
     without_auklet()
-    # with_auklet_and_kafka()
+    with_auklet_and_kafka()
     with_auklet_and_mqtt()
     display_complete_results()
 

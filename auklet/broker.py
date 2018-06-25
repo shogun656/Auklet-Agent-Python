@@ -173,6 +173,8 @@ class KafkaClient(Profiler):
 
 
 class MQTTClient(Profiler):
+    port = None
+
     def _read_from_conf(self, data):
         self.brokers = data['brokers']
         self.port = data["port"]
@@ -200,4 +202,5 @@ class MQTTClient(Profiler):
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
-        self.producer.publish(self.producer_types[data_type], payload=data)
+        self.producer.publish(self.producer_types[data_type],
+                              payload=json.dumps(data))
