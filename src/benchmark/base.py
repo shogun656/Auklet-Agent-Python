@@ -72,14 +72,14 @@ class Division:
 class WriteToDisk:
     @staticmethod
     def test():
-        with open("tmp/write-read", "w") as file:
+        with open("/tmp/write-read", "w") as file:
             file.write(''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(50000)))
 
 
 class ReadFromDisk:
     @staticmethod
     def test():
-        with open("tmp/write-read", "r") as file:
+        with open("/tmp/write-read", "r") as file:
             _ = file.read()
 
 
@@ -97,7 +97,7 @@ def runtest(state, object):
 
 
 def display(state, test_name):
-    with open("tmp/benchmark_results", "a") as file:
+    with open("/tmp/benchmark_results", "a") as file:
         file.write(state + " " + test_name + " ")
     statprof.display()
     statprof.reset()

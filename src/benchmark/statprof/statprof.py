@@ -381,7 +381,7 @@ def display(
     if state.sample_count == 0:
         p('Test not long enough to create a statistical analysis...')
         # Alteration to the source to write to file--------------------
-        with open("tmp/benchmark_results", 'a') as file:
+        with open("/tmp/benchmark_results", 'a') as file:
             file.write("0\n")
         file.close()
         return
@@ -414,7 +414,7 @@ def display(
     p('Sample count: %d' % state.sample_count)
     p('Total time: %f seconds' % state.accumulated_time)
     # Alteration to the source to write to file--------------------
-    with open("tmp/benchmark_results", 'a') as file:
+    with open("/tmp/benchmark_results", 'a') as file:
         file.write(str(state.accumulated_time) + "\n")
     file.close()
 
