@@ -134,7 +134,7 @@ class KafkaClient(Profiler):
             # TODO determine what to do if we can't read the file
             return False
 
-    def _kafka_error_callback(self, error, msg):
+    def _error_callback(self, error, msg):
         self._write_to_local(msg)
 
     def create_producer(self):
@@ -157,7 +157,7 @@ class KafkaClient(Profiler):
     def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],
                            value=data) \
-            .add_errback(self._kafka_error_callback, msg=data)
+            .add_errback(self._error_callback, msg=data)
 
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:

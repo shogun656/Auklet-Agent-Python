@@ -21,6 +21,25 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError, URLError
 
+if sys.version_info < (3,):
+    # Python 2 and 3 String Compatibility
+    def b(x):
+        return x
+
+    def u(x):
+        return x
+else:
+    # https://pythonhosted.org/six/#binary-and-text-data
+    import codecs
+
+    def b(x):
+        # Produces a unicode string to encoded bytes
+        return codecs.utf_8_encode(x)[0]
+
+    def u(x):
+        # Produces a byte string from a unicode object
+        return codecs.utf_8_decode(x)[0]
+
 
 def open_auklet_url(self, url):
     url = Request(url, headers={"Authorization": "JWT %s" % self.apikey})
@@ -116,26 +135,6 @@ def setup_thread_excepthook():
         self.run = run_with_except_hook
 
     threading.Thread.__init__ = init
-
-
-if sys.version_info < (3,):
-    # Python 2 and 3 String Compatibility
-    def b(x):
-        return x
-
-    def u(x):
-        return x
-else:
-    # https://pythonhosted.org/six/#binary-and-text-data
-    import codecs
-
-    def b(x):
-        # Produces a unicode string to encoded bytes
-        return codecs.utf_8_encode(x)[0]
-
-    def u(x):
-        # Produces a byte string from a unicode object
-        return codecs.utf_8_decode(x)[0]
 
 
 @contextmanager
