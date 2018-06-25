@@ -9,8 +9,7 @@ import paho.mqtt.client as mqtt
 
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from auklet import utils
-from auklet.utils import b, u
+from auklet.utils import open_auklet_url, build_url, b, u
 
 try:
     # For Python 3.0 and later
@@ -38,8 +37,8 @@ class Profiler(ABC):
         self.base_url = base_url
 
     def _get_brokers(self):
-        res = utils.open_auklet_url(
-            utils.build_url(self.base_url, "private/devices/config/"))
+        res = open_auklet_url(
+            build_url(self.base_url, "private/devices/config/"))
         if res is None:
             return self._load_conf()
         info = json.loads(u(res.read()))
@@ -65,7 +64,7 @@ class Profiler(ABC):
 
     def _get_certs(self):
         url = Request(
-            utils.build_url(self.base_url, "private/devices/certificates/"),
+            build_url(self.base_url, "private/devices/certificates/"),
             headers={"Authorization": "JWT %s" % self.apikey})
         try:
             try:

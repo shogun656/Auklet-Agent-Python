@@ -8,8 +8,8 @@ import json
 
 from uuid import uuid4
 from datetime import datetime
-from auklet import utils
-from auklet.utils import u
+from auklet.utils import create_file, get_commit_hash, \
+    get_abs_path, get_device_ip, open_auklet_url, build_url, u
 from auklet.stats import Event, SystemMetrics
 
 try:
@@ -53,17 +53,17 @@ class Client(object):
         self.send_enabled = True
         self.mac_hash = mac_hash
         self._load_limits()
-        utils.create_file(self.offline_filename)
-        utils.create_file(self.limits_filename)
-        utils.create_file(self.usage_filename)
-        utils.create_file(self.com_config_filename)
-        self.commit_hash = utils.get_commit_hash()
-        self.abs_path = utils.get_abs_path(".auklet/version")
+        create_file(self.offline_filename)
+        create_file(self.limits_filename)
+        create_file(self.usage_filename)
+        create_file(self.com_config_filename)
+        self.commit_hash = get_commit_hash()
+        self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
 
     def _get_config(self):
-        res = utils.open_auklet_url(
-            utils.build_url(
+        res = open_auklet_url(
+            build_url(
                 self.base_url,
                 "private/devices/{}/app_config/".format(self.app_id)))
         if res is not None:
@@ -160,7 +160,7 @@ class Client(object):
         event = Event(type, traceback, tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
-        event_dict['publicIP'] = utils.get_device_ip()
+        event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = str(datetime.utcnow())
         event_dict['systemMetrics'] = dict(self.system_metrics)
@@ -174,7 +174,7 @@ class Client(object):
             "type": data_type,
             "level": level,
             "application": self.app_id,
-            "publicIP": utils.get_device_ip(),
+            "publicIP": get_device_ip(),
             "id": str(uuid4()),
             "timestamp": str(datetime.utcnow()),
             "systemMetrics": dict(SystemMetrics()),

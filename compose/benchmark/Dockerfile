@@ -1,11 +1,7 @@
 FROM python:3
 
 ADD ./compose/benchmark/startBenchmark.sh /startBenchmark.sh
-ADD ./src /src
-ADD ./auklet /auklet
 ADD ./setup.py /setup.py
-ADD ./setup.cfg /setup.cfg
-ADD ./README.md /README.md
 ADD ./requirements.txt /requirements.txt
 
 RUN mkdir .auklet
