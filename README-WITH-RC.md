@@ -1,5 +1,13 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- APM-1372: Dockerize benchmark testing for the Python Agent [#60](https://github.com/ESG-USA/Auklet-Agent-Python/pull/60) ([joshuahufford](https://github.com/joshuahufford))
+
+## [0.3.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.1)
+
 ### [0.3.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.1-rc.1)
 
 **Fixed bugs:**
