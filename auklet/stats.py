@@ -1,9 +1,14 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import sys
+
 from time import time
 import pprint
 import inspect
 from uuid import uuid4
+
+sys.path.append('../..')
+from src.protobuf import data_pb2
 
 try:
     import psutil
@@ -177,6 +182,51 @@ class MonitoringTree(object):
             parent_func.children.append(current_func)
             parent_func = current_func
         return root_func
+
+    def _build_protobuf_tree(self, root_tree, message):
+        try:
+            if isinstance(root_tree, (list,)):
+                message.callees.add().functionName = root_tree[0]['functionName']
+                message.callees.add().nSamples = str(root_tree[0]['nSamples'])
+                message.callees.add().lineNumber = str(root_tree[0]['lineNumber'])
+                message.callees.add().nCalls = str(root_tree[0]['nCalls'])
+                message.callees.add().filePath = str(root_tree[0]['filePath'])
+
+            if isinstance(root_tree, (dict,)):
+                message.callees.add().functionName = root_tree['functionName']
+                message.callees.add().nSamples = str(root_tree['nSamples'])
+                message.callees.add().lineNumber = str(root_tree['lineNumber'])
+                message.callees.add().nCalls = str(root_tree['nCalls'])
+                message.callees.add().filePath = str(root_tree['filePath'])
+
+            if isinstance(root_tree, (list,)):
+                if len(root_tree) == 1:
+                    self._build_protobuf_tree(root_tree[0]['callees'], message)
+                else:
+                    for i in range(1, len(root_tree)):
+                        self._build_protobuf_tree(root_tree[i], message)
+
+            if isinstance(root_tree, (dict,)):
+                self._build_protobuf_tree(root_tree['callees'], message)
+
+        except IndexError:
+            pass
+        finally:
+            return message.SerializeToString()
+
+    def build_protobuf_monitoring_data(self, app_id):
+        self.protobuf_monitoring_data = data_pb2.ProtobufMonitoringData()
+
+        self.protobuf_monitoring_data.application = str(app_id)
+        self.protobuf_monitoring_data.publicIP = str(self.public_ip)
+        self.protobuf_monitoring_data.id = str(uuid4())
+        self.protobuf_monitoring_data.timestamp = str(round(time() * 1000))
+        self.protobuf_monitoring_data.systemMacHash = str(self.mac_hash)
+        self.protobuf_monitoring_data.commitHash = str(self.commit_hash)
+
+        root_tree = dict(self.root_func)
+
+        return self._build_protobuf_tree(root_tree, self.protobuf_monitoring_data)
 
     def _update_sample_count(self, parent, new_parent):
         if not new_parent.children:

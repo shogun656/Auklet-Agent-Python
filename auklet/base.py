@@ -24,6 +24,9 @@ from auklet.errors import AukletConfigurationError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
 
+sys.path.append('../..')
+from src.protobuf import data_pb2
+
 try:
     # For Python 3.0 and later
     from urllib.error import HTTPError, URLError
@@ -326,6 +329,55 @@ class Client(object):
             "commitHash": self.commit_hash
         }
         return log_dict
+
+    def build_protobuf_log_data(self, msg, data_type, level):
+        self.protobuf_log_data = data_pb2.ProtobufLogData()
+
+        self.protobuf_log_data.message = str(msg)
+        self.protobuf_log_data.dataType = str(data_type)
+        self.protobuf_log_data.level = str(level)
+        self.protobuf_log_data.application = str(self.app_id)
+        self.protobuf_log_data.publicIP = str(get_device_ip())
+        self.protobuf_log_data.id = str(uuid4())
+        self.protobuf_log_data.timestamp = str((datetime.utcnow()))
+        self.protobuf_log_data.systemMacHash = str(self.mac_hash)
+        self.protobuf_log_data.commitHash = str(self.commit_hash)
+
+        system_metrics_dict = dict(self.system_metrics)
+        self.protobuf_log_data.systemMetrics.cpuUsage = system_metrics_dict['cpuUsage']
+        self.protobuf_log_data.systemMetrics.memoryUsage = system_metrics_dict['memoryUsage']
+        self.protobuf_log_data.systemMetrics.inboundNetwork = system_metrics_dict['inboundNetwork']
+        self.protobuf_log_data.systemMetrics.outboundNetwork = system_metrics_dict['outboundNetwork']
+
+        return self.protobuf_log_data.SerializeToString()
+
+    def build_protobuf_event_data(self, type, traceback, tree):
+        self.protobuf_event_data = data_pb2.ProtobufEventData()
+
+        self.protobuf_event_data.application = str(self.app_id)
+        self.protobuf_event_data.publicIP = str(get_device_ip())
+        self.protobuf_event_data.id = str(uuid4())
+        self.protobuf_event_data.timestamp = str((datetime.utcnow()))
+        self.protobuf_event_data.systemMacHash = str(self.mac_hash)
+        self.protobuf_event_data.commitHash = str(self.commit_hash)
+
+        system_metrics_dict = dict(self.system_metrics)
+        self.protobuf_event_data.systemMetrics.cpuUsage = system_metrics_dict['cpuUsage']
+        self.protobuf_event_data.systemMetrics.memoryUsage = system_metrics_dict['memoryUsage']
+        self.protobuf_event_data.systemMetrics.inboundNetwork = system_metrics_dict['inboundNetwork']
+        self.protobuf_event_data.systemMetrics.outboundNetwork = system_metrics_dict['outboundNetwork']
+
+        event = Event(type, traceback, tree, self.abs_path)
+        event_dict = dict(event)
+        stack_trace = list(event_dict["stackTrace"])
+        self.protobuf_event_data.stackTrace.functionName = stack_trace[0]['functionName']
+        self.protobuf_event_data.stackTrace.filePath = stack_trace[0]['filePath']
+        self.protobuf_event_data.stackTrace.lineNumber = stack_trace[0]['lineNumber']
+
+        for k, v in stack_trace[0]['locals'].items():
+            self.protobuf_event_data.stackTrace.locals[k] = v
+
+        return self.protobuf_event_data.SerializeToString()
 
     def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],

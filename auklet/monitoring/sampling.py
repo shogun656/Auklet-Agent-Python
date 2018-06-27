@@ -47,6 +47,11 @@ class AukletSampler(Runnable):
             if time_diff % (self.emission_rate / 1000) == 0:
                 self.client.produce(
                     self.tree.build_tree(self.client.app_id))
+
+                # This calls build_protobuf_monitoring_data() in stats.py
+                # self.client.produce(
+                #     self.tree.build_protobuf_monitoring_data(self.client.app_id))
+
                 self.tree.clear_root()
 
             if time_diff % self.network_rate == 0:
@@ -58,9 +63,12 @@ class AukletSampler(Runnable):
         self.prev_diff = time_diff
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, traceback,
-                                             self.tree)
+        event = self.client.build_event_data(type, traceback, self.tree)
         self.client.produce(event, "event")
+
+        # This calls build_protobuf_event_data() in base.py
+        # event = self.client.build_protobuf_event_data(type, traceback, self.tree)
+        # self.client.produce(event, "event")
 
     def run(self, profiler):
         profile = functools.partial(self._profile, profiler)
