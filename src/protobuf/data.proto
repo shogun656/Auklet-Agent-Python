@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package auklet;
+
+
+message SystemMetrics {
+    float cpuUsage = 1;
+    float memoryUsage = 2;
+    float inboundNetwork = 3;
+    float outboundNetwork = 4;
+}
+
+message StackTrace {
+    string functionName = 1;
+    string filePath = 2;
+    int32 lineNumber = 3;
+    map<string, string> locals = 4;
+}
+
+message Callees {
+    string functionName = 1;
+    string nSamples = 2;
+    string lineNumber = 3;
+    string nCalls = 4;
+    string filePath = 5;
+    repeated Callees callees = 6;
+}
+
+message ProtobufEventData {
+    StackTrace stackTrace = 1;
+    string excType = 2;
+    string application = 3;
+    string publicIP = 4;
+    string id = 5;
+    string timestamp = 6;
+    SystemMetrics systemMetrics = 7;
+    string systemMacHash = 8;
+    string commitHash = 9;
+}
+
+message ProtobufLogData {
+    string message = 1;
+    string dataType = 2;
+    string level = 3;
+    string application = 4;
+    string publicIP = 5;
+    string id = 6;
+    string timestamp = 7;
+    SystemMetrics systemMetrics = 8;
+    string systemMacHash = 9;
+    string commitHash = 10;
+}
+
+message ProtobufMonitoringData {
+    string application = 1;
+    string publicIP = 2;
+    string id = 3;
+    string timestamp = 4;
+    string systemMacHash = 5;
+    string commitHash = 6;
+    repeated Callees callees = 7;
+}

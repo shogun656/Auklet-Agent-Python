@@ -1,0 +1,1 @@
+{"brokers": ["brokers-staging.feeds.auklet.io:9093"], "prof_topic": "profiler", "event_topic": "events", "log_topic": "logs", "user_metrics_topic": "user_metrics"}
