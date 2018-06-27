@@ -23,9 +23,7 @@ from auklet.stats import Event, SystemMetrics
 from auklet.errors import AukletConfigurationError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
-
-sys.path.append('../..')
-from src.protobuf import data_pb2
+from auklet.protobuf import data_pb2
 
 try:
     # For Python 3.0 and later

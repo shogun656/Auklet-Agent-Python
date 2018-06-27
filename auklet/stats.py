@@ -6,9 +6,7 @@ from time import time
 import pprint
 import inspect
 from uuid import uuid4
-
-sys.path.append('../..')
-from src.protobuf import data_pb2
+from auklet.protobuf import data_pb2
 
 try:
     import psutil
