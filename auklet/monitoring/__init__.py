@@ -76,6 +76,5 @@ class Monitoring(MonitoringBase, AukletLogging):
         self.sampler.stop()
 
     def log(self, msg, data_type, level="INFO"):
-        # self.client.produce(self.client.build_log_data(msg, data_type, level), "event")
-        event = self.client.build_protobuf_log_data(msg, data_type, level)
-        self.client.produce(event, "event")
+        self.client.produce(
+            self.client.build_log_data(msg, data_type, level), "event")

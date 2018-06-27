@@ -24,9 +24,6 @@ from auklet.errors import AukletConfigurationError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
 
-sys.path.append('../..')
-from src.protobuf import data_pb2
-
 try:
     # For Python 3.0 and later
     from urllib.error import HTTPError, URLError
@@ -80,7 +77,6 @@ class Client(object):
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
-
         if self._get_kafka_certs():
             try:
                 ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -304,54 +300,17 @@ class Client(object):
         # return emission period in ms
         return config['emission_period'] * S_TO_MS
 
-    def build_protobuf_log_data(self, msg, data_type, level):
-        self.protobuf_log_data = data_pb2.ProtobufLogData()
-
-        self.protobuf_log_data.message = str(msg)
-        self.protobuf_log_data.dataType = str(data_type)
-        self.protobuf_log_data.level = str(level)
-        self.protobuf_log_data.application = str(self.app_id)
-        self.protobuf_log_data.publicIP = str(get_device_ip())
-        self.protobuf_log_data.id = str(uuid4())
-        self.protobuf_log_data.timestamp = str((datetime.utcnow()))
-        self.protobuf_log_data.systemMacHash = str(self.mac_hash)
-        self.protobuf_log_data.commitHash = str(self.commit_hash)
-
-        system_metrics_dict = dict(self.system_metrics)
-        self.protobuf_log_data.systemMetrics.cpuUsage = system_metrics_dict['cpuUsage']
-        self.protobuf_log_data.systemMetrics.memoryUsage = system_metrics_dict['memoryUsage']
-        self.protobuf_log_data.systemMetrics.inboundNetwork = system_metrics_dict['inboundNetwork']
-        self.protobuf_log_data.systemMetrics.outboundNetwork = system_metrics_dict['outboundNetwork']
-
-        return self.protobuf_log_data.SerializeToString()
-
-    def build_protobuf_event_data(self, type, traceback, tree):
-        self.protobuf_event_data = data_pb2.ProtobufEventData()
-
-        self.protobuf_event_data.application = str(self.app_id)
-        self.protobuf_event_data.publicIP = str(get_device_ip())
-        self.protobuf_event_data.id = str(uuid4())
-        self.protobuf_event_data.timestamp = str((datetime.utcnow()))
-        self.protobuf_event_data.systemMacHash = str(self.mac_hash)
-        self.protobuf_event_data.commitHash = str(self.commit_hash)
-
-        system_metrics_dict = dict(self.system_metrics)
-        self.protobuf_event_data.systemMetrics.cpuUsage = system_metrics_dict['cpuUsage']
-        self.protobuf_event_data.systemMetrics.memoryUsage = system_metrics_dict['memoryUsage']
-        self.protobuf_event_data.systemMetrics.inboundNetwork = system_metrics_dict['inboundNetwork']
-        self.protobuf_event_data.systemMetrics.outboundNetwork = system_metrics_dict['outboundNetwork']
-
+    def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
         event_dict = dict(event)
-        stack_trace = list(event_dict["stackTrace"])
-        self.protobuf_event_data.stackTrace.functionName = stack_trace[0]['functionName']
-        self.protobuf_event_data.stackTrace.filePath = stack_trace[0]['filePath']
-        self.protobuf_event_data.stackTrace.lineNumber = stack_trace[0]['lineNumber']
-
-        for k, v in stack_trace[0]['locals'].items():
-            self.protobuf_event_data.stackTrace.locals[k] = v
-
-        return self.protobuf_event_data.SerializeToString()
+        event_dict['application'] = self.app_id
+        event_dict['publicIP'] = get_device_ip()
+        event_dict['id'] = str(uuid4())
+        event_dict['timestamp'] = str(datetime.utcnow())
+        event_dict['systemMetrics'] = dict(self.system_metrics)
+        event_dict['macAddressHash'] = self.mac_hash
+        event_dict['commitHash'] = self.commit_hash
+        return event_dict
 
     def build_log_data(self, msg, data_type, level):
         log_dict = {
@@ -367,18 +326,6 @@ class Client(object):
             "commitHash": self.commit_hash
         }
         return log_dict
-
-    def build_event_data(self, type, traceback, tree):
-        event = Event(type, traceback, tree, self.abs_path)
-        event_dict = dict(event)
-        event_dict['application'] = self.app_id
-        event_dict['publicIP'] = get_device_ip()
-        event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = str(datetime.utcnow())
-        event_dict['systemMetrics'] = dict(self.system_metrics)
-        event_dict['macAddressHash'] = self.mac_hash
-        event_dict['commitHash'] = self.commit_hash
-        return event_dict
 
     def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],
