@@ -199,3 +199,8 @@ auklet.egg-info/*
 tmp/*
 .auklet/*
 auklet/example_app.py
+
+# Testing data
+src/protobuf/.auklet
+src/protobuf/pi_digits.py
+

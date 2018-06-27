@@ -108,4 +108,3 @@ def start(state):
 
     for test in tests:
         runtest(state, test())
-
