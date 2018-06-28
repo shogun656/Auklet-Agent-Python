@@ -62,8 +62,8 @@ def create_file(filename):
     open(filename, "a").close()
 
 
-def clear_file(file_name):
-    open(file_name, "w").close()
+def clear_file(filename):
+    open(filename, "w").close()
 
 
 def build_url(base_url, extension):
