@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 import abc
 import io
+import logging
 import ssl
 import json
 import zipfile
@@ -188,7 +189,7 @@ class MQTTClient(Profiler):
 
     def on_disconnect(self, userdata, rc):
         if rc != 0:
-            print("Unexpected disconnection.")
+            logging.debug("Unexpected disconnection from MQTT")
 
     def create_producer(self):
         if self._get_certs():
