@@ -184,18 +184,15 @@ class MonitoringTree(object):
     def _build_protobuf_tree(self, root_tree, message):
         try:
             if isinstance(root_tree, (list,)):
-                message.callees.add().functionName = root_tree[0]['functionName']
-                message.callees.add().nSamples = root_tree[0]['nSamples']
-                message.callees.add().lineNumber = root_tree[0]['lineNumber']
-                message.callees.add().nCalls = root_tree[0]['nCalls']
-                message.callees.add().filePath = str(root_tree[0]['filePath'])
+                tree = root_tree[0]
+            elif isinstance(root_tree, (dict,)):
+                tree = root_tree
 
-            if isinstance(root_tree, (dict,)):
-                message.callees.add().functionName = root_tree['functionName']
-                message.callees.add().nSamples = root_tree['nSamples']
-                message.callees.add().lineNumber = root_tree['lineNumber']
-                message.callees.add().nCalls = root_tree['nCalls']
-                message.callees.add().filePath = str(root_tree['filePath'])
+            message.callees.add().functionName = tree['functionName']
+            message.callees.add().nSamples = tree['nSamples']
+            message.callees.add().lineNumber = tree['lineNumber']
+            message.callees.add().nCalls = tree['nCalls']
+            message.callees.add().filePath = str(tree['filePath'])
 
             if isinstance(root_tree, (list,)):
                 if len(root_tree) == 1:
