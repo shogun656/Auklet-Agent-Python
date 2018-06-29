@@ -185,16 +185,16 @@ class MonitoringTree(object):
         try:
             if isinstance(root_tree, (list,)):
                 message.callees.add().functionName = root_tree[0]['functionName']
-                message.callees.add().nSamples = str(root_tree[0]['nSamples'])
-                message.callees.add().lineNumber = str(root_tree[0]['lineNumber'])
-                message.callees.add().nCalls = str(root_tree[0]['nCalls'])
+                message.callees.add().nSamples = root_tree[0]['nSamples']
+                message.callees.add().lineNumber = root_tree[0]['lineNumber']
+                message.callees.add().nCalls = root_tree[0]['nCalls']
                 message.callees.add().filePath = str(root_tree[0]['filePath'])
 
             if isinstance(root_tree, (dict,)):
                 message.callees.add().functionName = root_tree['functionName']
-                message.callees.add().nSamples = str(root_tree['nSamples'])
-                message.callees.add().lineNumber = str(root_tree['lineNumber'])
-                message.callees.add().nCalls = str(root_tree['nCalls'])
+                message.callees.add().nSamples = root_tree['nSamples']
+                message.callees.add().lineNumber = root_tree['lineNumber']
+                message.callees.add().nCalls = root_tree['nCalls']
                 message.callees.add().filePath = str(root_tree['filePath'])
 
             if isinstance(root_tree, (list,)):
@@ -218,7 +218,7 @@ class MonitoringTree(object):
         self.protobuf_monitoring_data.application = str(app_id)
         self.protobuf_monitoring_data.publicIP = str(self.public_ip)
         self.protobuf_monitoring_data.id = str(uuid4())
-        self.protobuf_monitoring_data.timestamp = str(round(time() * 1000))
+        self.protobuf_monitoring_data.timestamp = int(round(time()) * 1000)
         self.protobuf_monitoring_data.systemMacHash = str(self.mac_hash)
         self.protobuf_monitoring_data.commitHash = str(self.commit_hash)
 

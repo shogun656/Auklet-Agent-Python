@@ -19,9 +19,9 @@ message StackTrace {
 
 message Callees {
     string functionName = 1;
-    string nSamples = 2;
-    string lineNumber = 3;
-    string nCalls = 4;
+    int32 nSamples = 2;
+    int32 lineNumber = 3;
+    int32 nCalls = 4;
     string filePath = 5;
     repeated Callees callees = 6;
 }
@@ -55,7 +55,7 @@ message ProtobufMonitoringData {
     string application = 1;
     string publicIP = 2;
     string id = 3;
-    string timestamp = 4;
+    sint64 timestamp = 4;
     string systemMacHash = 5;
     string commitHash = 6;
     repeated Callees callees = 7;
