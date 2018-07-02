@@ -6,6 +6,10 @@
 
 - APM-1372: Dockerize benchmark testing for the Python Agent [#60](https://github.com/ESG-USA/Auklet-Agent-Python/pull/60) ([joshuahufford](https://github.com/joshuahufford))
 
+**Fixed bugs:**
+
+- Monitoring is on by default [#64](https://github.com/ESG-USA/Auklet-Agent-Python/pull/64) ([bleib1dj](https://github.com/bleib1dj))
+
 ## [0.3.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.1)
 
 **Fixed bugs:**
