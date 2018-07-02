@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.4.0)
+
+**DevOps changes:**
+
+- Fix deployment [#67](https://github.com/ESG-USA/Auklet-Agent-Python/pull/67) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ### [0.4.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.4.0-rc.1)
 
 **Implemented enhancements:**

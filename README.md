@@ -1,6 +1,6 @@
 # Changelog
 
-## Merged But Unreleased
+## [0.4.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.4.0)
 
 **Implemented enhancements:**
 
@@ -9,6 +9,10 @@
 **Fixed bugs:**
 
 - Monitoring is on by default [#64](https://github.com/ESG-USA/Auklet-Agent-Python/pull/64) ([bleib1dj](https://github.com/bleib1dj))
+
+**DevOps changes:**
+
+- Fix deployment [#67](https://github.com/ESG-USA/Auklet-Agent-Python/pull/67) ([rjenkinsjr](https://github.com/rjenkinsjr))
 
 ## [0.3.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.3.1)
 
