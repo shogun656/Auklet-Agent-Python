@@ -29,7 +29,7 @@ class AukletSampler(Runnable):
     network_rate = 10  # 10 seconds
     hour = 3600  # 1 hour
 
-    def __init__(self, client, tree, *args, **kwargs):
+    def __init__(self, client, tree):
         sys.excepthook = self.handle_exc
         self.sampled_times = {}
         self.interval = INTERVAL
@@ -40,7 +40,7 @@ class AukletSampler(Runnable):
         self.prev_diff = 0
         setup_thread_excepthook()
 
-    def _profile(self, profiler, frame, event, arg):
+    def _profile(self, profiler, frame, event):
         time_diff = int(time()) - self.start_time
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:

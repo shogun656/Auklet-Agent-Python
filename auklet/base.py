@@ -259,7 +259,7 @@ class Client(object):
         self._update_usage_file()
         return True
 
-    def _kafka_error_callback(self, error, msg):
+    def _kafka_error_callback(self, msg):
         self._write_to_local(msg)
 
     def update_network_metrics(self, interval):
@@ -275,6 +275,7 @@ class Client(object):
 
     def update_limits(self):
         config = self._get_config()
+        print(config)
         if config is None:
             return 60
         with open(self.limits_filename, 'w+') as limits:
@@ -303,6 +304,7 @@ class Client(object):
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
+        print(event)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
@@ -327,27 +329,6 @@ class Client(object):
             "commitHash": self.commit_hash
         }
         return log_dict
-
-    def build_protobuf_log_data(self, msg, data_type, level):
-        self.protobuf_log_data = data_pb2.ProtobufLogData()
-
-        self.protobuf_log_data.message = str(msg)
-        self.protobuf_log_data.dataType = str(data_type)
-        self.protobuf_log_data.level = str(level)
-        self.protobuf_log_data.application = str(self.app_id)
-        self.protobuf_log_data.publicIP = str(get_device_ip())
-        self.protobuf_log_data.id = str(uuid4())
-        self.protobuf_log_data.timestamp = str((datetime.utcnow()))
-        self.protobuf_log_data.systemMacHash = str(self.mac_hash)
-        self.protobuf_log_data.commitHash = str(self.commit_hash)
-
-        system_metrics_dict = dict(self.system_metrics)
-        self.protobuf_log_data.systemMetrics.cpuUsage = system_metrics_dict['cpuUsage']
-        self.protobuf_log_data.systemMetrics.memoryUsage = system_metrics_dict['memoryUsage']
-        self.protobuf_log_data.systemMetrics.inboundNetwork = system_metrics_dict['inboundNetwork']
-        self.protobuf_log_data.systemMetrics.outboundNetwork = system_metrics_dict['outboundNetwork']
-
-        return self.protobuf_log_data.SerializeToString()
 
     def build_protobuf_event_data(self, type, traceback, tree):
         self.protobuf_event_data = data_pb2.ProtobufEventData()
@@ -376,6 +357,27 @@ class Client(object):
             self.protobuf_event_data.stackTrace.locals[k] = v
 
         return self.protobuf_event_data.SerializeToString()
+
+    def build_protobuf_log_data(self, msg, data_type, level):
+        self.protobuf_log_data = data_pb2.ProtobufLogData()
+
+        self.protobuf_log_data.message = str(msg)
+        self.protobuf_log_data.dataType = str(data_type)
+        self.protobuf_log_data.level = str(level)
+        self.protobuf_log_data.application = str(self.app_id)
+        self.protobuf_log_data.publicIP = str(get_device_ip())
+        self.protobuf_log_data.id = str(uuid4())
+        self.protobuf_log_data.timestamp = str((datetime.utcnow()))
+        self.protobuf_log_data.systemMacHash = str(self.mac_hash)
+        self.protobuf_log_data.commitHash = str(self.commit_hash)
+
+        system_metrics_dict = dict(self.system_metrics)
+        self.protobuf_log_data.systemMetrics.cpuUsage = system_metrics_dict['cpuUsage']
+        self.protobuf_log_data.systemMetrics.memoryUsage = system_metrics_dict['memoryUsage']
+        self.protobuf_log_data.systemMetrics.inboundNetwork = system_metrics_dict['inboundNetwork']
+        self.protobuf_log_data.systemMetrics.outboundNetwork = system_metrics_dict['outboundNetwork']
+
+        return self.protobuf_log_data.SerializeToString()
 
     def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],

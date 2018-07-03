@@ -202,3 +202,7 @@ auklet/example_app.py
 
 # Testing Scripts
 pi_digits.py
+
+# Unit Testing Environment
+tests/.auklet
+tests/monitoring/.auklet

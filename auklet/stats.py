@@ -50,6 +50,7 @@ class Function(object):
         yield "callees", [dict(item) for item in self.children]
 
     def has_child(self, test_child):
+        print(self.children)
         for child in self.children:
             if test_child.func_name == child.func_name \
                     and test_child.file_path == child.file_path:
@@ -125,6 +126,7 @@ class MonitoringTree(object):
     def get_filename(self, code, frame):
         key = code.co_code
         file_name = self.cached_filenames.get(code.co_code, None)
+        print(file_name)
         if file_name is None:
             try:
                 file_name = inspect.getsourcefile(frame) or \
