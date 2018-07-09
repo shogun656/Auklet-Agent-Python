@@ -6,10 +6,13 @@ if [ ! -d .auklet ]; then
     touch .auklet/version
 fi
 
-testmodules=("monitoring/test___init__" "monitoring/test_logging" "monitoring/test_sampling" "test_base" "test_errors" "test_stats")
+pyenv global 3.6.3
 
-for name in "${testmodules[@]}"; do
-    python3 "tests/$name.py"
+pip3 install mock kafka
+
+for file in "tests/monitoring/test___init__.py" "tests/monitoring/test_logging.py" "tests/monitoring/test_sampling.py" "tests/test_base.py" "tests/test_errors.py" "tests/test_stats.py"
+do
+        python3 $file
 done
 
 rm -R .auklet

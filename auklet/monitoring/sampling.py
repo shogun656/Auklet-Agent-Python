@@ -40,7 +40,7 @@ class AukletSampler(Runnable):
         self.prev_diff = 0
         setup_thread_excepthook()
 
-    def _profile(self, profiler, frame, event, arg):
+    def _profile(self, profiler, frame, event):
         time_diff = int(time()) - self.start_time
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:
