@@ -45,7 +45,7 @@ class Monitoring(MonitoringBase, AukletLogging):
     monitor = True
 
     def __init__(self, apikey=None, app_id=None,
-                 base_url="https://api.auklet.io/", monitoring=False):
+                 base_url="https://api.auklet.io/", monitoring=True):
         self.mac_hash = get_mac()
         self.client = Client(apikey, app_id, base_url, self.mac_hash)
         self.tree = MonitoringTree(self.mac_hash)
@@ -78,7 +78,3 @@ class Monitoring(MonitoringBase, AukletLogging):
     def log(self, msg, data_type, level="INFO"):
         self.client.produce(
             self.client.build_log_data(msg, data_type, level), "event")
-
-        # This calls build_protobuf_log_data() in base.py
-        # self.client.produce(
-        #     self.client.build_protobuf_log_data(msg, data_type, level), "event")

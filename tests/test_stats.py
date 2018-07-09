@@ -2,7 +2,6 @@ import os
 import unittest
 from mock import patch
 
-os.chdir("..")
 from auklet.stats import Function, Event, MonitoringTree, SystemMetrics
 from auklet.protobuf import data_pb2
 
@@ -44,8 +43,8 @@ class TestEvent(unittest.TestCase):
 
     def setUp(self):
         self.tree = MonitoringTree()
-        patcher = patch('auklet.stats.MonitoringTree.get_filename', new=self.get_filename)
-        patcher.start()
+        self.patcher = patch('auklet.stats.MonitoringTree.get_filename', new=self.get_filename)
+        self.patcher.start()
         self.event = Event(exc_type=str, tb=self.get_traceback(), tree=self.tree, abs_path="abs_path")
 
     def test_filter_frame(self):
@@ -58,11 +57,14 @@ class TestEvent(unittest.TestCase):
     def test_build_traceback(self):
         self.assertEqual(self.event._build_traceback(trace=self.get_traceback(), tree=self.tree), None)
 
+    def tearDown(self):
+        self.patcher.stop()
+
 
 class TestMonitoringTree(unittest.TestCase):
     def get_code(self):
         class Code:
-            co_code = "name"
+            co_code = "file_name"
             co_firstlineno = 0
             co_name = ""
         return Code
@@ -90,10 +92,9 @@ class TestMonitoringTree(unittest.TestCase):
         self.monitoring_tree = MonitoringTree()
 
     def test_get_filename(self):
-        file = "contents_of_file"
         self.monitoring_tree.cached_filenames.clear()
-        self.monitoring_tree.cached_filenames['name'] = file
-        self.assertTrue(self.monitoring_tree.get_filename(code=self.get_code(), frame="frame"), file)
+        self.monitoring_tree.cached_filenames['file_name'] = "file_name"
+        self.assertEqual(self.monitoring_tree.get_filename(code=self.get_code(), frame="frame"), self.get_code().co_code)
 
     def test_create_frame_function(self):
         self.assertNotEqual(self.monitoring_tree._create_frame_func(frame=self.get_frame()), None)
@@ -106,9 +107,10 @@ class TestMonitoringTree(unittest.TestCase):
     def test__build_tree(self):
         self.assertNotEqual(self.monitoring_tree._build_tree(new_stack=""), None)
 
-    def test_build_protobuf_tree(self):
-        self.protobuf_monitoring_data = data_pb2.ProtobufMonitoringData()
-        self.assertNotEqual(self.monitoring_tree._build_protobuf_tree(root_tree=self.get_root_function(), message=self.protobuf_monitoring_data), None)
+    # To be added if protobufs get implemented
+    # def test_build_protobuf_tree(self):
+    #     self.protobuf_monitoring_data = data_pb2.ProtobufMonitoringData()
+    #     self.assertNotEqual(self.monitoring_tree._build_protobuf_tree(root_tree=self.get_root_function(), message=self.protobuf_monitoring_data), None)
 
     def test_build_protobuf_monitoring_data(self):
         self.monitoring_tree.root_func = self.get_root_function()
@@ -137,3 +139,7 @@ class TestSystemMetrics(unittest.TestCase):
     def test_update_network(self):
         self.system_metrics.update_network(interval=1)
         self.assertNotEqual(self.system_metrics.prev_inbound, 0)
+
+
+if __name__ == '__main__':
+    unittest.main()

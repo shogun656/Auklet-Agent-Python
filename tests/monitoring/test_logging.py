@@ -1,6 +1,5 @@
-import os
-os.chdir("../..")
 import unittest
+
 from auklet.monitoring.logging import AukletLogging
 
 
@@ -29,3 +28,7 @@ class TestAukletLogging(unittest.TestCase):
 
     def test_critical(self):
         self.test_log('CRITICAL')
+
+
+if __name__ == '__main__':
+    unittest.main()

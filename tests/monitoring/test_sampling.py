@@ -1,12 +1,10 @@
-import os
-from mock import patch
 import unittest
+from mock import patch
 
-os.chdir("../..")
 from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring import Monitoring
 from auklet.errors import AukletConfigurationError
-from auklet.stats import MonitoringTree, Event
+from auklet.stats import MonitoringTree
 from auklet.base import Client
 
 
@@ -22,10 +20,10 @@ class TestAukletSampler(unittest.TestCase):
         def _open_auklet_url(self, url):
             _ = url
 
-        patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
-        patcher2 = patch('auklet.base.Client._open_auklet_url', new=_open_auklet_url)
-        patcher.start()
-        patcher2.start()
+        self.patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+        self.patcher2 = patch('auklet.base.Client._open_auklet_url', new=_open_auklet_url)
+        self.patcher.start()
+        self.patcher2.start()
 
         self.monitoring = Monitoring(apikey="", app_id="", base_url="https://api-staging.auklet.io/")
 
@@ -35,6 +33,11 @@ class TestAukletSampler(unittest.TestCase):
         self.monitoring_tree.root_func = {"key": self.monitoring_tree.get_filename}
         self.tree = self.monitoring_tree.build_tree("")
         self.auklet_sampler = AukletSampler(client=self.client, tree=self.tree)
+
+    def tearDown(self):
+        self.patcher.stop()
+        self.patcher2.stop()
+
     def test_profile(self):
         class CoCode:
             co_code = None
@@ -56,6 +59,11 @@ class TestAukletSampler(unittest.TestCase):
         patcher = patch('auklet.base.Client.build_event_data', new=build_event_data)
         patcher.start()
         self.assertRaises(TypeError, self.auklet_sampler.handle_exc(type=None, value="", traceback=""))
+        patcher.stop
 
     def test_run(self):
         self.assertNotEqual(self.auklet_sampler.run(profiler=""), None)
+
+
+if __name__ == '__main__':
+    unittest.main()

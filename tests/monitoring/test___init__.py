@@ -1,6 +1,5 @@
-import os
-os.chdir("../..")
 import unittest
+
 from auklet.monitoring import MonitoringBase, Monitoring
 
 
@@ -54,5 +53,5 @@ class TestMonitoring(unittest.TestCase):
         self.assertEqual(self.function.log(msg="msg", data_type="str"), None)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

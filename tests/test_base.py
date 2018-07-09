@@ -1,12 +1,10 @@
 import os
 import unittest
-from mock import patch, MagicMock
+from mock import patch
 
-os.chdir("..")
 from auklet.base import *
-from auklet.stats import MonitoringTree, Event
+from auklet.stats import MonitoringTree
 from auklet.errors import AukletConfigurationError
-
 
 class TestClient(unittest.TestCase):
     data = """{"commitHash": "9f7ce8f9d5d55e1f9902aa1c941d93403ee97f40", "id": "ee7451a3-789e-44a2-95d7-32dbe8b069cc", "tree": {"lineNumber": 1, "nSamples": 173756, "functionName": "root", "nCalls": 1, "callees": [{"lineNumber": 1, "nSamples": 1203, "functionName": "<module>", "nCalls": 0, "callees": [{"lineNumber": 26, "nSamples": 1203, "functionName": "main", "nCalls": 0, "callees": [{"lineNumber": 12, "nSamples": 28, "functionName": "__new__", "nCalls": 7, "callees": [], "filePath": "<string>"}, {"lineNumber": 31, "nSamples": 2, "functionName": "__repr__", "nCalls": 1, "callees": [], "filePath": "<string>"}], "filePath": "vdas/vdas.py"}], "filePath": "vdas/vdas.py"}, {"lineNumber": 9, "nSamples": 166541, "functionName": "on_press", "nCalls": 0, "callees": [], "filePath": "/vdas/button.py"}, {"lineNumber": 12, "nSamples": 28, "functionName": "__new__", "nCalls": 7, "callees": [], "filePath": "<string>"}, {"lineNumber": 31, "nSamples": 4, "functionName": "__repr__", "nCalls": 2, "callees": [], "filePath": "<string>"}], "filePath": None}, "publicIP": "96.64.10.67", "timestamp": 1530555317012, "application": "tyJSjp3aSyxxdoGAtqsMT4", "macAddressHash": "be7f80c587aee80972ab1f98b8f4203c"}"""
@@ -18,13 +16,15 @@ class TestClient(unittest.TestCase):
                 "event": "events",
                 "log": "logging"
             }
-        patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
-        patcher.start()
+        self.patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+        self.patcher.start()
         self.client = Client(apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.monitoring_tree = MonitoringTree()
 
+    def tearDown(self):
+        self.patcher.stop()
+
     def test_create_file(self):
-        self.client._create_file(self.client.offline_filename)
         files = ['.auklet/local.txt', '.auklet/limits', '.auklet/usage', '.auklet/communication']
         for f in files:
             file = False
@@ -126,7 +126,6 @@ class TestClient(unittest.TestCase):
         self.assertFalse(self.client.check_date())
         self.client.data_day = 1
 
-    # Not working
     def test_update_limits(self):
         def _get_config(self):
             return {"storage": {"storage_limit": None}, "emission_period": 60, "features": {"performance_metrics": True, "user_metrics": False}, "data": {"cellular_data_limit": None, "normalized_cell_plan_date": 1}}
@@ -134,6 +133,7 @@ class TestClient(unittest.TestCase):
         patcher = patch('auklet.base.Client._get_config', new=_get_config)
         patcher.start()
         self.assertEqual(self.client.update_limits(), 60000)
+        patcher.stop()
 
     def test_build_event_data(self):
         def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
@@ -142,20 +142,23 @@ class TestClient(unittest.TestCase):
         patcher = patch('auklet.base.Event', new=get_mock_event)
         patcher.start()
         self.assertNotEqual(self.client.build_event_data(type=None, traceback="", tree=""), None)
+        patcher.stop()
 
     def test_build_log_data(self):
         self.assertNotEqual(self.client.build_log_data(msg='msg', data_type='data_type', level='level'), None)
 
-    def test_build_protobuf_event_data(self):
-        def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
-            return {"stackTrace": [{"functionName": "", "filePath": "", "lineNumber": 0, "locals": {"key": "value"}}]}
-
-        patcher = patch('auklet.base.Event', new=get_mock_event)
-        patcher.start()
-        self.assertNotEqual(self.client.build_protobuf_event_data(type=None, traceback="", tree=""), None)
-
-    def test_build_protobuf_log_data(self):
-        self.assertNotEqual(self.client.build_protobuf_log_data(msg='msg', data_type='data_type', level='level'), None)
+    # To be added if protobufs get implemented
+    # def test_build_protobuf_event_data(self):
+    #     def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
+    #         return {"stackTrace": [{"functionName": "", "filePath": "", "lineNumber": 0, "locals": {"key": "value"}}]}
+    #
+    #     patcher = patch('auklet.base.Event', new=get_mock_event)
+    #     patcher.start()
+    #     self.assertNotEqual(self.client.build_protobuf_event_data(type=None, traceback="", tree=""), None)
+    #     patcher.stop()
+    #
+    # def test_build_protobuf_log_data(self):
+    #     self.assertNotEqual(self.client.build_protobuf_log_data(msg='msg', data_type='data_type', level='level'), None)
 
     def test__produce(self):
         pass
@@ -198,6 +201,8 @@ class Test(unittest.TestCase):
         self.assertNotEqual(get_mac(), None)
 
     def test_get_commit_hash(self):
+        with open(".auklet/version", "w") as my_file:
+            my_file.write("commit_hash")
         self.assertNotEqual(get_commit_hash(), "")
 
     def test_get_abs_path(self):
@@ -209,3 +214,7 @@ class Test(unittest.TestCase):
 
     def test_setup_thread_excepthook(self):
         setup_thread_excepthook()
+
+
+if __name__ == '__main__':
+    unittest.main()

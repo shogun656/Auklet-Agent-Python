@@ -29,7 +29,7 @@ class AukletSampler(Runnable):
     network_rate = 10  # 10 seconds
     hour = 3600  # 1 hour
 
-    def __init__(self, client, tree):
+    def __init__(self, client, tree, *args, **kwargs):
         sys.excepthook = self.handle_exc
         self.sampled_times = {}
         self.interval = INTERVAL
@@ -40,18 +40,13 @@ class AukletSampler(Runnable):
         self.prev_diff = 0
         setup_thread_excepthook()
 
-    def _profile(self, profiler, frame, event):
+    def _profile(self, profiler, frame, event, arg):
         time_diff = int(time()) - self.start_time
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:
             if time_diff % (self.emission_rate / 1000) == 0:
                 self.client.produce(
                     self.tree.build_tree(self.client.app_id))
-
-                # This calls build_protobuf_monitoring_data() in stats.py
-                # self.client.produce(
-                #     self.tree.build_protobuf_monitoring_data(self.client.app_id))
-
                 self.tree.clear_root()
 
             if time_diff % self.network_rate == 0:
@@ -63,12 +58,9 @@ class AukletSampler(Runnable):
         self.prev_diff = time_diff
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, traceback, self.tree)
+        event = self.client.build_event_data(type, traceback,
+                                             self.tree)
         self.client.produce(event, "event")
-
-        # This calls build_protobuf_event_data() in base.py
-        # event = self.client.build_protobuf_event_data(type, traceback, self.tree)
-        # self.client.produce(event, "event")
 
     def run(self, profiler):
         profile = functools.partial(self._profile, profiler)

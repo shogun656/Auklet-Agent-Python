@@ -1,6 +1,5 @@
-import os
-os.chdir("../..")
 import unittest
+
 from auklet.errors import AukletException, AukletConnectionError, AukletConfigurationError
 
 
@@ -15,3 +14,7 @@ class TestAukletConnectionError(unittest.TestCase):
 class TestAukletConfigurationError(unittest.TestCase):
     def test_auklet_configuration_error(self):
         self.assertEqual(str(AukletConfigurationError()), "")
+
+
+if __name__ == '__main__':
+    unittest.main()
