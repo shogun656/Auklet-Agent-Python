@@ -64,26 +64,26 @@ jobs:
             ##
             # DOCKER
             ##
-            - run:
-                name: Show Docker Versions
-                command: |
-                  set -x
-                  docker --version
-                  docker-compose --version
-            - run:
-                name: Build Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose build
+#            - run:
+#                name: Show Docker Versions
+#                command: |
+#                  set -x
+#                  docker --version
+#                  docker-compose --version
+#            - run:
+#                name: Build Docker Benchmark Tests
+#                command: |
+#                  set -x
+#                  docker-compose build
 
             ##
             # TESTS
             ##
-            - run:
-                name: Run Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
+#            - run:
+#                name: Run Docker Benchmark Tests
+#                command: |
+#                  set -x
+#                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
             - run:
                 name: Run Whitesource
                 command: |
