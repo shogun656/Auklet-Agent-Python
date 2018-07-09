@@ -16,7 +16,7 @@ if [[ "$ENVDIR" == "production" ]]; then
   # Update setuptools so we have a version that supports Markdown READMEs.
   # twine is also required.
   cp LICENSE auklet/licenses/auklet
-  sudo pip install -U setuptools twine wheel
+  pip install -U setuptools twine wheel
   python setup.py sdist bdist_wheel
   if [[ "$TWINE_REPOSITORY_URL" != "" ]]; then
     twine upload --repository-url $TWINE_REPOSITORY_URL dist/*
