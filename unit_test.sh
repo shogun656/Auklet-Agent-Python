@@ -6,6 +6,7 @@ if [ ! -d .auklet ]; then
     touch .auklet/version
 fi
 
+pyenv install 3.6.3
 pyenv global 3.6.3
 
 pip3 install mock kafka
