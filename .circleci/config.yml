@@ -5,7 +5,9 @@ jobs:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
-        machine: true
+        machine:
+            python:
+                version: 3.6.5
         steps:
 
             ##
