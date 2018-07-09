@@ -93,7 +93,8 @@ jobs:
                   fi
             - run:
                 name: Run Unit Tests
-                command: bash unit_test.sh
+                command: |
+                  bash unit_test.sh
 
             ##
             # SAVE CACHES
