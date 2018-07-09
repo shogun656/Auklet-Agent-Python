@@ -275,7 +275,6 @@ class Client(object):
 
     def update_limits(self):
         config = self._get_config()
-        print(config)
         if config is None:
             return 60
         with open(self.limits_filename, 'w+') as limits:
@@ -304,7 +303,6 @@ class Client(object):
 
     def build_event_data(self, type, traceback, tree):
         event = Event(type, traceback, tree, self.abs_path)
-        print(event)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()

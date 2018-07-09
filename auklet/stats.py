@@ -50,7 +50,6 @@ class Function(object):
         yield "callees", [dict(item) for item in self.children]
 
     def has_child(self, test_child):
-        print(self.children)
         for child in self.children:
             if test_child.func_name == child.func_name \
                     and test_child.file_path == child.file_path:

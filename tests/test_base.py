@@ -1,18 +1,27 @@
 import os
 import unittest
+from mock import patch, MagicMock
 
 os.chdir("..")
 from auklet.base import *
-from auklet.stats import MonitoringTree
+from auklet.stats import MonitoringTree, Event
+from auklet.errors import AukletConfigurationError
+
 
 class TestClient(unittest.TestCase):
     data = """{"commitHash": "9f7ce8f9d5d55e1f9902aa1c941d93403ee97f40", "id": "ee7451a3-789e-44a2-95d7-32dbe8b069cc", "tree": {"lineNumber": 1, "nSamples": 173756, "functionName": "root", "nCalls": 1, "callees": [{"lineNumber": 1, "nSamples": 1203, "functionName": "<module>", "nCalls": 0, "callees": [{"lineNumber": 26, "nSamples": 1203, "functionName": "main", "nCalls": 0, "callees": [{"lineNumber": 12, "nSamples": 28, "functionName": "__new__", "nCalls": 7, "callees": [], "filePath": "<string>"}, {"lineNumber": 31, "nSamples": 2, "functionName": "__repr__", "nCalls": 1, "callees": [], "filePath": "<string>"}], "filePath": "vdas/vdas.py"}], "filePath": "vdas/vdas.py"}, {"lineNumber": 9, "nSamples": 166541, "functionName": "on_press", "nCalls": 0, "callees": [], "filePath": "/vdas/button.py"}, {"lineNumber": 12, "nSamples": 28, "functionName": "__new__", "nCalls": 7, "callees": [], "filePath": "<string>"}, {"lineNumber": 31, "nSamples": 4, "functionName": "__repr__", "nCalls": 2, "callees": [], "filePath": "<string>"}], "filePath": None}, "publicIP": "96.64.10.67", "timestamp": 1530555317012, "application": "tyJSjp3aSyxxdoGAtqsMT4", "macAddressHash": "be7f80c587aee80972ab1f98b8f4203c"}"""
     def setUp(self):
-        self.client = Client(
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiODE2YjlkOTItYjg0Yi00OGUzLWI1ZDQtYmYwMGZiODBhOTU3IiwidXNlcm5hbWUiOiIyMjBhYzVlMy1iZGEyLTRmYmQtYTJiZi1lZDYyNWRjMGM0N2EiLCJleHAiOjE1Mjk1OTI3ODksImVtYWlsIjoiIn0.6eWsEoAnVMHkAf4Vy2-WOjxicB5KKrKBHzTFG63ZI3g",
-            "jWmc4aPf5XnHHjiNbLyyNB",
-            base_url="https://api-staging.auklet.io/")
-        self.tree = MonitoringTree()
+        def _get_kafka_brokers(self):
+            self.brokers = ["api-staging.auklet.io:9093"]
+            self.producer_types = {
+                "monitoring": "profiling",
+                "event": "events",
+                "log": "logging"
+            }
+        patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+        patcher.start()
+        self.client = Client(apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.monitoring_tree = MonitoringTree()
 
     def test_create_file(self):
         self.client._create_file(self.client.offline_filename)
@@ -29,21 +38,32 @@ class TestClient(unittest.TestCase):
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
+        self.assertRaises(AukletConfigurationError, lambda: self.client._open_auklet_url(url))
+        url = "http://google.com/"
         self.assertNotEqual(self.client._open_auklet_url(url), None)
 
-    def test_get_config(self):
+    @patch('auklet.base.Client._build_url')
+    @patch('auklet.base.Client._get_config')
+    def test_get_config(self, mock_conf, mock_url):
+        _ = mock_conf
+        mock_url.return_value = "http://api-staging.auklet.io"
         self.assertNotEqual(self.client._get_config(), None)
 
     def test_get_kafka_brokers(self):
         self.assertEqual(self.client._get_kafka_brokers(), None)
 
     def test_write_kafka_conf(self):
-        self.client._write_kafka_conf(info="info")
-        self.assertGreater(os.path.getsize(self.client.com_config_filename), 0)
-        self.client._clear_file(self.client.com_config_filename)
+        filename = self.client.com_config_filename
+        self.client._write_kafka_conf(info="""{"brokers": ["brokers-staging.feeds.auklet.io:9093"], "prof_topic": "profiler", "event_topic": "events", "log_topic": "logs", "user_metrics_topic": "user_metrics"}""")
+        self.assertGreater(os.path.getsize(filename), 0)
+        open(filename, "w").close()
 
-    def test_load_data_config(self):
+    def test_load_kafka_conf(self):
+        filename = self.client.com_config_filename
+        with open(filename, "w") as myfile:
+            myfile.write("""{"brokers": ["brokers-staging.feeds.auklet.io:9093"], "prof_topic": "profiler", "event_topic": "events", "log_topic": "logs", "user_metrics_topic": "user_metrics"}""")
         self.assertTrue(self.client._load_kafka_conf())
+        open(filename, "w").close()
 
     def test_load_limits(self):
         loaded = True
@@ -51,7 +71,11 @@ class TestClient(unittest.TestCase):
             loaded = False
         self.assertTrue(loaded)
 
-    def test_get_kafka_certs(self):
+    @patch('auklet.base.Client._build_url')
+    @patch('zipfile.ZipFile')
+    def test_get_kafka_certs(self, mock_zip_file, mock_url):
+        mock_zip_file.file_list.return_value = ""
+        mock_url.return_value = "http://api-staging.auklet.io"
         self.assertTrue(self.client._get_kafka_certs())
 
     def test_write_to_local(self):
@@ -102,35 +126,33 @@ class TestClient(unittest.TestCase):
         self.assertFalse(self.client.check_date())
         self.client.data_day = 1
 
+    # Not working
     def test_update_limits(self):
-        self.assertNotEqual(self.client.update_limits(), 60)
+        def _get_config(self):
+            return {"storage": {"storage_limit": None}, "emission_period": 60, "features": {"performance_metrics": True, "user_metrics": False}, "data": {"cellular_data_limit": None, "normalized_cell_plan_date": 1}}
+
+        patcher = patch('auklet.base.Client._get_config', new=_get_config)
+        patcher.start()
+        self.assertEqual(self.client.update_limits(), 60000)
 
     def test_build_event_data(self):
-        class CoCode:
-            co_code = {"file_name", "file_name"}
+        def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
+            return {"stackTrace": [{"functionName": "", "filePath": "", "lineNumber": 0, "locals": {"key": "value"}}]}
 
-        class Frame:
-            f_code = CoCode()
-
-        class Traceback:
-            tb_lineno = 0
-            tb_frame = Frame()
-
-        class Tree:
-            get_filename = 0
-
-        tb = Traceback()
-
-        try:
-            _ = 1 / 0
-        except ZeroDivisionError:
-            self.client.build_event_data(ZeroDivisionError, tb, self.tree)
+        patcher = patch('auklet.base.Event', new=get_mock_event)
+        patcher.start()
+        self.assertNotEqual(self.client.build_event_data(type=None, traceback="", tree=""), None)
 
     def test_build_log_data(self):
         self.assertNotEqual(self.client.build_log_data(msg='msg', data_type='data_type', level='level'), None)
 
     def test_build_protobuf_event_data(self):
-        pass
+        def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
+            return {"stackTrace": [{"functionName": "", "filePath": "", "lineNumber": 0, "locals": {"key": "value"}}]}
+
+        patcher = patch('auklet.base.Event', new=get_mock_event)
+        patcher.start()
+        self.assertNotEqual(self.client.build_protobuf_event_data(type=None, traceback="", tree=""), None)
 
     def test_build_protobuf_log_data(self):
         self.assertNotEqual(self.client.build_protobuf_log_data(msg='msg', data_type='data_type', level='level'), None)
@@ -139,7 +161,8 @@ class TestClient(unittest.TestCase):
         pass
 
     def test_produce(self):
-        pass
+        self.client.produce(self.data)
+
 
 class TestRunnable(unittest.TestCase):
     def setUp(self):
@@ -147,26 +170,29 @@ class TestRunnable(unittest.TestCase):
 
     def test_is_running(self):
         self.assertFalse(self.runnable.is_running())
-        self.runnable._running = 1
+        self.runnable._running = True
         self.assertTrue(self.runnable.is_running())
         self.runnable._running = None
 
     def test_start(self):
-        pass
-        # self.runnable.run()
-        # self.runnable.start(None, None)
-        # self.assertNotEqual(self.runnable._running, None)
+        self.runnable._running = True
+        self.assertRaises(RuntimeError, lambda: self.runnable.start())
+        self.runnable._running = None
 
     def test_stop(self):
-        pass
+        self.runnable._running = None
+        self.assertRaises(RuntimeError, lambda: self.runnable.stop())
 
     def test_run(self):
-        pass
+        self.assertTrue(self.run())
+
 
 class Test(unittest.TestCase):
     def test_frame_stack(self):
-        pass
-        # self.assertNotEqual(frame_stack(frame="frame"), None)
+        class FrameStack:
+            f_back = None
+        frame = FrameStack()
+        self.assertNotEqual(frame_stack(frame), None)
 
     def test_get_mac(self):
         self.assertNotEqual(get_mac(), None)
@@ -182,4 +208,4 @@ class Test(unittest.TestCase):
         self.assertNotEqual(get_device_ip(), None)
 
     def test_setup_thread_excepthook(self):
-        pass
+        setup_thread_excepthook()

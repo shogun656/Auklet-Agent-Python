@@ -1,35 +1,57 @@
-import sys
-import unittest
-
+import os
 os.chdir("../..")
+import unittest
 from auklet.monitoring import MonitoringBase, Monitoring
 
-#
-# class TestMonitoringBase(unittest.TestCase):
-#     def setUp(self):
-#         self.function = MonitoringBase()
-#
-#     def testStart(self):
-#         print(self.function.start())
+
+class TestMonitoringBase(unittest.TestCase):
+    def setUp(self):
+        self.monitoring_base = MonitoringBase()
+
+    def test_start(self):
+        self.assertRaises(NotImplementedError, lambda: self.monitoring_base.start())
+        self.assertRaises(RuntimeError, lambda: self.monitoring_base.start())
+
+    def test_frame_stack(self):
+        class Frame:
+            f_back = None
+        frame = Frame()
+        self.assertNotEqual(self.monitoring_base.frame_stack(frame=frame), None)
+
+    def test_results(self):
+        self.monitoring_base._cpu_time_started = self.monitoring_base._wall_time_started = None
+        self.assertRaises(TypeError, lambda: self.monitoring_base.result())
+        self.monitoring_base._cpu_time_started = self.monitoring_base._wall_time_started = 0
+        self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
 
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
-        self.function = Monitoring(
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiODE2YjlkOTItYjg0Yi00OGUzLWI1ZDQtYmYwMGZiODBhOTU3IiwidXNlcm5hbWUiOiIyMjBhYzVlMy1iZGEyLTRmYmQtYTJiZi1lZDYyNWRjMGM0N2EiLCJleHAiOjE1Mjk1OTI3ODksImVtYWlsIjoiIn0.6eWsEoAnVMHkAf4Vy2-WOjxicB5KKrKBHzTFG63ZI3g",
-            "jWmc4aPf5XnHHjiNbLyyNB",
-            base_url="https://api-staging.auklet.io/",
-            monitoring=True)
+        self.function = Monitoring(apikey="", app_id="", base_url="https://api-staging.io", monitoring=True)
 
-    def testStart(self):
+    def test_start(self):
         self.assertTrue(self.function.monitor)
         self.function.monitor = False
         self.assertFalse(self.function.monitor)
+        self.function.monitor = True
 
-    def testSample(self):
-        frame = None
-        event = "call"
-        self.assertFalse(self.function.sample(frame, event).increment_call)
+    def test_sample(self):
+        class CoCode:
+            co_code = None
+            co_firstlineno = None
+            co_name = None
+        class Frame:
+            f_back = None
+            f_code = CoCode()
+        frame = Frame()
+        event = "event"
+        self.assertFalse(self.function.sample(frame=frame, event=event))
+
+    def test_run(self):
+        self.assertTrue(self.function.run())
+
+    def test_log(self):
+        self.assertEqual(self.function.log(msg="msg", data_type="str"), None)
 
 
 if __name__ == "__main__":

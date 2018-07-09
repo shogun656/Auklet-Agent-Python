@@ -1,24 +1,31 @@
 import os
-import unittest
-
 os.chdir("../..")
+import unittest
 from auklet.monitoring.logging import AukletLogging
 
+
 class TestAukletLogging(unittest.TestCase):
-    def test_log(self):
-        pass
+    def setUp(self):
+        self.auklet_logging = AukletLogging()
+
+    def test_log(self, level='INFO'):
+        _ = level
+        try:
+            self.auklet_logging.log(msg='Log message', data_type=str)
+        except NotImplementedError as error:
+            self.assertEqual(str(error), 'Must implement method: log')
 
     def test_debug(self):
-        pass
+        self.test_log('DEBUG')
 
     def test_info(self):
-        pass
+        self.test_log('INFO')
 
     def test_warning(self):
-        pass
+        self.test_log('WARNING')
 
     def test_error(self):
-        pass
+        self.test_log('ERROR')
 
     def test_critical(self):
-        pass
+        self.test_log('CRITICAL')
