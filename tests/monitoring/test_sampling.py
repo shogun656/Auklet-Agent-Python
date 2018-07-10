@@ -56,7 +56,7 @@ class TestAukletSampler(unittest.TestCase):
         patcher = patch('auklet.base.Client.produce', new=produce)
         patcher.start()
         self.auklet_sampler.prev_diff = 1
-        self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event="")
+        self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event="", arg="")
         self.assertNotEqual(test_profile_event, None)
         patcher.stop()
 
