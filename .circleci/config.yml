@@ -54,6 +54,7 @@ jobs:
                 name: Setup Python3
                 command: |
                   pyenv global 3.5.2
+                  pip3 install coverage
 
             - run:
                 name: Setup Code Climate test-reporter
