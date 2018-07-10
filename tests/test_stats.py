@@ -112,9 +112,9 @@ class TestMonitoringTree(unittest.TestCase):
     #     self.protobuf_monitoring_data = data_pb2.ProtobufMonitoringData()
     #     self.assertNotEqual(self.monitoring_tree._build_protobuf_tree(root_tree=self.get_root_function(), message=self.protobuf_monitoring_data), None)
 
-    def test_build_protobuf_monitoring_data(self):
-        self.monitoring_tree.root_func = self.get_root_function()
-        self.assertNotEqual(self.monitoring_tree.build_protobuf_monitoring_data(app_id="app_id"), None)
+    # def test_build_protobuf_monitoring_data(self):
+    #     self.monitoring_tree.root_func = self.get_root_function()
+    #     self.assertNotEqual(self.monitoring_tree.build_protobuf_monitoring_data(app_id="app_id"), None)
 
     def test_update_sample_count(self):
         self.assertTrue(self.monitoring_tree._update_sample_count(parent=None, new_parent=self.get_new_parent()))
