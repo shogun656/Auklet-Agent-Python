@@ -66,7 +66,7 @@ jobs:
                 command: |
                   ./cc-test-reporter before-build
                   bash startUnitTest.sh
-                  ./cc-test-reporter after-build --exit-code $EXIT_CODE
+                  ./cc-test-reporter after-build --coverage-input-type coverage.py --exit-code $?
 
             ##
             # RESTORE CACHES
