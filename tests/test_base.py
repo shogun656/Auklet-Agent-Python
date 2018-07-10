@@ -2,7 +2,7 @@ import os
 import unittest
 from mock import patch
 
-import data_factory
+from tests import data_factory
 
 from auklet.base import *
 from auklet.stats import MonitoringTree

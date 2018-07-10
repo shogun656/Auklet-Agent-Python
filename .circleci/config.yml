@@ -4,8 +4,10 @@ jobs:
     build:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
+            CC_TEST_REPORTER_ID: 689b04946266e8427acf268fa4cf6a3ce4571edd6e8bcf5217a93d3b60cb501d
         working_directory: ~/app
         machine: true
+
         steps:
 
             ##
@@ -50,12 +52,29 @@ jobs:
                   sudo mv ./docker-compose /usr/local/bin
 
             - run:
-                name: Setup Python Unit Tests
+                name: Setup Python3
                 command: |
-                  #pyenv install 3.6.3
-                  #pyenv global 3.6.3
-                  #pip3 install mock kafka
-                  #python3 setup.py install
+                  pyenv install 3.6.3
+                  pyenv global 3.6.3
+
+            - run:
+                name: Setup dependencies
+                command: |
+                  sudo composer self-update
+                  composer install -n --prefer-dist
+            - run:
+                name: Setup Code Climate test-reporter
+                command: |
+                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+                  chmod +x ./cc-test-reporter
+            - run:
+                name: Run tests
+                command: |
+                  sudo docker-php-ext-enable xdebug
+                  ./cc-test-reporter before-build
+                  bash startUnitTest.sh
+                  ./cc-test-reporter after-build --coverage-input-type clover --exit-code $?
+
 
             ##
             # RESTORE CACHES
