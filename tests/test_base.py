@@ -113,8 +113,7 @@ class TestClient(unittest.TestCase):
         self.client.offline_limit = self.client.data_limit = None
 
     def test_kafka_error_callback(self):
-        msg = "msg"
-        self.client._kafka_error_callback(msg)
+        self.client._kafka_error_callback(msg="", error="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 

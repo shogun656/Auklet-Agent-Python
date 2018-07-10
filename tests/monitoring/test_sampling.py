@@ -47,7 +47,7 @@ class TestAukletSampler(unittest.TestCase):
         class Frame:
             f_back = None
             f_code = CoCode()
-        self.assertRaises(AukletConfigurationError, self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event=""))
+        self.assertRaises(AukletConfigurationError, self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event="", arg=""))
 
     def test_handle_exc(self):
         def build_event_data(self, type="", value="", traceback=""):
