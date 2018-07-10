@@ -51,15 +51,16 @@ jobs:
                   chmod +x ./docker-compose
                   sudo mv ./docker-compose /usr/local/bin
 
-            - run:
-                name: Setup Python3
-                command: |
-                  pyenv install 3.6.3
-                  pyenv global 3.6.3
+#            - run:
+#                name: Setup Python3
+#                command: |
+#                  pyenv install 3.6.3
+#                  pyenv global 3.6.3
 
             - run:
                 name: Setup dependencies
                 command: |
+                  sudo apt-get install composer
                   sudo composer self-update
                   composer install -n --prefer-dist
             - run:
