@@ -2,12 +2,15 @@ import os
 import unittest
 from mock import patch
 
+from . import data_factory
+
 from auklet.base import *
 from auklet.stats import MonitoringTree
 from auklet.errors import AukletConfigurationError
 
+
 class TestClient(unittest.TestCase):
-    data = """{"commitHash": "9f7ce8f9d5d55e1f9902aa1c941d93403ee97f40", "id": "ee7451a3-789e-44a2-95d7-32dbe8b069cc", "tree": {"lineNumber": 1, "nSamples": 173756, "functionName": "root", "nCalls": 1, "callees": [{"lineNumber": 1, "nSamples": 1203, "functionName": "<module>", "nCalls": 0, "callees": [{"lineNumber": 26, "nSamples": 1203, "functionName": "main", "nCalls": 0, "callees": [{"lineNumber": 12, "nSamples": 28, "functionName": "__new__", "nCalls": 7, "callees": [], "filePath": "<string>"}, {"lineNumber": 31, "nSamples": 2, "functionName": "__repr__", "nCalls": 1, "callees": [], "filePath": "<string>"}], "filePath": "vdas/vdas.py"}], "filePath": "vdas/vdas.py"}, {"lineNumber": 9, "nSamples": 166541, "functionName": "on_press", "nCalls": 0, "callees": [], "filePath": "/vdas/button.py"}, {"lineNumber": 12, "nSamples": 28, "functionName": "__new__", "nCalls": 7, "callees": [], "filePath": "<string>"}, {"lineNumber": 31, "nSamples": 4, "functionName": "__repr__", "nCalls": 2, "callees": [], "filePath": "<string>"}], "filePath": None}, "publicIP": "96.64.10.67", "timestamp": 1530555317012, "application": "tyJSjp3aSyxxdoGAtqsMT4", "macAddressHash": "be7f80c587aee80972ab1f98b8f4203c"}"""
+    data = str(data_factory.MonitoringDataFactory())
     def setUp(self):
         def _get_kafka_brokers(self):
             self.brokers = ["api-staging.auklet.io:9093"]
@@ -54,14 +57,14 @@ class TestClient(unittest.TestCase):
 
     def test_write_kafka_conf(self):
         filename = self.client.com_config_filename
-        self.client._write_kafka_conf(info="""{"brokers": ["brokers-staging.feeds.auklet.io:9093"], "prof_topic": "profiler", "event_topic": "events", "log_topic": "logs", "user_metrics_topic": "user_metrics"}""")
+        self.client._write_kafka_conf(info=str(data_factory.ConfigFactory()))
         self.assertGreater(os.path.getsize(filename), 0)
         open(filename, "w").close()
 
     def test_load_kafka_conf(self):
         filename = self.client.com_config_filename
-        with open(filename, "w") as myfile:
-            myfile.write("""{"brokers": ["brokers-staging.feeds.auklet.io:9093"], "prof_topic": "profiler", "event_topic": "events", "log_topic": "logs", "user_metrics_topic": "user_metrics"}""")
+        with open(filename, "w") as my_file:
+            my_file.write(str(data_factory.ConfigFactory()))
         self.assertTrue(self.client._load_kafka_conf())
         open(filename, "w").close()
 
