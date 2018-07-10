@@ -106,10 +106,10 @@ jobs:
             - run:
                 name: Setup Python Unit Tests
                 command: |
-                  #pyenv install 3.6.3
-                  #pyenv global 3.6.3
-                  #pip3 install mock kafka factory_boy
-                  #python3 setup.py install
+                  pyenv install 3.6.3
+                  pyenv global 3.6.3
+                  pip3 install mock kafka factory_boy
+                  python3 setup.py install
             - run:
                 name: Run Unit Tests
                 command: |
