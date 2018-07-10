@@ -1,3 +1,4 @@
+import time
 import unittest
 from mock import patch
 
@@ -31,7 +32,7 @@ class TestAukletSampler(unittest.TestCase):
 
         self.monitoring_tree = MonitoringTree()
         self.monitoring_tree.root_func = {"key": self.monitoring_tree.get_filename}
-        self.tree = self.monitoring_tree.build_tree("")
+        self.tree = self.monitoring_tree
         self.auklet_sampler = AukletSampler(client=self.client, tree=self.tree)
 
     def tearDown(self):
@@ -47,7 +48,19 @@ class TestAukletSampler(unittest.TestCase):
         class Frame:
             f_back = None
             f_code = CoCode()
-        self.assertRaises(AukletConfigurationError, self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event="", arg=""))
+
+        def produce(self, event):
+            global test_profile_event
+            test_profile_event = event
+
+        patcher = patch('auklet.base.Client.produce', new=produce)
+        patcher.start()
+        self.auklet_sampler.prev_diff = 1
+        self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event="")
+        self.assertNotEqual(test_profile_event, None)
+        patcher.stop()
+
+
 
     def test_handle_exc(self):
         def build_event_data(self, type="", value="", traceback=""):
@@ -56,10 +69,19 @@ class TestAukletSampler(unittest.TestCase):
             _ = traceback
             return {"commitHash": "", "id": "", "tree": {"lineNumber": 1, "nSamples": 173756, "functionName": "root", "nCalls": 1, "callees": []}, "publicIP": "0.0.0.0", "timestamp": 1530555317012, "application": "tyJSjp3aSyxxdoGAtqsMT4", "macAddressHash": ""}
 
+        def produce(self, event, topic):
+            global test_handle_exc_event
+            test_handle_exc_event = event
+            _ = topic
+
         patcher = patch('auklet.base.Client.build_event_data', new=build_event_data)
+        patcher2 = patch('auklet.base.Client.produce', new=produce)
         patcher.start()
-        self.assertRaises(TypeError, self.auklet_sampler.handle_exc(type=None, value="", traceback=""))
-        patcher.stop
+        patcher2.start()
+        self.auklet_sampler.handle_exc(type=None, value="", traceback="")
+        self.assertEqual(build_event_data(self), test_handle_exc_event)
+        patcher.stop()
+        patcher2.stop()
 
     def test_run(self):
         self.assertNotEqual(self.auklet_sampler.run(profiler=""), None)

@@ -2,7 +2,9 @@ import os
 import unittest
 from mock import patch
 
-from . import data_factory
+print(os.getcwd())
+
+import data_factory
 
 from auklet.base import *
 from auklet.stats import MonitoringTree
@@ -108,12 +110,12 @@ class TestClient(unittest.TestCase):
     def test_check_data_limit(self):
         self.assertTrue(self.client._check_data_limit(self.data, self.client.data_current))
         self.assertTrue(self.client._check_data_limit(self.data, self.client.data_current, offline=True))
-        self.client.offline_limit = self.client.data_limit = 1000
+        self.client.offline_limit = self.client.data_limit = 1
         self.assertFalse(self.client._check_data_limit(self.data, self.client.data_current))
         self.client.offline_limit = self.client.data_limit = None
 
     def test_kafka_error_callback(self):
-        self.client._kafka_error_callback(msg="", error="")
+        self.client._kafka_error_callback(msg="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 

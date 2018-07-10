@@ -48,7 +48,6 @@ class AukletSampler(Runnable):
                 self.client.produce(
                     self.tree.build_tree(self.client.app_id))
                 self.tree.clear_root()
-
             if time_diff % self.network_rate == 0:
                 self.client.update_network_metrics(self.network_rate)
 

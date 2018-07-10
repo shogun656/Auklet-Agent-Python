@@ -1,10 +1,7 @@
-import os
 import unittest
 from mock import patch
 
 from auklet.stats import Function, Event, MonitoringTree, SystemMetrics
-from auklet.protobuf import data_pb2
-
 
 class TestFunction(unittest.TestCase):
     def get_test_child(self):
