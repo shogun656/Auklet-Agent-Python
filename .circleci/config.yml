@@ -43,30 +43,36 @@ jobs:
                   VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
                   sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
             - run:
-                name: Upgrade Docker Compose
+                name: Install Python 3.6.3
                 command: |
-                  set -x
-                  curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > ./docker-compose
-                  chmod +x ./docker-compose
-                  sudo mv ./docker-compose /usr/local/bin
-
+                  pyenv install 3.6.3
+                  pyenv global 3.6.3
             - run:
-                name: Setup Python3
+                name: Show Python3 Version
                 command: |
-                  pyenv global 3.5.2
+                  python3 --version
+            - run:
+              name: Install Coverage
+              command: |
                   pip3 install coverage
-
             - run:
                 name: Setup Code Climate test-reporter
                 command: |
                   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
                   chmod +x ./cc-test-reporter
             - run:
-                name: Run tests
+                name: Upgrade Docker Compose
                 command: |
-                  ./cc-test-reporter before-build
-                  bash startUnitTest.sh
-                  ./cc-test-reporter after-build --coverage-input-type coverage.py --exit-code $?
+                  set -x
+                  curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > ./docker-compose
+                  chmod +x ./docker-compose
+                  sudo mv ./docker-compose /usr/local/bin
+            - run:
+                name: Show Docker Versions
+                command: |
+                  set -x
+                  docker --version
+                  docker-compose --version
 
             ##
             # RESTORE CACHES
@@ -81,28 +87,8 @@ jobs:
                   mkdir -p ~/.cache/pip ~/.whitesource-pip
 
             ##
-            # DOCKER
-            ##
-            - run:
-                name: Show Docker Versions
-                command: |
-                  set -x
-                  docker --version
-                  docker-compose --version
-            - run:
-                name: Build Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose build
-
-            ##
             # TESTS
             ##
-            - run:
-                name: Run Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
             - run:
                 name: Run Whitesource
                 command: |
@@ -110,21 +96,30 @@ jobs:
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     bash .devops/whitesource.sh
                   fi
-
-            ##
-            # UNIT TESTS
-            ##
-            - run:
-                name: Setup Python Unit Tests
-                command: |
-                  pyenv install 3.6.3
-                  pyenv global 3.6.3
-                  pip3 install mock kafka factory_boy
-                  python3 setup.py install
             - run:
                 name: Run Unit Tests
                 command: |
-                  bash unit_test.sh
+                  ./cc-test-reporter before-build
+                  bash startUnitTest.sh
+            - run:
+                name: Upload Unit Tests To Code Climate
+                command: |
+                  coverage xml
+                  ./cc-test-reporter after-build --exit-code $?
+
+            ##
+            # DOCKER
+            ##
+            - run:
+                name: Build Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose build
+            - run:
+                name: Run Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
 
             ##
             # SAVE CACHES
