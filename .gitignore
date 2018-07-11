@@ -204,5 +204,5 @@ auklet/example_app.py
 pi_digits.py
 
 # Unit Testing Environment
-tests/.auklet
-tests/monitoring/.auklet
+.coverage
+coverage.xml
