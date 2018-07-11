@@ -94,6 +94,7 @@ jobs:
                     CIRCLE_LOCAL_BUILD=true
                   else
                     CIRCLE_LOCAL_BUILD=false
+                  fi
                   /app/.devops/tests.sh $CIRCLE_LOCAL_BUILD
 
             ##
