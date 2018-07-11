@@ -19,7 +19,7 @@ if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   ./cc-test-reporter before-build
 fi
 
-sh /app/.devops/tests.sh
+bash .devops/tests.sh
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   # Set -e is disabled momentarily to be able to output the error message to log.txt file.

@@ -95,7 +95,7 @@ jobs:
                   else
                     CIRCLE_LOCAL_BUILD=false
                   fi
-                  /app/.devops/tests.sh $CIRCLE_LOCAL_BUILD
+                  bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
 
             ##
             # DOCKER
