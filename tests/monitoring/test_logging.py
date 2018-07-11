@@ -7,27 +7,35 @@ class TestAukletLogging(unittest.TestCase):
     def setUp(self):
         self.auklet_logging = AukletLogging()
 
-    def test_log(self, level='INFO'):
-        _ = level
-        try:
-            self.auklet_logging.log(msg='Log message', data_type=str)
-        except NotImplementedError as error:
-            self.assertEqual(str(error), 'Must implement method: log')
+    def test_log(self):
+        self.assertRaises(
+            NotImplementedError, lambda: self.auklet_logging.log(
+                msg="", data_type=str))
 
     def test_debug(self):
-        self.test_log('DEBUG')
+        self.assertRaises(
+            NotImplementedError, lambda: self.auklet_logging.debug(
+                msg="", data_type=str))
 
     def test_info(self):
-        self.test_log('INFO')
+        self.assertRaises(
+            NotImplementedError, lambda: self.auklet_logging.info(
+                msg="", data_type=str))
 
     def test_warning(self):
-        self.test_log('WARNING')
+        self.assertRaises(
+            NotImplementedError, lambda: self.auklet_logging.warning(
+                msg="", data_type=str))
 
     def test_error(self):
-        self.test_log('ERROR')
+        self.assertRaises(
+            NotImplementedError, lambda: self.auklet_logging.error(
+                msg="", data_type=str))
 
     def test_critical(self):
-        self.test_log('CRITICAL')
+        self.assertRaises(
+            NotImplementedError, lambda: self.auklet_logging.critical(
+                msg="", data_type=str))
 
 
 if __name__ == '__main__':

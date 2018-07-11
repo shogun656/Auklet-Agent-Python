@@ -16,7 +16,8 @@ class TestFunction(unittest.TestCase):
     def test_has_child(self):
         self.assertFalse(self.function.has_child(test_child=""))
         self.function.children.append(self.get_test_child())
-        self.assertNotEqual(self.function.has_child(test_child=self.get_test_child()), False)
+        self.assertNotEqual(
+            self.function.has_child(test_child=self.get_test_child()), False)
 
 
 class TestEvent(unittest.TestCase):
@@ -40,19 +41,26 @@ class TestEvent(unittest.TestCase):
 
     def setUp(self):
         self.tree = MonitoringTree()
-        self.patcher = patch('auklet.stats.MonitoringTree.get_filename', new=self.get_filename)
+        self.patcher = patch(
+            'auklet.stats.MonitoringTree.get_filename', new=self.get_filename)
         self.patcher.start()
-        self.event = Event(exc_type=str, tb=self.get_traceback(), tree=self.tree, abs_path="abs_path")
+        self.event = Event(
+            exc_type=str, tb=self.get_traceback(),
+            tree=self.tree, abs_path="abs_path")
 
     def test_filter_frame(self):
         self.assertTrue(self.event._filter_frame(file_name="auklet"))
         self.assertFalse(self.event._filter_frame(file_name=""))
 
     def test_convert_locals_to_string(self):
-        self.assertNotEqual(self.event._convert_locals_to_string(local_vars={"key": "value"}), None)
+        self.assertNotEqual(
+            self.event._convert_locals_to_string(
+                local_vars={"key": "value"}), None)
 
     def test_build_traceback(self):
-        self.assertEqual(self.event._build_traceback(trace=self.get_traceback(), tree=self.tree), None)
+        self.assertEqual(
+            self.event._build_traceback(
+                trace=self.get_traceback(), tree=self.tree), None)
 
     def tearDown(self):
         self.patcher.stop()
@@ -75,7 +83,12 @@ class TestMonitoringTree(unittest.TestCase):
         return frame
 
     def get_root_function(self):
-        return {'callees': [], 'filePath': None, 'functionName': 'root', 'lineNumber': 1, 'nCalls': 1, 'nSamples': 1}
+        return {'callees': [],
+                'filePath': None,
+                'functionName': 'root',
+                'lineNumber': 1,
+                'nCalls': 1,
+                'nSamples': 1}
 
     def get_parent(self):
         pass
@@ -91,33 +104,47 @@ class TestMonitoringTree(unittest.TestCase):
     def test_get_filename(self):
         self.monitoring_tree.cached_filenames.clear()
         self.monitoring_tree.cached_filenames['file_name'] = "file_name"
-        self.assertEqual(self.monitoring_tree.get_filename(code=self.get_code(), frame="frame"), self.get_code().co_code)
+        self.assertEqual(
+            self.monitoring_tree.get_filename(
+                code=self.get_code(), frame="frame"), self.get_code().co_code)
 
     def test_create_frame_function(self):
-        self.assertNotEqual(self.monitoring_tree._create_frame_func(frame=self.get_frame()), None)
+        self.assertNotEqual(
+            self.monitoring_tree._create_frame_func(
+                frame=self.get_frame()), None)
 
     def test_filter_frame(self):
         self.assertTrue(self.monitoring_tree._filter_frame(file_name=None))
         self.assertFalse(self.monitoring_tree._filter_frame(file_name=""))
-        self.assertTrue(self.monitoring_tree._filter_frame(file_name="site-packages"))
+        self.assertTrue(
+            self.monitoring_tree._filter_frame(file_name="site-packages"))
 
     def test__build_tree(self):
-        self.assertNotEqual(self.monitoring_tree._build_tree(new_stack=""), None)
+        self.assertNotEqual(
+            self.monitoring_tree._build_tree(new_stack=""), None)
 
     # To be added if protobufs get implemented
     # def test_build_protobuf_tree(self):
     #     self.protobuf_monitoring_data = data_pb2.ProtobufMonitoringData()
-    #     self.assertNotEqual(self.monitoring_tree._build_protobuf_tree(root_tree=self.get_root_function(), message=self.protobuf_monitoring_data), None)
+    #     self.assertNotEqual(
+    #       self.monitoring_tree._build_protobuf_tree(
+    #       root_tree=self.get_root_function(),
+    #       message=self.protobuf_monitoring_data), None)
 
     # def test_build_protobuf_monitoring_data(self):
     #     self.monitoring_tree.root_func = self.get_root_function()
-    #     self.assertNotEqual(self.monitoring_tree.build_protobuf_monitoring_data(app_id="app_id"), None)
+    #     self.assertNotEqual(
+    #       self.monitoring_tree.build_protobuf_monitoring_data(
+    #           app_id="app_id"), None)
 
     def test_update_sample_count(self):
-        self.assertTrue(self.monitoring_tree._update_sample_count(parent=None, new_parent=self.get_new_parent()))
+        self.assertTrue(
+            self.monitoring_tree._update_sample_count(
+                parent=None, new_parent=self.get_new_parent()))
 
     def test_update_hash(self):
-        self.assertNotEqual(self.monitoring_tree.update_hash(new_stack=""), None)
+        self.assertNotEqual(
+            self.monitoring_tree.update_hash(new_stack=""), None)
 
     def test_clear_root(self):
         self.monitoring_tree.root_func = self.get_root_function()
@@ -126,7 +153,8 @@ class TestMonitoringTree(unittest.TestCase):
 
     def test_build_tree(self):
         self.monitoring_tree.root_func = self.get_root_function()
-        self.assertNotEqual(self.monitoring_tree.build_tree(app_id="app_id"), None)
+        self.assertNotEqual(
+            self.monitoring_tree.build_tree(app_id="app_id"), None)
 
 
 class TestSystemMetrics(unittest.TestCase):

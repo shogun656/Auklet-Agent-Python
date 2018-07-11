@@ -19,16 +19,19 @@ class TestClient(unittest.TestCase):
                 "event": "events",
                 "log": "logging"
             }
-        self.patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+        self.patcher = patch(
+            'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
         self.patcher.start()
-        self.client = Client(apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.client = Client(
+            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.monitoring_tree = MonitoringTree()
 
     def tearDown(self):
         self.patcher.stop()
 
     def test_create_file(self):
-        files = ['.auklet/local.txt', '.auklet/limits', '.auklet/usage', '.auklet/communication']
+        files = ['.auklet/local.txt', '.auklet/limits',
+                 '.auklet/usage', '.auklet/communication']
         for f in files:
             file = False
             if os.path.isfile(f):
@@ -37,11 +40,15 @@ class TestClient(unittest.TestCase):
 
     def test_build_url(self):
         extension = str("private/devices/config/")
-        self.assertEqual(self.client._build_url(extension), self.client.base_url + extension)
+        self.assertEqual(
+            self.client._build_url(extension),
+            self.client.base_url + extension)
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
-        self.assertRaises(AukletConfigurationError, lambda: self.client._open_auklet_url(url))
+        self.assertRaises(
+            AukletConfigurationError,
+            lambda: self.client._open_auklet_url(url))
         url = "http://google.com/"
         self.assertNotEqual(self.client._open_auklet_url(url), None)
 
@@ -106,10 +113,14 @@ class TestClient(unittest.TestCase):
         self.assertNotEqual(self.client._update_usage_file(), False)
 
     def test_check_data_limit(self):
-        self.assertTrue(self.client._check_data_limit(self.data, self.client.data_current))
-        self.assertTrue(self.client._check_data_limit(self.data, self.client.data_current, offline=True))
+        self.assertTrue(
+            self.client._check_data_limit(self.data, self.client.data_current))
+        self.assertTrue(
+            self.client._check_data_limit(
+                self.data, self.client.data_current, offline=True))
         self.client.offline_limit = self.client.data_limit = 1
-        self.assertFalse(self.client._check_data_limit(self.data, self.client.data_current))
+        self.assertFalse(
+            self.client._check_data_limit(self.data, self.client.data_current))
         self.client.offline_limit = self.client.data_limit = None
 
     def test_kafka_error_callback(self):
@@ -130,7 +141,15 @@ class TestClient(unittest.TestCase):
 
     def test_update_limits(self):
         def _get_config(self):
-            return {"storage": {"storage_limit": None}, "emission_period": 60, "features": {"performance_metrics": True, "user_metrics": False}, "data": {"cellular_data_limit": None, "normalized_cell_plan_date": 1}}
+            return {"storage":
+                    {"storage_limit": None},
+                    "emission_period": 60,
+                    "features":
+                    {"performance_metrics": True,
+                     "user_metrics": False},
+                    "data":
+                    {"cellular_data_limit": None,
+                     "normalized_cell_plan_date": 1}}
 
         patcher = patch('auklet.base.Client._get_config', new=_get_config)
         patcher.start()
@@ -139,28 +158,46 @@ class TestClient(unittest.TestCase):
 
     def test_build_event_data(self):
         def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
-            return {"stackTrace": [{"functionName": "", "filePath": "", "lineNumber": 0, "locals": {"key": "value"}}]}
+            return {"stackTrace":
+                    [{"functionName": "",
+                        "filePath": "",
+                        "lineNumber": 0,
+                        "locals":
+                        {"key": "value"}}]}
 
         patcher = patch('auklet.base.Event', new=get_mock_event)
         patcher.start()
-        self.assertNotEqual(self.client.build_event_data(type=None, traceback="", tree=""), None)
+        self.assertNotEqual(
+            self.client.build_event_data(
+                type=None, traceback="", tree=""), None)
         patcher.stop()
 
     def test_build_log_data(self):
-        self.assertNotEqual(self.client.build_log_data(msg='msg', data_type='data_type', level='level'), None)
+        self.assertNotEqual(
+            self.client.build_log_data(
+                msg='msg', data_type='data_type', level='level'), None)
 
     # To be added if protobufs get implemented
     # def test_build_protobuf_event_data(self):
     #     def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
-    #         return {"stackTrace": [{"functionName": "", "filePath": "", "lineNumber": 0, "locals": {"key": "value"}}]}
+    #         return {"stackTrace":
+    #                 [{"functionName": "",
+    #                     "filePath": "",
+    #                     "lineNumber": 0,
+    #                     "locals":
+    #                     {"key": "value"}}]}
     #
     #     patcher = patch('auklet.base.Event', new=get_mock_event)
     #     patcher.start()
-    #     self.assertNotEqual(self.client.build_protobuf_event_data(type=None, traceback="", tree=""), None)
+    #     self.assertNotEqual(
+    #       self.client.build_protobuf_event_data(
+    #           type=None, traceback="", tree=""), None)
     #     patcher.stop()
     #
     # def test_build_protobuf_log_data(self):
-    #     self.assertNotEqual(self.client.build_protobuf_log_data(msg='msg', data_type='data_type', level='level'), None)
+    #     self.assertNotEqual(
+    #       self.client.build_protobuf_log_data(
+    #           msg='msg', data_type='data_type', level='level'), None)
 
     def test__produce(self):
         pass

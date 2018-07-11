@@ -5,7 +5,8 @@ from auklet.errors import AukletException, AukletConnectionError, AukletConfigur
 
 class TestAukletException(unittest.TestCase):
     def test_auklet_exception(self):
-        self.assertEqual(str(AukletException(Exception)), "<class 'Exception'>")
+        self.assertEqual(
+            str(AukletException(Exception)), "<class 'Exception'>")
 
 class TestAukletConnectionError(unittest.TestCase):
     def test_auklet_connection_error(self):

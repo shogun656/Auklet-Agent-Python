@@ -31,9 +31,15 @@ class MonitoringDataGenerator(object):
                '"timestamp": %d, ' \
                '"application": "%s", ' \
                '"macAddressHash": "%s", ' \
-               '"callees": [{"lineNumber": %d, "nSamples": %d, "functionName": "%s", "nCalls": %d}]}' \
-               % (self.commitHash, self.id, self.publicIP, self.timestamp, self.application,
-                  self.macAddressHash, self.lineNumber, self.nSamples, self.functionName, self.nCalls)
+               '"callees": ' \
+               '[{"lineNumber": %d, ' \
+               '"nSamples": %d, ' \
+               '"functionName": "%s", ' \
+               '"nCalls": %d}]}' \
+               % (self.commitHash, self.id, self.publicIP,
+                  self.timestamp, self.application, self.macAddressHash,
+                  self.lineNumber, self.nSamples, self.functionName,
+                  self.nCalls)
 
 
 class MonitoringDataFactory(factory.Factory):
@@ -54,7 +60,9 @@ class MonitoringDataFactory(factory.Factory):
 
 
 class ConfigGenerator(object):
-    def __init__(self, brokers, prof_topic, event_topic, log_topic, user_metrics_topic):
+    def __init__(
+            self, brokers, prof_topic,
+            event_topic, log_topic, user_metrics_topic):
         self.brokers = brokers
         self.prof_topic = prof_topic
         self.event_topic = event_topic
@@ -64,7 +72,8 @@ class ConfigGenerator(object):
     def __str__(self):
         return '{"brokers": ["%s"], "prof_topic": "%s", "event_topic": ' \
                '"%s", "log_topic": "%s", "user_metrics_topic": "%s"}' \
-                % (self.brokers, self.prof_topic, self.event_topic, self.log_topic, self.user_metrics_topic)
+                % (self.brokers, self.prof_topic, self.event_topic,
+                   self.log_topic, self.user_metrics_topic)
 
 
 class ConfigFactory(factory.Factory):

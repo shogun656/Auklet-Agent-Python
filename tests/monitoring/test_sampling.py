@@ -21,19 +21,25 @@ class TestAukletSampler(unittest.TestCase):
         def _open_auklet_url(self, url):
             _ = url
 
-        self.patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
-        self.patcher2 = patch('auklet.base.Client._open_auklet_url', new=_open_auklet_url)
+        self.patcher = patch(
+            'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+        self.patcher2 = patch(
+            'auklet.base.Client._open_auklet_url', new=_open_auklet_url)
         self.patcher.start()
         self.patcher2.start()
 
-        self.monitoring = Monitoring(apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.monitoring = Monitoring(
+            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
 
-        self.client = Client(apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.client = Client(
+            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
 
         self.monitoring_tree = MonitoringTree()
-        self.monitoring_tree.root_func = {"key": self.monitoring_tree.get_filename}
+        self.monitoring_tree.root_func = \
+            {"key": self.monitoring_tree.get_filename}
         self.tree = self.monitoring_tree
-        self.auklet_sampler = AukletSampler(client=self.client, tree=self.tree)
+        self.auklet_sampler = AukletSampler(
+            client=self.client, tree=self.tree)
 
     def tearDown(self):
         self.patcher.stop()
@@ -56,7 +62,8 @@ class TestAukletSampler(unittest.TestCase):
         patcher = patch('auklet.base.Client.produce', new=produce)
         patcher.start()
         self.auklet_sampler.prev_diff = 1
-        self.auklet_sampler._profile(profiler=self.monitoring, frame=Frame(), event="", arg="")
+        self.auklet_sampler._profile(
+            profiler=self.monitoring, frame=Frame(), event="", arg="")
         self.assertNotEqual(test_profile_event, None)
         patcher.stop()
 
@@ -67,14 +74,24 @@ class TestAukletSampler(unittest.TestCase):
             _ = type
             _ = value
             _ = traceback
-            return {"commitHash": "", "id": "", "tree": {"lineNumber": 1, "nSamples": 173756, "functionName": "root", "nCalls": 1, "callees": []}, "publicIP": "0.0.0.0", "timestamp": 1530555317012, "application": "tyJSjp3aSyxxdoGAtqsMT4", "macAddressHash": ""}
+            return {"commitHash": "", "id": "", "tree":
+                    {"lineNumber": 1,
+                     "nSamples": 173756,
+                     "functionName": "root",
+                     "nCalls": 1,
+                     "callees": []},
+                    "publicIP": "0.0.0.0",
+                    "timestamp": 1530555317012,
+                    "application": "tyJSjp3aSyxxdoGAtqsMT4",
+                    "macAddressHash": ""}
 
         def produce(self, event, topic):
             global test_handle_exc_event
             test_handle_exc_event = event
             _ = topic
 
-        patcher = patch('auklet.base.Client.build_event_data', new=build_event_data)
+        patcher = patch(
+            'auklet.base.Client.build_event_data', new=build_event_data)
         patcher2 = patch('auklet.base.Client.produce', new=produce)
         patcher.start()
         patcher2.start()
@@ -84,7 +101,7 @@ class TestAukletSampler(unittest.TestCase):
         patcher2.stop()
 
     def test_run(self):
-        self.assertNotEqual(self.auklet_sampler.run(profiler=""), None)
+        self.auklet_sampler.run(profiler="")
 
 
 if __name__ == '__main__':

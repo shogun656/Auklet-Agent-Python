@@ -4,7 +4,6 @@ jobs:
     build:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
-            CC_TEST_REPORTER_ID: 689b04946266e8427acf268fa4cf6a3ce4571edd6e8bcf5217a93d3b60cb501d
         working_directory: ~/app
         machine: true
 
