@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [ ! -d .auklet ]; then
     mkdir .auklet
@@ -7,5 +8,7 @@ if [ ! -d .auklet ]; then
 fi
 
 coverage run --source="auklet" setup.py test
+coverage html -d htmlcov
+coverage xml
 
 rm -R .auklet

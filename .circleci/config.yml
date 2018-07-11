@@ -52,15 +52,6 @@ jobs:
                 command: |
                   python3 --version
             - run:
-                name: Install Coverage
-                command: |
-                  pip3 install coverage
-            - run:
-                name: Setup Code Climate test-reporter
-                command: |
-                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-                  chmod +x ./cc-test-reporter
-            - run:
                 name: Upgrade Docker Compose
                 command: |
                   set -x
@@ -99,14 +90,11 @@ jobs:
             - run:
                 name: Run Unit Tests
                 command: |
-                  ./cc-test-reporter before-build
-                  bash startUnitTest.sh
-            - run:
-                name: Upload Unit Tests To Code Climate
-                command: |
-                  coverage xml
-                  ./cc-test-reporter format-coverage -t coverage.py coverage.xml
-                  ./cc-test-reporter upload-coverage
+                  if [[ -f ~/.localCircleBuild ]]; then
+                    CIRCLE_LOCAL_BUILD=true
+                  else
+                    CIRCLE_LOCAL_BUILD=false
+                  /app/.devops/tests.sh $CIRCLE_LOCAL_BUILD
 
             ##
             # DOCKER
