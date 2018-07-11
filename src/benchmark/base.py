@@ -8,29 +8,6 @@ from pidigits import piGenerator
 __all__ = ['start']
 
 
-# Deletes Thread Ring test due to instability
-# class ThreadRing:
-#     @staticmethod
-#     def worker():
-#         n = 1
-#         while True:
-#             if n > 0:
-#                 n = (yield(n - 1))
-#             else:
-#                 raise StopIteration
-#
-#     def test(self, n=500000, n_threads=400, cycle=itertools.cycle):
-#         thread_ring = [self.worker() for _ in range(1, n_threads + 1)]
-#         for t in thread_ring:
-#             next(t)  # start exec. gen. funcs
-#         send_function_ring = [t.send for t in thread_ring]  # speed...
-#         for send in cycle(send_function_ring):
-#             try:
-#                 n = send(n)
-#             except StopIteration:
-#                 break
-
-
 class Fibonacci:
     def test(self, fibonacci_range=25):
         if fibonacci_range <= 1:

@@ -15,7 +15,7 @@ class TestAukletLogging(unittest.TestCase):
             self.assertEqual(str(error), 'Must implement method: log')
 
     def test_debug(self):
-        self.test_log('DEBUG')
+        self.auklet_logging.log('DEBUG')
 
     def test_info(self):
         self.test_log('INFO')
