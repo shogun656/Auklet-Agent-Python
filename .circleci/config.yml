@@ -52,8 +52,8 @@ jobs:
                 command: |
                   python3 --version
             - run:
-              name: Install Coverage
-              command: |
+                name: Install Coverage
+                command: |
                   pip3 install coverage
             - run:
                 name: Setup Code Climate test-reporter
