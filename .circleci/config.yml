@@ -105,7 +105,7 @@ jobs:
                 name: Upload Unit Tests To Code Climate
                 command: |
                   coverage xml
-                  ./cc-test-reporter after-build coverage.xml --exit-code $?
+                  ./cc-test-reporter after-build -t coverage.py --exit-code $?
 
             ##
             # DOCKER
