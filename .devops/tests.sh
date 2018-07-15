@@ -7,8 +7,6 @@ if [ ! -d .auklet ]; then
     touch .auklet/version
 fi
 
-rm -R htmlcov
-
 coverage run --rcfile=".coveragerc" setup.py test
 coverage html -d htmlcov
 coverage xml
