@@ -199,3 +199,10 @@ auklet.egg-info/*
 tmp/*
 .auklet/*
 auklet/example_app.py
+
+# Testing Scripts
+pi_digits.py
+
+# Unit Testing Environment
+.coverage
+coverage.xml
