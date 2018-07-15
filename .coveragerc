@@ -6,3 +6,8 @@ omit =
     auklet/__about__.py
     auklet/__init__.py
     auklet/releases.py
+
+[report]
+exclude_lines =
+    except ImportError:
+    except AttributeError:

@@ -1,4 +1,6 @@
+import string
 import unittest
+from mock import patch
 
 from auklet.monitoring import MonitoringBase, Monitoring
 
@@ -29,6 +31,7 @@ class TestMonitoringBase(unittest.TestCase):
         self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
 
 
+
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
         self.function = Monitoring(
@@ -52,11 +55,26 @@ class TestMonitoring(unittest.TestCase):
             f_back = None
             f_code = CoCode()
         frame = Frame()
-        event = "event"
-        self.assertFalse(self.function.sample(frame=frame, event=event))
+
+        def update_hash(self, stack):
+            global test_sample_stack
+            test_sample_stack = stack
+
+        with patch('auklet.stats.MonitoringTree.update_hash', new=update_hash):
+            self.function.sample(frame=frame, event="event")
+            self.assertEqual(
+                str(test_sample_stack[0]).strip(')').split(", ")[1], "False")
+            self.function.sample(frame=frame, event="call")
+            self.assertTrue(test_sample_stack)
+            self.assertEqual(
+                str(test_sample_stack[0]).strip(')').split(", ")[1], "True")
 
     def test_run(self):
-        self.assertTrue(self.function.run())
+        self.function.run()
+        self.assertEqual(self.function.sampler.start(self.function), None)
+        self.function.sampler.stop()
+        self.function.sampler.start(self.function)
+        self.assertEqual(self.function.sampler.stop(), None)
 
     def test_log(self):
         self.assertEqual(self.function.log(msg="msg", data_type="str"), None)

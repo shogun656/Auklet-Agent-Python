@@ -95,6 +95,8 @@ jobs:
                     CIRCLE_LOCAL_BUILD=false
                   fi
                   bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
+            - store_artifacts:
+                path: /htmlcov
 
             ##
             # DOCKER

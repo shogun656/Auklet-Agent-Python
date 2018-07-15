@@ -1,12 +1,4 @@
-import random
-import string
 import factory
-
-from time import time
-
-
-def chars(n):
-    return ''.join(random.choices("abcdef" + string.digits, k=n))
 
 
 class MonitoringDataGenerator(object):
@@ -47,22 +39,21 @@ class MonitoringDataFactory(factory.Factory):
     class Meta:
         model = MonitoringDataGenerator
 
-    commitHash = chars(40)
-    id = str(chars(8) + '-' + chars(4) + '-' + chars(4) + '-' + chars(12))
-    publicIP = '.'.join(map(str, (random.randint(0, 255) for _ in range(4))))
-    timestamp = int(round(time() * 1000))
-    application = ''.join(random.choices(string.ascii_letters, k=22))
-    macAddressHash = chars(32)
-    lineNumber = int(random.randint(0, 1000))
-    nSamples = int(random.randint(1000, 10000))
+    commitHash = "d0eb7082f4dd5dfce4c543e21299fb2e5774f70b"
+    id = "30d376d2-fc7e-10d5-d51fe33373fd"
+    publicIP = "187.2.167.60"
+    timestamp = int(1531490785464)
+    application = "nugvjtNBxHbjBnqbcFZvjn"
+    macAddressHash = "d1dd34825af8599b78bd5f4a1d7d186e"
+    lineNumber = int(836)
+    nSamples = int(5745)
     functionName = "root"
     nCalls = 0
 
 
 class ConfigGenerator(object):
-    def __init__(
-            self, brokers, prof_topic,
-            event_topic, log_topic, user_metrics_topic):
+    def __init__(self, brokers, prof_topic,
+                 event_topic, log_topic, user_metrics_topic):
         self.brokers = brokers
         self.prof_topic = prof_topic
         self.event_topic = event_topic
@@ -86,3 +77,72 @@ class ConfigFactory(factory.Factory):
     event_topic = "events"
     log_topic = "logs"
     user_metrics_topic = "user_metrics"
+
+
+class StackTraceGenerator(object):
+    def __init__(self, functionName, lineNumber, nCalls, nSamples):
+        self.functionName = functionName
+        self.lineNumber = lineNumber
+        self.nCalls = nCalls
+        self.nSamples = nSamples
+
+    def __str__(self):
+        return '''{'callees': [],\n 'filePath': None,\n ''' \
+               ''''functionName': '%s',\n 'lineNumber': %d,\n ''' \
+               ''''nCalls': %d,\n 'nSamples': %d}''' \
+               % (self.functionName, self.lineNumber,
+                  self.nCalls, self.nSamples)
+
+
+class StackTraceFactory(factory.Factory):
+
+    class Meta:
+        model = StackTraceGenerator
+
+    functionName = "root"
+    lineNumber = 1
+    nCalls = 1
+    nSamples = 1
+
+class SingleNestedStackGenerator(object):
+    def __init__(self, callees_functionName, callees_lineNumber,
+                 callees_nCalls, callees_nSamples, functionName,
+                 lineNumber, nCalls, nSamples):
+        self.callees_functionName = callees_functionName
+        self.callees_lineNumber = callees_lineNumber
+        self.callees_nCalls = callees_nCalls
+        self.callees_nSamples = callees_nSamples
+        self.functionName = functionName
+        self.lineNumber = lineNumber
+        self.nCalls = nCalls
+        self.nSamples = nSamples
+
+    def __str__(self):
+        return '''{'callees': [{'callees': [],\n''' \
+               '''              'filePath': None,\n''' \
+               '''              'functionName': '%s',\n''' \
+               '''              'lineNumber': %d,\n''' \
+               '''              'nCalls': %d,\n''' \
+               '''              'nSamples': %d}],\n 'filePath': None,\n''' \
+               ''' 'functionName': '%s',\n 'lineNumber': %d,\n''' \
+               ''' 'nCalls': %d,\n 'nSamples': %d}''' \
+               % (self.callees_functionName, self.callees_lineNumber,
+                  self.callees_nCalls, self.callees_nSamples,
+                  self.functionName, self.lineNumber, self.nCalls,
+                  self.nSamples)
+
+
+class SingleNestedStackTraceFactory(factory.Factory):
+
+    class Meta:
+        model = SingleNestedStackGenerator
+
+    callees_functionName = ""
+    callees_lineNumber = 0
+    callees_nCalls = 1
+    callees_nSamples = 1
+
+    functionName = "root"
+    lineNumber = 1
+    nCalls = 1
+    nSamples = 1

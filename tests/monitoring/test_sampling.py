@@ -59,14 +59,11 @@ class TestAukletSampler(unittest.TestCase):
             global test_profile_event
             test_profile_event = event
 
-        patcher = patch('auklet.base.Client.produce', new=produce)
-        patcher.start()
-        self.auklet_sampler.prev_diff = 1
-        self.auklet_sampler._profile(
-            profiler=self.monitoring, frame=Frame(), event="", arg="")
-        self.assertNotEqual(test_profile_event, None)
-        patcher.stop()
-
+        with patch('auklet.base.Client.produce', new=produce):
+            self.auklet_sampler.prev_diff = 1
+            self.auklet_sampler._profile(
+                profiler=self.monitoring, frame=Frame(), event="", arg="")
+            self.assertNotEqual(test_profile_event, None)
 
 
     def test_handle_exc(self):
@@ -90,18 +87,15 @@ class TestAukletSampler(unittest.TestCase):
             test_handle_exc_event = event
             _ = topic
 
-        patcher = patch(
-            'auklet.base.Client.build_event_data', new=build_event_data)
-        patcher2 = patch('auklet.base.Client.produce', new=produce)
-        patcher.start()
-        patcher2.start()
-        self.auklet_sampler.handle_exc(type=None, value="", traceback="")
-        self.assertEqual(build_event_data(self), test_handle_exc_event)
-        patcher.stop()
-        patcher2.stop()
+        with patch('auklet.base.Client.build_event_data',
+                   new=build_event_data):
+            with patch('auklet.base.Client.produce', new=produce):
+                self.auklet_sampler.handle_exc(
+                    type=None, value="", traceback="")
+                self.assertEqual(build_event_data(self), test_handle_exc_event)
 
     def test_run(self):
-        self.auklet_sampler.run(profiler="")
+        self.assertNotEqual(self.auklet_sampler.run(profiler=""), None)
 
 
 if __name__ == '__main__':
