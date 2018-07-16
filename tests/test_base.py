@@ -53,14 +53,14 @@ class TestClient(unittest.TestCase):
             return True
 
         class KafkaProducer(object):
-            global test__init__producer
+            global test__init__producer  # used to tell a producer exists
             test__init__producer = True
 
         with patch('auklet.base.Client._get_kafka_certs',
                    new=_get_kafka_certs):
             with patch('kafka.KafkaProducer', new=KafkaProducer):
                 self.client.__init__()
-                self.assertTrue(test__init__producer)
+                self.assertTrue(test__init__producer)  # global used here
 
     def test_create_file(self):
         files = ['.auklet/local.txt', '.auklet/limits',
@@ -138,13 +138,13 @@ class TestClient(unittest.TestCase):
 
     def test_produce_from_local(self):
         def _produce(self, data, data_type):
-            global test_produced_data
+            global test_produced_data  # used to tell data was produced
             test_produced_data = data
         with patch('auklet.base.Client._produce', new=_produce):
             with open(self.client.offline_filename, "ab") as offline:
                 offline.write(msgpack.Packer().pack({'stackTrace': 'data'}))
             self.client._produce_from_local()
-        self.assertEqual(test_produced_data, msgpack.packb(
+        self.assertEqual(test_produced_data, msgpack.packb(  # global used here
             {'stackTrace': 'data'}, use_bin_type=True))
 
         os.system("rm -R .auklet")
@@ -276,15 +276,15 @@ class TestClient(unittest.TestCase):
         pass
 
     def test_produce(self):
-        global error
+        global error  # used to tell which test case is being tested
         error = False
 
         def _produce(self, data, data_type="monitoring"):
-            global test_produce_data
+            global test_produce_data  # used to tell data was produced
             test_produce_data = data
 
         def _check_data_limit(self, data, data_current, offline=False):
-            if not error or offline:
+            if not error or offline:  # global used here
                 return True
             else:
                 raise KafkaError
@@ -298,7 +298,8 @@ class TestClient(unittest.TestCase):
                     offline.write(
                         msgpack.Packer().pack(self.data))
                 self.client.produce(self.data)
-                self.assertNotEqual(str(test_produce_data), None)
+                self.assertNotEqual(
+                    str(test_produce_data), None)  # global used here
 
                 error = True
                 self.client.produce(self.data)
@@ -345,12 +346,12 @@ class TestRunnable(unittest.TestCase):
 
     def test___enter__(self):
         def start(self):
-            global running  # __enter__() to start()
+            global running  # used to tell if running is true
             running = True
 
         with patch('auklet.base.Runnable.start', new=start):
             self.runnable.__enter__()
-            self.assertTrue(running)
+            self.assertTrue(running)  # global variable used here
 
     def test___exit__(self):
         pass

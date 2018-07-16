@@ -56,15 +56,14 @@ class TestAukletSampler(unittest.TestCase):
             f_code = CoCode()
 
         def produce(self, event):
-            global test_profile_event
+            global test_profile_event  # used to test if events produced
             test_profile_event = event
 
         with patch('auklet.base.Client.produce', new=produce):
             self.auklet_sampler.prev_diff = 1
             self.auklet_sampler._profile(
                 profiler=self.monitoring, frame=Frame(), event="", arg="")
-            self.assertNotEqual(test_profile_event, None)
-
+            self.assertNotEqual(test_profile_event, None) # global used here
 
     def test_handle_exc(self):
         def build_event_data(self, type="", value="", traceback=""):
@@ -83,7 +82,7 @@ class TestAukletSampler(unittest.TestCase):
                     "macAddressHash": ""}
 
         def produce(self, event, topic):
-            global test_handle_exc_event
+            global test_handle_exc_event  # used to test if events produced
             test_handle_exc_event = event
             _ = topic
 
@@ -92,7 +91,9 @@ class TestAukletSampler(unittest.TestCase):
             with patch('auklet.base.Client.produce', new=produce):
                 self.auklet_sampler.handle_exc(
                     type=None, value="", traceback="")
-                self.assertEqual(build_event_data(self), test_handle_exc_event)
+                self.assertEqual(
+                    build_event_data(self),
+                    test_handle_exc_event)  # global used here
 
     def test_run(self):
         self.assertNotEqual(self.auklet_sampler.run(profiler=""), None)
