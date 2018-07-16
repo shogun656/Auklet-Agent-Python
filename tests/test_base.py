@@ -21,6 +21,15 @@ class TestClient(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
     config = ast.literal_eval(str(data_factory.ConfigFactory()))
 
+    @staticmethod
+    def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
+        return {"stackTrace":
+                    [{"functionName": "",
+                      "filePath": "",
+                      "lineNumber": 0,
+                      "locals":
+                          {"key": "value"}}]}
+
     def setUp(self):
         def _get_kafka_brokers(self):
             self.brokers = ["api-staging.auklet.io:9093"]
@@ -242,15 +251,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual(self.client.update_limits(), 60000)
 
     def test_build_event_data(self):
-        def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
-            return {"stackTrace":
-                    [{"functionName": "",
-                        "filePath": "",
-                        "lineNumber": 0,
-                        "locals":
-                        {"key": "value"}}]}
-
-        with patch('auklet.base.Event', new=get_mock_event):
+        with patch('auklet.base.Event', new=self.get_mock_event):
             self.assertNotEqual(
                 self.client.build_event_data(
                     type=None, traceback="", tree=""), None)
@@ -261,15 +262,7 @@ class TestClient(unittest.TestCase):
                 msg='msg', data_type='data_type', level='level'), None)
 
     def test_build_msgpack_event_data(self):
-        def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
-            return {"stackTrace":
-                    [{"functionName": "",
-                        "filePath": "",
-                        "lineNumber": 0,
-                        "locals":
-                        {"key": "value"}}]}
-
-        with patch('auklet.base.Event', new=get_mock_event):
+        with patch('auklet.base.Event', new=self.get_mock_event):
             self.assertNotEqual(
                 self.client.build_msgpack_event_data(
                     type=None, traceback="", tree=""), None)
