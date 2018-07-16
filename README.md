@@ -1,5 +1,15 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- Unit Testing for Python Agent [#71](https://github.com/ESG-USA/Auklet-Agent-Python/pull/71) ([joshuahufford](https://github.com/joshuahufford))
+
+**Fixed bugs:**
+
+- Attempt to Stop Apps from Hanging/Crashing after too many Threads [#73](https://github.com/ESG-USA/Auklet-Agent-Python/pull/73) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.4.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.4.0)
 
 **Implemented enhancements:**
