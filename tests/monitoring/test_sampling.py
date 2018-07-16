@@ -67,9 +67,6 @@ class TestAukletSampler(unittest.TestCase):
 
     def test_handle_exc(self):
         def build_event_data(self, type="", value="", traceback=""):
-            _ = type
-            _ = value
-            _ = traceback
             return {"commitHash": "", "id": "", "tree":
                     {"lineNumber": 1,
                      "nSamples": 173756,

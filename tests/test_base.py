@@ -24,11 +24,25 @@ class TestClient(unittest.TestCase):
     @staticmethod
     def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
         return {"stackTrace":
-                    [{"functionName": "",
-                      "filePath": "",
-                      "lineNumber": 0,
-                      "locals":
-                          {"key": "value"}}]}
+                [{"functionName": "",
+                  "filePath": "",
+                  "lineNumber": 0,
+                  "locals":
+                    {"key": "value"}}]}
+
+    def traceback(self):
+        class Code:
+            co_code = "file_name"
+            co_name = ""
+        class Frame:
+            f_code = Code()
+            f_lineno = 0
+            f_locals = ""
+        class Traceback:
+            tb_lineno = 0
+            tb_frame = Frame()
+            tb_next = None
+        return Traceback
 
     def setUp(self):
         def _get_kafka_brokers(self):
@@ -250,27 +264,32 @@ class TestClient(unittest.TestCase):
 
             self.assertEqual(self.client.update_limits(), 60000)
 
-    def test_build_event_data(self):
+    def assertBuildEventData(self, function):
         with patch('auklet.base.Event', new=self.get_mock_event):
-            self.assertNotEqual(
-                self.client.build_event_data(
-                    type=None, traceback="", tree=""), None)
+            self.assertNotEqual(function, None)
 
-    def test_build_log_data(self):
-        self.assertNotEqual(
-            self.client.build_log_data(
-                msg='msg', data_type='data_type', level='level'), None)
+    def test_build_event_data(self):
+        self.monitoring_tree.cached_filenames["file_name"] = "file_name"
+        self.assertBuildEventData(
+            self.client.build_event_data(type=Exception, traceback=self.traceback(), tree=self.monitoring_tree))
 
     def test_build_msgpack_event_data(self):
-        with patch('auklet.base.Event', new=self.get_mock_event):
-            self.assertNotEqual(
-                self.client.build_msgpack_event_data(
-                    type=None, traceback="", tree=""), None)
+        self.monitoring_tree.cached_filenames["file_name"] = "file_name"
+        self.assertBuildEventData(
+            self.client.build_msgpack_event_data(type=Exception, traceback=self.traceback(), tree=self.monitoring_tree))
+
+    def assertBuildLogData(self, function):
+        self.assertNotEqual(function, None)
+
+    def test_build_log_data(self):
+        self.assertBuildLogData(
+            self.client.build_log_data(
+                msg='msg', data_type='data_type', level='level'))
 
     def test_build_msgpack_log_data(self):
-        self.assertNotEqual(
+        self.assertBuildLogData(
             self.client.build_msgpack_log_data(
-                msg='msg', data_type='data_type', level='level'), None)
+                msg='msg', data_type='data_type', level='level'))
 
     def test__produce(self):
         pass
