@@ -345,7 +345,7 @@ class TestRunnable(unittest.TestCase):
 
     def test___enter__(self):
         def start(self):
-            global running
+            global running  # __enter__() to start()
             running = True
 
         with patch('auklet.base.Runnable.start', new=start):
