@@ -7,6 +7,7 @@ ADD ./setup.py /setup.py
 ADD ./setup.cfg /setup.cfg
 ADD ./README.md /README.md
 ADD ./requirements.txt /requirements.txt
+ADD ./tests/requirements.txt /tests/requirements.txt
 
 RUN mkdir .auklet
 
