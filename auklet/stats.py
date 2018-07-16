@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from time import time
+import msgpack
+
 import pprint
 import inspect
 from uuid import uuid4
+from time import time
 
 try:
     import psutil
@@ -211,6 +213,10 @@ class MonitoringTree(object):
             "commitHash": self.commit_hash,
             "tree": dict(self.root_func)
         }
+
+    def build_msgpack_tree(self, app_id):
+        tree_data = self.build_tree(app_id)
+        return msgpack.packb(tree_data, use_bin_type=True)
 
 
 class SystemMetrics(object):

@@ -1,4 +1,3 @@
-import os
 import unittest
 from mock import patch
 
@@ -238,7 +237,6 @@ class TestMonitoringTree(unittest.TestCase):
         self.assertEqual("'Parent' object has no attribute 'children'",
                          str(error.exception))
 
-
     def test_update_hash(self):
         self.assertNotEqual(
             self.monitoring_tree.update_hash(new_stack=""), None)
@@ -263,6 +261,11 @@ class TestMonitoringTree(unittest.TestCase):
         self.monitoring_tree.root_func = self.get_root_function()
         self.assertNotEqual(
             self.monitoring_tree.build_tree(app_id="app_id"), None)
+
+    def test_build_msgpack_tree(self):
+        self.monitoring_tree.root_func = self.get_root_function()
+        self.assertNotEqual(
+            self.monitoring_tree.build_msgpack_tree(app_id="app_id"), None)
 
 
 class TestSystemMetrics(unittest.TestCase):

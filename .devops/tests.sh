@@ -12,7 +12,8 @@ if [ -d htmlcov ]; then
 fi
 
 coverage run --rcfile=".coveragerc" setup.py test
-coverage html -d htmlcov
+coverage report -m
+coverage html -d tmp/htmlcov
 coverage xml
 
 if [ -d .auklet ]; then

@@ -1,15 +1,16 @@
 import os
-import unittest
-from mock import patch, Mock
-from datetime import datetime
+import ast
 import json
+import msgpack
+import unittest
 
-from urllib.error import HTTPError
 
-from tests import data_factory
-
+from mock import patch
+from datetime import datetime
 from kafka.errors import KafkaError
 from ipify.exceptions import IpifyException
+
+from tests import data_factory
 
 from auklet.base import *
 from auklet.stats import MonitoringTree
@@ -17,7 +18,9 @@ from auklet.errors import AukletConfigurationError
 
 
 class TestClient(unittest.TestCase):
-    data = str(data_factory.MonitoringDataFactory())
+    data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
+    config = ast.literal_eval(str(data_factory.ConfigFactory()))
+
     def setUp(self):
         def _get_kafka_brokers(self):
             self.brokers = ["api-staging.auklet.io:9093"]
@@ -81,14 +84,14 @@ class TestClient(unittest.TestCase):
 
     def test_write_kafka_conf(self):
         filename = self.client.com_config_filename
-        self.client._write_kafka_conf(info=str(data_factory.ConfigFactory()))
+        self.client._write_kafka_conf(info=self.config)
         self.assertGreater(os.path.getsize(filename), 0)
         open(filename, "w").close()
 
     def test_load_kafka_conf(self):
         filename = self.client.com_config_filename
-        with open(filename, "w") as my_file:
-            my_file.write(str(data_factory.ConfigFactory()))
+        with open(filename, "w") as config:
+            config.write(json.dumps(self.config))
         self.assertTrue(self.client._load_kafka_conf())
         open(filename, "w").close()
 
@@ -129,10 +132,11 @@ class TestClient(unittest.TestCase):
             global test_produced_data
             test_produced_data = data
         with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, 'w') as offline:
-                offline.write(json.dumps({'stackTrace': 'data'}))
+            with open(self.client.offline_filename, "ab") as offline:
+                offline.write(msgpack.Packer().pack({'stackTrace': 'data'}))
             self.client._produce_from_local()
-        self.assertEqual(test_produced_data, {'stackTrace': 'data'})
+        self.assertEqual(test_produced_data, msgpack.packb(
+            {'stackTrace': 'data'}, use_bin_type=True))
 
         os.system("rm -R .auklet")
         self.assertFalse(self.client._produce_from_local())
@@ -256,6 +260,25 @@ class TestClient(unittest.TestCase):
             self.client.build_log_data(
                 msg='msg', data_type='data_type', level='level'), None)
 
+    def test_build_msgpack_event_data(self):
+        def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
+            return {"stackTrace":
+                    [{"functionName": "",
+                        "filePath": "",
+                        "lineNumber": 0,
+                        "locals":
+                        {"key": "value"}}]}
+
+        with patch('auklet.base.Event', new=get_mock_event):
+            self.assertNotEqual(
+                self.client.build_msgpack_event_data(
+                    type=None, traceback="", tree=""), None)
+
+    def test_build_msgpack_log_data(self):
+        self.assertNotEqual(
+            self.client.build_msgpack_log_data(
+                msg='msg', data_type='data_type', level='level'), None)
+
     def test__produce(self):
         pass
 
@@ -265,7 +288,7 @@ class TestClient(unittest.TestCase):
 
         def _produce(self, data, data_type="monitoring"):
             global test_produce_data
-            test_produce_data = str(data).replace("'", '"')
+            test_produce_data = data
 
         def _check_data_limit(self, data, data_current, offline=False):
             if not error or offline:
@@ -278,14 +301,17 @@ class TestClient(unittest.TestCase):
                        new=_check_data_limit):
                 self.client.producer = True
 
-                with open(self.client.offline_filename, 'w') as offline:
-                    offline.write(self.data)
+                with open(self.client.offline_filename, "wb") as offline:
+                    offline.write(
+                        msgpack.Packer().pack(self.data))
                 self.client.produce(self.data)
-                self.assertEqual(test_produce_data, self.data)
+                self.assertNotEqual(str(test_produce_data), None)
 
                 error = True
                 self.client.produce(self.data)
-                self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
+                self.assertGreater(
+                    os.path.getsize(self.client.offline_filename), 0)
+
 
 class TestRunnable(unittest.TestCase):
     def setUp(self):
