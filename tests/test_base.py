@@ -266,17 +266,19 @@ class TestClient(unittest.TestCase):
 
     def assertBuildEventData(self, function):
         with patch('auklet.base.Event', new=self.get_mock_event):
-            self.assertNotEqual(function, None)
+            self.monitoring_tree.cached_filenames["file_name"] = "file_name"
+            self.assertNotEqual(
+                function(
+                    type=Exception,
+                    traceback=self.traceback(),
+                    tree=self.monitoring_tree),
+                None)
 
     def test_build_event_data(self):
-        self.monitoring_tree.cached_filenames["file_name"] = "file_name"
-        self.assertBuildEventData(
-            self.client.build_event_data(type=Exception, traceback=self.traceback(), tree=self.monitoring_tree))
+        self.assertBuildEventData(self.client.build_event_data)
 
     def test_build_msgpack_event_data(self):
-        self.monitoring_tree.cached_filenames["file_name"] = "file_name"
-        self.assertBuildEventData(
-            self.client.build_msgpack_event_data(type=Exception, traceback=self.traceback(), tree=self.monitoring_tree))
+        self.assertBuildEventData(self.client.build_msgpack_event_data)
 
     def assertBuildLogData(self, function):
         self.assertNotEqual(function, None)
