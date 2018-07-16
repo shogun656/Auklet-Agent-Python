@@ -16,14 +16,8 @@ __all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
 
 
 class Function(object):
-    samples = 1
-    calls = 0
-    line_num = ''
-    func_name = ''
-    file_path = ''
-
-    children = []
-    parent = None
+    __slots__ = ['samples', 'calls', 'line_num', 'func_name', 'file_path',
+                 'children', 'parent']
 
     def __init__(self, line_num, func_name, file_path=None,
                  parent=None, calls=0):
@@ -55,10 +49,7 @@ class Function(object):
 
 
 class Event(object):
-    trace = []
-    exc_type = None
-    line_num = 0
-    abs_path = None
+    __slots__ = ['trace', 'exc_type', 'line_num', 'abs_path']
     filters = ["auklet"]
 
     def __init__(self, exc_type, tb, tree, abs_path):
@@ -103,11 +94,8 @@ class Event(object):
 
 
 class MonitoringTree(object):
-    commit_hash = None
-    root_func = None
-    public_ip = None
-    mac_hash = None
-    abs_path = None
+    __slots__ = ['commit_hash', 'root_func', 'public_ip', 'mac_hash',
+                 'abs_path']
     cached_filenames = {}
     filters = ["site-packages", "Python.framework", "auklet", "lib/python",
                "importlib"]
