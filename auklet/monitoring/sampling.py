@@ -31,6 +31,7 @@ class AukletSampler(Runnable):
 
     def __init__(self, client, tree, *args, **kwargs):
         sys.excepthook = self.handle_exc
+        setup_thread_excepthook()
         self.sampled_times = {}
         self.interval = INTERVAL
         self.client = client
@@ -38,7 +39,6 @@ class AukletSampler(Runnable):
         self.emission_rate = self.client.update_limits()
         self.start_time = int(time())
         self.prev_diff = 0
-        setup_thread_excepthook()
 
     def _profile(self, profiler, frame, event, arg):
         time_diff = int(time()) - self.start_time
@@ -60,6 +60,7 @@ class AukletSampler(Runnable):
         event = self.client.build_event_data(type, traceback,
                                              self.tree)
         self.client.produce(event, "event")
+        return sys.__excepthook__(type, value, traceback)
 
     def run(self, profiler):
         profile = functools.partial(self._profile, profiler)
