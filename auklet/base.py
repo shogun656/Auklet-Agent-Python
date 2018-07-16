@@ -157,7 +157,9 @@ def setup_thread_excepthook():
         def run_with_except_hook(*args2, **kwargs2):
             try:
                 run_original(*args2, **kwargs2)
-            except Exception:
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
                 sys.excepthook(*sys.exc_info())
 
         self.run = run_with_except_hook
