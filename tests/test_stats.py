@@ -80,9 +80,9 @@ class TestEvent(unittest.TestCase):
     def test_build_traceback(self):
         with patch('auklet.stats.Event._filter_frame') as frame:
             frame.return_value = True
-            # self.event._build_traceback(
-            #     trace=self.get_traceback(), tree=self.tree)
-            # self.assertEqual(self.event.trace, [])
+            self.event._build_traceback(
+                trace=self.get_traceback(), tree=self.tree)
+            self.assertEqual(self.event.trace, [])
 
         with patch('auklet.stats.Event._filter_frame') as frame:
             frame.return_value = False

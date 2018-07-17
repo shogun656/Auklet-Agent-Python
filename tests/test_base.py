@@ -252,19 +252,13 @@ class TestClient(unittest.TestCase):
             self.assertEqual(self.client.update_limits(), 60)
             none = False
 
-            cellular_data_limit = 1000
-            self.client.update_limits()
-            self.assertEqual(self.client.data_limit, 1000000000.0)
-            cellular_data_limit = None
-
-            storage_limit = 1000
-            self.client.update_limits()
-            self.assertEqual(self.client.offline_limit, 1000000000.0)
-            storage_limit = None
-
+            cellular_data_limit = storage_limit = 1000
             cell_plan_date = 10
             self.client.update_limits()
+            self.assertEqual(self.client.data_limit, 1000000000.0)
+            self.assertEqual(self.client.offline_limit, 1000000000.0)
             self.assertEqual(self.client.data_day, 10)
+            cellular_data_limit = storage_limit = None
             cell_plan_date = 1
 
             self.assertEqual(self.client.update_limits(), 60000)
