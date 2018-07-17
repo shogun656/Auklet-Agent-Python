@@ -30,5 +30,6 @@ class TestAukletLogging(unittest.TestCase):
     def test_critical(self):
         self.base_test_log(self.auklet_logging.critical)
 
+
 if __name__ == '__main__':
     unittest.main()

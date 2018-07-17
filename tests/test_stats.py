@@ -77,32 +77,22 @@ class TestEvent(unittest.TestCase):
             self.event._convert_locals_to_string(
                 local_vars={"key": True}), None)
 
+    def build_patcher(self, patch_location, return_value,
+                      expected=[{'functionName': None,
+                                 'filePath': '',
+                                 'lineNumber': 0,
+                                 'locals': {'key': 'value'}}]):
+
+        with patch(patch_location) as mock_patcher:
+            mock_patcher.return_value = return_value
+            self.event._build_traceback(
+                trace=self.get_traceback(), tree=self.tree)
+            self.assertEqual(expected, self.event.trace)
+
     def test_build_traceback(self):
-        with patch('auklet.stats.Event._filter_frame') as frame:
-            frame.return_value = True
-            self.event._build_traceback(
-                trace=self.get_traceback(), tree=self.tree)
-            self.assertEqual(self.event.trace, [])
-
-        with patch('auklet.stats.Event._filter_frame') as frame:
-            frame.return_value = False
-            self.event._build_traceback(
-                trace=self.get_traceback(), tree=self.tree)
-            self.assertEqual(self.event.trace,
-                             [{'functionName': None,
-                               'filePath': '',
-                               'lineNumber': 0,
-                               'locals': {'key': 'value'}}])
-
-        with patch('auklet.stats.MonitoringTree.get_filename') as filename:
-            filename.return_value = ""
-            self.event._build_traceback(
-                trace=self.get_traceback(), tree=self.tree)
-            self.assertEqual(self.event.trace,
-                             [{'functionName': None,
-                               'filePath': '',
-                               'lineNumber': 0,
-                               'locals': {'key': 'value'}}])
+        self.build_patcher('auklet.stats.Event._filter_frame', True, [])
+        self.build_patcher('auklet.stats.Event._filter_frame', False)
+        self.build_patcher('auklet.stats.MonitoringTree.get_filename', "")
 
 
 class TestMonitoringTree(unittest.TestCase):
