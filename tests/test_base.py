@@ -223,27 +223,32 @@ class TestClient(unittest.TestCase):
         self.assertEqual(self.client.data_current, 0)
         self.assertEqual(self.client.reset_data, False)
 
+    def _get_config(self):
+        if none:
+            return None
+        else:
+            return {"storage":
+                        {"storage_limit": storage_limit},
+                    "emission_period": 60,
+                    "features":
+                        {"performance_metrics": True,
+                         "user_metrics": False},
+                    "data":
+                        {"cellular_data_limit": cellular_data_limit,
+                         "normalized_cell_plan_date": cell_plan_date}}
+
     def test_update_limits(self):
+        global none                 # Global variables are needed due to mock
+        global cellular_data_limit  # functions not being able to accept
+        global storage_limit        # different variables in the new function
+        global cell_plan_date
+
         none = True
         cellular_data_limit = None
         storage_limit = None
         cell_plan_date = 1
 
-        def _get_config(self):
-            if none:
-                return None
-            else:
-                return {"storage":
-                        {"storage_limit": storage_limit},
-                        "emission_period": 60,
-                        "features":
-                        {"performance_metrics": True,
-                         "user_metrics": False},
-                        "data":
-                        {"cellular_data_limit": cellular_data_limit,
-                         "normalized_cell_plan_date": cell_plan_date}}
-
-        with patch('auklet.base.Client._get_config', new=_get_config):
+        with patch('auklet.base.Client._get_config', new=self._get_config):
             self.assertEqual(self.client.update_limits(), 60)
             none = False
 

@@ -31,7 +31,6 @@ class TestMonitoringBase(unittest.TestCase):
         self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
 
 
-
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
         self.function = Monitoring(
@@ -60,14 +59,16 @@ class TestMonitoring(unittest.TestCase):
             global test_sample_stack  # used to tell if stack was created
             test_sample_stack = stack
 
+        def build_assert_equal(self, expected):
+            self.assertEqual(
+                expected, str(test_sample_stack[0]).strip(')').split(", ")[1])
+
         with patch('auklet.stats.MonitoringTree.update_hash', new=update_hash):
             self.function.sample(frame=frame, event="event")
-            self.assertEqual(
-                str(test_sample_stack[0]).strip(')').split(", ")[1], "False")
+            build_assert_equal(self, "False")
             self.function.sample(frame=frame, event="call")
             self.assertTrue(test_sample_stack)  # global used here
-            self.assertEqual(
-                str(test_sample_stack[0]).strip(')').split(", ")[1], "True")
+            build_assert_equal(self, "True")
 
     def test_run(self):
         self.function.run()
