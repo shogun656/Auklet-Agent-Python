@@ -7,13 +7,10 @@ from __future__ import absolute_import, unicode_literals
 import sys
 import functools
 import threading
-from time import time
 from auklet.base import Runnable, setup_thread_excepthook, deferral
 
 
 __all__ = ['AukletSampler']
-
-INTERVAL = 1e-3  # 1ms
 
 
 class AukletSampler(Runnable):
@@ -29,41 +26,23 @@ class AukletSampler(Runnable):
     network_rate = 10  # 10 seconds
     hour = 3600  # 1 hour
 
-    def __init__(self, client, tree, *args, **kwargs):
+    def __init__(self, client, *args, **kwargs):
         sys.excepthook = self.handle_exc
         setup_thread_excepthook()
-        self.sampled_times = {}
-        self.interval = INTERVAL
         self.client = client
-        self.tree = tree
-        self.emission_rate = self.client.update_limits()
-        self.start_time = int(time())
-        self.prev_diff = 0
 
-    def _profile(self, profiler, frame, event, arg):
-        time_diff = int(time()) - self.start_time
-        profiler.sample(frame, event)
-        if self.prev_diff != 0 and self.prev_diff != time_diff:
-            if time_diff % (self.emission_rate / 1000) == 0:
-                self.client.produce(
-                    self.tree.build_tree(self.client.app_id))
-                self.tree.clear_root()
-            if time_diff % self.network_rate == 0:
-                self.client.update_network_metrics(self.network_rate)
-
-            if time_diff % self.hour == 0:
-                self.emission_rate = self.client.update_limits()
-                self.client.check_date()
-        self.prev_diff = time_diff
+    def _profile(self, profiler, queue, frame, event):
+        print('there')
+        queue.put((frame, event))
+        queue.join()
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, traceback,
-                                             self.tree)
+        event = self.client.build_event_data(type, traceback)
         self.client.produce(event, "event")
         return sys.__excepthook__(type, value, traceback)
 
-    def run(self, profiler):
-        profile = functools.partial(self._profile, profiler)
+    def run(self, profiler, queue):
+        profile = functools.partial(self._profile, profiler, queue)
         with deferral() as defer:
             sys.setprofile(profile)
             defer(sys.setprofile, None)

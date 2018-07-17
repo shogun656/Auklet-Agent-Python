@@ -6,10 +6,17 @@ from __future__ import absolute_import
 
 import time
 
-from auklet.base import Runnable, frame_stack, Client, get_mac
-from auklet.stats import MonitoringTree
+from auklet.base import Runnable, frame_stack, get_mac
+from auklet.monitoring.processing import ProcessingThread
 from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring.logging import AukletLogging
+
+try:
+    # For Python 3.0 and later
+    from queue import Queue
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from Queue import Queue
 
 
 __all__ = ['MonitoringBase', 'Monitoring']
@@ -40,16 +47,16 @@ class Monitoring(MonitoringBase, AukletLogging):
     #: The frames sampler.  Usually it is an instance of :class:`profiling.
     #: sampling.samplers.Sampler`
     sampler = None
-    tree = None
     client = None
     monitor = True
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", monitoring=True):
+        self.queue = Queue(maxsize=0)
         self.mac_hash = get_mac()
-        self.client = Client(apikey, app_id, base_url, self.mac_hash)
-        self.tree = MonitoringTree(self.mac_hash)
-        sampler = AukletSampler(self.client, self.tree)
+        self.client = ProcessingThread(
+            args=(apikey, app_id, base_url, self.mac_hash, self.queue))
+        sampler = AukletSampler(self.client)
         super(Monitoring, self).__init__()
         self.sampler = sampler
         self.monitor = monitoring
@@ -57,6 +64,7 @@ class Monitoring(MonitoringBase, AukletLogging):
     def start(self):
         if self.monitor:
             super(Monitoring, self).start()
+            self.client.run()
 
     def sample(self, frame, event):
         """Samples the given frame."""
@@ -68,10 +76,10 @@ class Monitoring(MonitoringBase, AukletLogging):
         while frame:
             stack.append((frame, False))
             frame = frame.f_back
-        self.tree.update_hash(stack)
+        # self.tree.update_hash(stack)
 
     def run(self):
-        self.sampler.start(self)
+        self.sampler.start(self, queue=self.queue)
         yield
         self.sampler.stop()
 

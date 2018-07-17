@@ -197,11 +197,11 @@ def deferral():
            # do something.
     """
     deferred = []
-    defer = lambda func, *args, **kwargs: deferred.append(
-        (func, args, kwargs))
+    defer = lambda func, queue, *args, **kwargs: deferred.append(
+        (func, queue, args, kwargs))
     try:
         yield defer
     finally:
         while deferred:
-            func, args, kwargs = deferred.pop()
-            func(*args, **kwargs)
+            func, queue, args, kwargs = deferred.pop()
+            func(queue, *args, **kwargs)

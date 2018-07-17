@@ -3,12 +3,13 @@ import ssl
 import json
 import zipfile
 
+from time import time
 from uuid import uuid4
 from threading import Thread
 from datetime import datetime
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from auklet.stats import Event, SystemMetrics
+from auklet.stats import Event, SystemMetrics, MonitoringTree
 from auklet.errors import AukletConfigurationError
 from auklet.base import get_commit_hash, get_abs_path, get_device_ip, u, b
 
@@ -21,6 +22,7 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError, URLError
 
 
+INTERVAL = 1e-3  # 1ms
 MB_TO_B = 1e6
 S_TO_MS = 1000
 
@@ -34,7 +36,6 @@ class ProcessingThread(Thread):
     limits_filename = ".auklet/limits"
     usage_filename = ".auklet/usage"
     com_config_filename = ".auklet/communication"
-    thread_comm_filename = ".auklet/thread_comm"
     abs_path = None
 
     reset_data = False
@@ -44,25 +45,33 @@ class ProcessingThread(Thread):
     offline_limit = None
     offline_current = 0
 
+    emission_rate = 60  # 10 seconds
+    network_rate = 10  # 10 seconds
+    hour = 3600  # 1 hour
+
     system_metrics = None
 
-    def __init__(self, apikey=None, app_id=None,
-                 base_url="https://api.auklet.io/",
-                 mac_hash=None, *args, **kwargs):
-        self.apikey = apikey
-        self.app_id = app_id
-        self.base_url = base_url
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None):
+        super(ProcessingThread, self).__init__(group=group, target=target,
+                                               name=name)
+        self.apikey = args[0]
+        self.app_id = args[1]
+        self.base_url = args[2]
         self.send_enabled = True
         self.producer = None
         self._get_kafka_brokers()
-        self.mac_hash = mac_hash
+        self.mac_hash = args[3]
+        self.queue = args[4]
         self._load_limits()
         self._create_file(self.offline_filename)
         self._create_file(self.limits_filename)
         self._create_file(self.usage_filename)
         self._create_file(self.com_config_filename)
-        self._create_file(self.thread_comm_filename)
+        self.tree = MonitoringTree(self.mac_hash)
         self.commit_hash = get_commit_hash()
+        self.start_time = int(time())
+        self.prev_diff = 0
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
         if self._get_kafka_certs():
@@ -87,10 +96,30 @@ class ProcessingThread(Thread):
 
     def run(self):
         while True:
-            lines = []
-            with open(self.thread_comm_filename, "r+") as comm_file:
-                lines = [line for line in comm_file]
-
+            print('here')
+            print(self.queue.get())
+            self.queue.task_done()
+            # increment_call = False
+            # if event == "call":
+            #     increment_call = True
+            # stack = [(frame, increment_call)]
+            # frame = frame.f_back
+            # while frame:
+            #     stack.append((frame, False))
+            #     frame = frame.f_back
+            # time_diff = int(time()) - self.start_time
+            # if self.prev_diff != 0 and self.prev_diff != time_diff:
+            #     if time_diff % (self.emission_rate / 1000) == 0:
+            #         self.produce(
+            #             self.tree.build_tree(self.app_id))
+            #         self.tree.clear_root()
+            #     if time_diff % self.network_rate == 0:
+            #         self.update_network_metrics(self.network_rate)
+            #
+            #     if time_diff % self.hour == 0:
+            #         self.emission_rate = self.update_limits()
+            #         self.check_date()
+            # self.prev_diff = time_diff
 
     def _create_file(self, filename):
         open(filename, "a").close()
@@ -299,8 +328,8 @@ class ProcessingThread(Thread):
         # return emission period in ms
         return config['emission_period'] * S_TO_MS
 
-    def build_event_data(self, type, traceback, tree):
-        event = Event(type, traceback, tree, self.abs_path)
+    def build_event_data(self, type, traceback):
+        event = Event(type, traceback, self.tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
