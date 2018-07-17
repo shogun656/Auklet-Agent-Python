@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- 2.7.9+ Compatibility Changes [#77](https://github.com/ESG-USA/Auklet-Agent-Python/pull/77) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.5.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.5.0)
 
 **Implemented enhancements:**
