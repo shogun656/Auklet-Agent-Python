@@ -1,10 +1,17 @@
+import os
+import time
+import psutil
 import unittest
 from mock import patch
 
 from tests import data_factory
-
 from auklet.stats import Function, Event, MonitoringTree, SystemMetrics
 
+# class TestImport(unittest.TestCase):
+#     def test_import_error(self):
+#         # os.system("rm -R .eggs")
+#         os.system("pip3 uninstall psutil -y")
+#         os.system("pip3 install psutil==5.4.5")
 
 class TestFunction(unittest.TestCase):
     def get_test_child(self):
@@ -56,7 +63,7 @@ class TestEvent(unittest.TestCase):
         self.patcher.start()
         self.event = Event(
             exc_type=str, tb=self.get_traceback(),
-            tree=self.tree, abs_path="abs_path")
+            tree=self.tree, abs_path="/")
 
     def tearDown(self):
         self.patcher.stop()
@@ -92,7 +99,7 @@ class TestEvent(unittest.TestCase):
     def test_build_traceback(self):
         self.build_patcher('auklet.stats.Event._filter_frame', True, [])
         self.build_patcher('auklet.stats.Event._filter_frame', False)
-        self.build_patcher('auklet.stats.MonitoringTree.get_filename', "")
+        self.build_patcher('auklet.stats.MonitoringTree.get_filename', "/")
 
 
 class TestMonitoringTree(unittest.TestCase):

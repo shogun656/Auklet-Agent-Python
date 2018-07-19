@@ -147,3 +147,30 @@ class SingleNestedStackTraceFactory(factory.Factory):
     data.append(1)
     data.append(1)
     data.append(1)
+
+
+class LimitsGenerator(object):
+    def __init__(self, storage_limit="null", emission_period=60,
+                 performance_metrics="true", user_metrics="false",
+                 cellular_data_limit="null", normalized_cell_plan_date=1):
+        self.storage_limit = str(storage_limit)
+        self.emission_period = str(emission_period)
+        self.performance_metrics = str(performance_metrics)
+        self.user_metrics = str(user_metrics)
+        self.cellular_data_limit = str(cellular_data_limit)
+        self.normalized_cell_plan_data = str(normalized_cell_plan_date)
+
+    def __str__(self):
+        return """{"storage": {"storage_limit": """ + \
+               self.storage_limit + \
+               """}, "emission_period": """ + \
+               self.emission_period + \
+               """, "features": {"performance_metrics": """ + \
+               self.performance_metrics + \
+               """, "user_metrics": """ + \
+               self.user_metrics + \
+               """}, "data": {"cellular_data_limit": """ + \
+               self.cellular_data_limit + \
+               """, "normalized_cell_plan_date": """ + \
+               self.normalized_cell_plan_data + \
+               """}}"""

@@ -1,4 +1,3 @@
-import string
 import unittest
 from mock import patch
 
@@ -30,6 +29,11 @@ class TestMonitoringBase(unittest.TestCase):
             self.monitoring_base._wall_time_started = 0
         self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
 
+        with patch('auklet.monitoring.max') as mock_max:
+            mock_max.side_effect = AttributeError
+            self.assertEqual(
+                str(self.monitoring_base.result()), "(0, 0.0, 0.0)")
+
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
@@ -40,42 +44,42 @@ class TestMonitoring(unittest.TestCase):
             monitoring=True)
 
     def test_start(self):
-        self.assertTrue(self.function.monitor)
         self.function.monitor = False
-        self.assertFalse(self.function.monitor)
+        self.assertEqual(None, self.function.start())
         self.function.monitor = True
+        self.assertEqual(None, self.function.start())
+
+    def build_assert_equal(self, expected):
+        self.assertEqual(
+            expected, str(test_sample_stack[0]).strip(')').split(", ")[-1])
 
     def test_sample(self):
         class CoCode:
             co_code = None
             co_firstlineno = None
             co_name = None
-        class Frame:
+        class FBack:
             f_back = None
             f_code = CoCode()
-        frame = Frame()
+        class Frame:
+            f_back = FBack()
+            f_code = CoCode()
 
         def update_hash(self, stack):
             global test_sample_stack  # used to tell if stack was created
             test_sample_stack = stack
 
-        def build_assert_equal(self, expected):
-            self.assertEqual(
-                expected, str(test_sample_stack[0]).strip(')').split(", ")[1])
-
         with patch('auklet.stats.MonitoringTree.update_hash', new=update_hash):
-            self.function.sample(frame=frame, event="event")
-            build_assert_equal(self, "False")
-            self.function.sample(frame=frame, event="call")
+            self.function.sample(frame=Frame(), event="event")
+            self.build_assert_equal("False")
+            self.function.sample(frame=Frame(), event="call")
             self.assertTrue(test_sample_stack)  # global used here
-            build_assert_equal(self, "True")
+            self.build_assert_equal("True")
+            self.function.sample(frame=Frame, event="call")
+            self.build_assert_equal("True")
 
     def test_run(self):
-        self.function.run()
-        self.assertEqual(self.function.sampler.start(self.function), None)
-        self.function.sampler.stop()
-        self.function.sampler.start(self.function)
-        self.assertEqual(self.function.sampler.stop(), None)
+        self.assert_()
 
     def test_log(self):
         self.assertEqual(self.function.log(msg="msg", data_type="str"), None)

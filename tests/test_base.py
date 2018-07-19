@@ -1,14 +1,17 @@
+import io
 import os
 import ast
 import json
 import msgpack
 import unittest
-
+import zipfile
 
 from mock import patch
 from datetime import datetime
 from kafka.errors import KafkaError
 from ipify.exceptions import IpifyException
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 from tests import data_factory
 
@@ -58,23 +61,21 @@ class TestClient(unittest.TestCase):
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.monitoring_tree = MonitoringTree()
-
-    def tearDown(self):
         self.patcher.stop()
+    #
+    # def tearDown(self):
+    #     self.patcher.stop()
 
     def test___init__(self):
-        def _get_kafka_certs(self):
-            return True
+        with patch('auklet.base.Client._get_kafka_brokers') as _get_kafka_brokers:
+            _get_kafka_brokers.return_value = True
+            with patch('auklet.base.Client._get_kafka_certs') as _get_kafka_certs:
+                _get_kafka_certs.return_value = True
+                with patch('auklet.base') as KafkaProducer:
+                    KafkaProducer.side_effect = KafkaError
+                    self.assertEqual(None, self.client.__init__())
 
-        class KafkaProducer(object):
-            global test__init__producer  # used to tell a producer exists
-            test__init__producer = True
 
-        with patch('auklet.base.Client._get_kafka_certs',
-                   new=_get_kafka_certs):
-            with patch('kafka.KafkaProducer', new=KafkaProducer):
-                self.client.__init__()
-                self.assertTrue(test__init__producer)  # global used here
 
     def test_create_file(self):
         files = ['.auklet/local.txt', '.auklet/limits',
@@ -99,11 +100,43 @@ class TestClient(unittest.TestCase):
         url = "http://google.com/"
         self.assertNotEqual(self.client._open_auklet_url(url), None)
 
+        with patch('auklet.base.urlopen') as url_open:
+            url_open.side_effect = HTTPError(
+                url=None, code=None, msg=None, hdrs=None, fp=None)
+            self.assertRaises(HTTPError,
+                              lambda: self.client._open_auklet_url(url))
+
     def test_get_config(self):
-        pass
+        with patch('auklet.base.Client._open_auklet_url') as _open_auklet_url:
+            with patch('auklet.base.u') as u:
+                u.return_value = """{"config": "data"}"""
+                _open_auklet_url.return_value = urlopen(
+                    "http://api-staging.auklet.io")
+                self.assertEqual("data", self.client._get_config())
 
     def test_get_kafka_brokers(self):
-        pass
+        filename = self.client.com_config_filename
+        with open(filename, "w") as config:
+            config.write(json.dumps(self.config))
+
+        with patch('auklet.base.Client._open_auklet_url') as _open_auklet_url:
+            _open_auklet_url.return_value = None
+            self.assertTrue(self.client._get_kafka_brokers())
+            open(filename, "w").close()
+
+            with patch('auklet.base.u') as u:
+                u.return_value = str(data_factory.ConfigFactory())
+                _open_auklet_url.return_value = urlopen(
+                    "http://api-staging.auklet.io")
+                self.client._get_kafka_brokers()
+                self.assertEqual(
+                    ['brokers-staging.feeds.auklet.io:9093'],
+                    self.client.brokers)
+                self.assertEqual(
+                    {'monitoring': 'profiler',
+                     'event': 'events',
+                     'log': 'logs'},
+                    self.client.producer_types)
 
     def test_write_kafka_conf(self):
         filename = self.client.com_config_filename
@@ -118,18 +151,71 @@ class TestClient(unittest.TestCase):
         self.assertTrue(self.client._load_kafka_conf())
         open(filename, "w").close()
 
+    def build_load_limits_test(self, expected, actual):
+        self.assertEqual(expected, actual)
+
+    def write_load_limits_test(self, data):
+        filename = self.client.limits_filename
+        with open(filename, "w") as limits:
+            limits.write(str(data))
+
     def test_load_limits(self):
-        loaded = True
-        if self.client._load_limits():
-            loaded = False
-        self.assertTrue(loaded)
+        default_data = data_factory.LimitsGenerator()
+        self.write_load_limits_test(default_data)
+        self.build_load_limits_test(1, self.client.data_day)
+
+        self.assertEqual(None, self.client.data_limit)
+        self.assertEqual(None, self.client.offline_limit)
+
+        data = data_factory.LimitsGenerator(cellular_data_limit=10)
+        self.write_load_limits_test(data)
+        self.client._load_limits()
+        self.build_load_limits_test(10000000.0, self.client.data_limit)
+
+        data = data_factory.LimitsGenerator(
+            cellular_data_limit="null", storage_limit=10)
+        self.write_load_limits_test(data)
+        self.client._load_limits()
+        self.build_load_limits_test(10000000.0, self.client.offline_limit)
+
+        with open(self.client.limits_filename, "w") as limits:
+            limits.write(str(default_data))
+
+        with patch('auklet.base.open') as _open:
+            _open.side_effect = IOError
+            self.assertEqual(None, self.client._load_limits())
+
+    class _url_open:
+        def __init__(self, url):
+            pass
+        def read(self):
+            pass
+
+    class _zip_file:
+        class file:
+            filename = "file"
+
+        def open(self):
+            return open("file", "rb")
+
+        def read(self):
+            pass
+
+        read = read
+        filelist = [file]
 
     def test_get_kafka_certs(self):
-        with patch('auklet.base.Client._build_url') as mock_zip_file:
-            with patch('zipfile.ZipFile') as mock_url:
-                mock_url.file_list.return_value = ""
-                mock_zip_file.return_value = "http://api-staging.auklet.io"
-                self.assertTrue(self.client._get_kafka_certs())
+        with open("file", "w") as my_file:
+            my_file.write("test")
+        with patch('auklet.base.urlopen') as mock_urlopen:
+            mock_urlopen.side_effect = self._url_open
+            with patch('zipfile.ZipFile') as zip_file:
+                zip_file.return_value = self._zip_file
+                self.client._get_kafka_certs()
+            with open(".auklet/file.pem", "r") as pem_file:
+                self.assertEqual(pem_file.read(), "test")
+            os.system("rm file")
+            os.system("rm .auklet/file.pem")
 
     def test_write_to_local(self):
         self.client._write_to_local(self.data)
@@ -326,6 +412,11 @@ class TestClient(unittest.TestCase):
                 self.assertGreater(
                     os.path.getsize(self.client.offline_filename), 0)
 
+                with patch('auklet.base.Client._check_data_limit') as _check_data_limit:
+                    _check_data_limit.return_value = False
+                    self.client.produce({"key", "value"})
+                    self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
+
 
 class TestRunnable(unittest.TestCase):
     def setUp(self):
@@ -341,6 +432,8 @@ class TestRunnable(unittest.TestCase):
         self.runnable._running = True
         self.assertRaises(RuntimeError, lambda: self.runnable.start())
         self.runnable._running = None
+        self.runnable._running = True
+        self.runnable.start()
 
         def next(self):
             raise StopIteration
