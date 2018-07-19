@@ -6,8 +6,8 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         machine: true
-        steps:
 
+        steps:
             ##
             # SETUP
             ##
@@ -42,12 +42,27 @@ jobs:
                   VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
                   sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
             - run:
+                name: Install Python 3.6.3
+                command: |
+                  pyenv install 3.6.3
+                  pyenv global 3.6.3
+            - run:
+                name: Show Python3 Version
+                command: |
+                  python3 --version
+            - run:
                 name: Upgrade Docker Compose
                 command: |
                   set -x
                   curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > ./docker-compose
                   chmod +x ./docker-compose
                   sudo mv ./docker-compose /usr/local/bin
+            - run:
+                name: Show Docker Versions
+                command: |
+                  set -x
+                  docker --version
+                  docker-compose --version
 
             ##
             # RESTORE CACHES
@@ -62,28 +77,8 @@ jobs:
                   mkdir -p ~/.cache/pip ~/.whitesource-pip
 
             ##
-            # DOCKER
-            ##
-            - run:
-                name: Show Docker Versions
-                command: |
-                  set -x
-                  docker --version
-                  docker-compose --version
-            - run:
-                name: Build Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose build
-
-            ##
             # TESTS
             ##
-            - run:
-                name: Run Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose run benchmark bash /startBenchmark.sh
             - run:
                 name: Run Whitesource
                 command: |
@@ -91,6 +86,31 @@ jobs:
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     bash .devops/whitesource.sh
                   fi
+            - run:
+                name: Run Unit Tests
+                command: |
+                  if [[ -f ~/.localCircleBuild ]]; then
+                    CIRCLE_LOCAL_BUILD=true
+                  else
+                    CIRCLE_LOCAL_BUILD=false
+                  fi
+                  bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
+            - store_artifacts:
+                path: /htmlcov
+
+            ##
+            # DOCKER
+            ##
+            - run:
+                name: Build Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose build
+            - run:
+                name: Run Docker Benchmark Tests
+                command: |
+                  set -x
+                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
 
             ##
             # SAVE CACHES

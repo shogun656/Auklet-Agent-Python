@@ -48,7 +48,7 @@ class Monitoring(MonitoringBase, AukletLogging):
     monitor = True
 
     def __init__(self, apikey=None, app_id=None,
-                 base_url="https://api.auklet.io/", monitoring=False,
+                 base_url="https://api.auklet.io/", monitoring=True,
                  kafka=False):
         self.mac_hash = get_mac()
         self.client = Client(apikey, app_id, base_url, self.mac_hash)

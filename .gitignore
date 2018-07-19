@@ -201,3 +201,10 @@ tmp/*
 .auklet/*
 auklet/example_app.py
 .env
+
+# Testing Scripts
+pi_digits.py
+
+# Unit Testing Environment
+.coverage
+coverage.xml

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from mock import patch
 import paho.mqtt.client as mqtt
 
