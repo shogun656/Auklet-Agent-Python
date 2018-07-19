@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 import abc
 import io
+import logging
 import ssl
 import json
 import zipfile
@@ -83,6 +84,9 @@ class Profiler(ABC):
             f.write(mlz.open(temp_file.filename).read())
         return True
 
+    def _serialize(self, msg):
+        return json.dumps(msg)
+
     @abc.abstractmethod
     def _read_from_conf(self, data):
         pass
@@ -147,7 +151,7 @@ class KafkaClient(Profiler):
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(json.dumps(m)),
+                    "value_serializer": lambda m: b(self._serialize(m)),
                     "ssl_context": ctx
                 })
             except (KafkaError, Exception):
@@ -185,7 +189,7 @@ class MQTTClient(Profiler):
 
     def on_disconnect(self, userdata, rc):
         if rc != 0:
-            print("Unexpected disconnection.")
+            logging.debug("Unexpected disconnection from MQTT")
 
     def create_producer(self):
         if self._get_certs():
@@ -202,4 +206,4 @@ class MQTTClient(Profiler):
 
     def produce(self, data, data_type="monitoring"):
         self.producer.publish(self.producer_types[data_type],
-                              payload=json.dumps(data))
+                              payload=self._serialize(data))
