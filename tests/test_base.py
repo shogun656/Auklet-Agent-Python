@@ -432,26 +432,21 @@ class TestRunnable(unittest.TestCase):
         self.runnable._running = True
         self.assertRaises(RuntimeError, lambda: self.runnable.start())
         self.runnable._running = None
-        self.runnable._running = True
-        self.runnable.start()
 
-        def next(self):
-            raise StopIteration
+        with patch('auklet.base.next') as next:
+            next.return_value = True
+            self.assertRaises(TypeError, lambda: self.runnable.start())
 
-        with patch('auklet.base.next', new=next):
+            next.side_effect = StopIteration
             self.assertRaises(Exception, lambda: self.runnable.start())
-
-        self.runnable._running = None
 
     def test_stop(self):
         self.runnable._running = None
         self.assertRaises(RuntimeError, lambda: self.runnable.stop())
-
-        def next(self):
-            raise StopIteration
-
         self.runnable._running = True
-        with patch('auklet.base.next', new=next):
+
+        with patch('auklet.base.next') as next:
+            next.side_effect = Exception
             self.runnable.stop()
 
     def test_run(self):

@@ -120,7 +120,6 @@ class Client(object):
         res = self._open_auklet_url(
             self._build_url(
                 "private/devices/{}/app_config/".format(self.app_id)))
-        print(res)
         if res is not None:
             return json.loads(u(res.read()))['config']
 
@@ -378,7 +377,6 @@ class Runnable(object):
         self._running = self.run(*args, **kwargs)
         try:
             yielded = next(self._running)
-            print(yielded)
         except StopIteration:
             raise TypeError('run() must yield just one time')
         if yielded is not None:
@@ -398,6 +396,7 @@ class Runnable(object):
             # expected.
             pass
         else:
+            print("ELSE")
             raise TypeError('run() must yield just one time')
 
     def run(self, *args, **kwargs):
