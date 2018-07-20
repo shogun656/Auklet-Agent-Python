@@ -4,19 +4,23 @@
 # in this repository/package.
 from __future__ import absolute_import
 
+import sys
 import time
+import signal
+from six import iteritems
+from six.moves import _thread
 
-from auklet.base import Runnable, frame_stack, get_mac
+from auklet.base import Runnable, frame_stack, get_mac, setup_thread_excepthook
 from auklet.monitoring.processing import ProcessingThread
-from auklet.monitoring.sampling import AukletSampler
+# from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring.logging import AukletLogging
 
 try:
     # For Python 3.0 and later
-    from queue import Queue
+    from multiprocessing import Queue
 except ImportError:
     # Fall back to Python 2's urllib2
-    from Queue import Queue
+    from multiprocessing import Queue
 
 
 __all__ = ['MonitoringBase', 'Monitoring']
@@ -47,42 +51,48 @@ class Monitoring(MonitoringBase, AukletLogging):
     #: The frames sampler.  Usually it is an instance of :class:`profiling.
     #: sampling.samplers.Sampler`
     sampler = None
-    client = None
     monitor = True
+    samples_taken = 0
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", monitoring=True):
+        sys.excepthook = self.handle_exc
+        setup_thread_excepthook()
         self.queue = Queue(maxsize=0)
         self.mac_hash = get_mac()
-        self.client = ProcessingThread(
-            args=(apikey, app_id, base_url, self.mac_hash, self.queue))
-        sampler = AukletSampler(self.client)
+        self.client = ProcessingThread(apikey, app_id, base_url,
+                                       self.mac_hash)
+        # sampler = AukletSampler(self.processing)
         super(Monitoring, self).__init__()
-        self.sampler = sampler
+        # self.sampler = sampler
         self.monitor = monitoring
 
+        self.interval = 0.01
+        timer, sig = signal.ITIMER_REAL, signal.SIGALRM
+        signal.signal(sig, self.sample)
+        signal.siginterrupt(sig, False)
+
     def start(self):
-        if self.monitor:
-            super(Monitoring, self).start()
-            self.client.run()
+        signal.setitimer(signal.ITIMER_PROF, self.interval, self.interval)
 
-    def sample(self, frame, event):
+    def sample(self, sig, current_frame):
         """Samples the given frame."""
-        increment_call = False
-        if event == "call":
-            increment_call = True
-        stack = [(frame, increment_call)]
-        frame = frame.f_back
-        while frame:
-            stack.append((frame, False))
-            frame = frame.f_back
-        # self.tree.update_hash(stack)
+        current_tid = _thread.get_ident()
+        for tid, frame in iteritems(sys._current_frames()):
+            if tid == current_tid:
+                frame = current_frame
+            frames = []
+            while frame is not None:
+                code = frame.f_code
+                frames.append((code.co_filename, frame.f_lineno, code.co_name))
+                frame = frame.f_back
+        self.samples_taken += 1
 
-    def run(self):
-        self.sampler.start(self, queue=self.queue)
-        yield
-        self.sampler.stop()
+    def handle_exc(self, type, value, traceback):
+        event = self.client.build_event_data(type, traceback)
+        self.client.produce(event, "event")
+        return sys.__excepthook__(type, value, traceback)
 
-    def log(self, msg, data_type, level="INFO"):
-        self.client.produce(
-            self.client.build_log_data(msg, data_type, level), "event")
+    # def log(self, msg, data_type, level="INFO"):
+    #     self.client.produce(
+    #         self.client.build_log_data(msg, data_type, level), "event")

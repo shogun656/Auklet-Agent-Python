@@ -5,7 +5,6 @@ import zipfile
 
 from time import time
 from uuid import uuid4
-from threading import Thread
 from datetime import datetime
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
@@ -27,7 +26,7 @@ MB_TO_B = 1e6
 S_TO_MS = 1000
 
 
-class ProcessingThread(Thread):
+class ProcessingThread(object):
     producer_types = None
     brokers = None
     commit_hash = None
@@ -51,18 +50,14 @@ class ProcessingThread(Thread):
 
     system_metrics = None
 
-    def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs=None):
-        super(ProcessingThread, self).__init__(group=group, target=target,
-                                               name=name)
-        self.apikey = args[0]
-        self.app_id = args[1]
-        self.base_url = args[2]
+    def __init__(self, apikey, app_id, base_url, mac_hash):
+        self.apikey = apikey
+        self.app_id = app_id
+        self.base_url = base_url
         self.send_enabled = True
         self.producer = None
         self._get_kafka_brokers()
-        self.mac_hash = args[3]
-        self.queue = args[4]
+        self.mac_hash = mac_hash
         self._load_limits()
         self._create_file(self.offline_filename)
         self._create_file(self.limits_filename)
@@ -89,16 +84,16 @@ class ProcessingThread(Thread):
             except (KafkaError, Exception):
                 # TODO log off to kafka if kafka fails to connect
                 pass
-        # If all non daemon threads end we don't want to cause the program to
-        # hang permanently
-        self.daemon = True
-        Thread.__init__(self)
 
     def run(self):
         while True:
-            print('here')
+            print('there')
+            print(self.queue)
             print(self.queue.get())
-            self.queue.task_done()
+            # res = self.queue.get(timeout=1)
+            # print("here: ", res)
+            # self.queue.get_nowait()
+            # self.queue.task_done()
             # increment_call = False
             # if event == "call":
             #     increment_call = True

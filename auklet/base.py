@@ -5,22 +5,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
-import io
 import sys
-import ssl
 import uuid
-import json
-import zipfile
 import hashlib
 
-from uuid import uuid4
-from datetime import datetime
 from contextlib import contextmanager
 from collections import deque
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
-from auklet.stats import Event, SystemMetrics
-from auklet.errors import AukletConfigurationError
 from ipify import get_ip
 from ipify.exceptions import IpifyException
 
@@ -197,11 +187,11 @@ def deferral():
            # do something.
     """
     deferred = []
-    defer = lambda func, queue, *args, **kwargs: deferred.append(
-        (func, queue, args, kwargs))
+    defer = lambda func, *args, **kwargs: deferred.append(
+        (func, args, kwargs))
     try:
         yield defer
     finally:
         while deferred:
-            func, queue, args, kwargs = deferred.pop()
-            func(queue, *args, **kwargs)
+            func, args, kwargs = deferred.pop()
+            func(*args, **kwargs)
