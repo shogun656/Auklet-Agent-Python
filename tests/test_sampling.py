@@ -8,30 +8,37 @@ from auklet.base import Client
 
 
 class TestAukletSampler(unittest.TestCase):
+    def _get_kafka_brokers(self):
+        self.brokers = ["api-staging.auklet.io:9093"]
+        self.producer_types = {
+            "monitoring": "profiling",
+            "event": "events",
+            "log": "logging"
+        }
+
+    def _open_auklet_url(self, url):
+        _ = url
+
     def setUp(self):
-        def _get_kafka_brokers(self):
-            self.brokers = ["api-staging.auklet.io:9093"]
-            self.producer_types = {
-                "monitoring": "profiling",
-                "event": "events",
-                "log": "logging"
-            }
-        def _open_auklet_url(self, url):
-            _ = url
         self.patcher = patch(
-            'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+            'auklet.base.Client._get_kafka_brokers', new=self._get_kafka_brokers)
         self.patcher2 = patch(
-            'auklet.base.Client._open_auklet_url', new=_open_auklet_url)
+            'auklet.base.Client._open_auklet_url', new=self._open_auklet_url)
+
         self.patcher.start()
         self.patcher2.start()
+
         self.monitoring = Monitoring(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+
         self.monitoring_tree = MonitoringTree()
         self.monitoring_tree.root_func = \
             {"key": self.monitoring_tree.get_filename}
+
         self.tree = self.monitoring_tree
+
         self.auklet_sampler = AukletSampler(
             client=self.client, tree=self.tree)
         self.auklet_sampler.emission_rate = 1000
