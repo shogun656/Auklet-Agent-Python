@@ -13,7 +13,7 @@ CIRCLE_LOCAL_BUILD=$1
 
 python setup.py install
 
-pip install tox tox-pyenv
+pip install coverage tox tox-pyenv
 pip install --upgrade setuptools
 pyenv install 3.6.3
 pyenv local 2.7.12 3.6.3
