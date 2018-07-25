@@ -14,9 +14,13 @@ CIRCLE_LOCAL_BUILD=$1
 python setup.py install
 
 pip install coverage tox tox-pyenv
-pip install --upgrade setuptools
-pyenv install 3.6.3
-pyenv local 2.7.12 3.6.3
+
+pyenv_check="$(pyenv --version 2>&1)"
+if [ "$pyenv_check" ]; then
+  pip install --upgrade setuptools
+  pyenv install 3.6.3
+  pyenv local 2.7.12 3.6.3
+else
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
