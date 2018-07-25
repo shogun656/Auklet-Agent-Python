@@ -35,7 +35,7 @@ except ImportError:
 
 __all__ = ['Client', 'Runnable', 'frame_stack', 'deferral', 'get_commit_hash',
            'get_mac', 'get_device_ip', 'setup_thread_excepthook',
-           'get_abs_path']
+           'get_abs_path', 'b', 'u']
 
 MB_TO_B = 1e6
 S_TO_MS = 1000
