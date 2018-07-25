@@ -25,13 +25,10 @@ class TestAukletSampler(unittest.TestCase):
             'auklet.base.Client._open_auklet_url', new=_open_auklet_url)
         self.patcher.start()
         self.patcher2.start()
-
         self.monitoring = Monitoring(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-
         self.monitoring_tree = MonitoringTree()
         self.monitoring_tree.root_func = \
             {"key": self.monitoring_tree.get_filename}
@@ -64,19 +61,19 @@ class TestAukletSampler(unittest.TestCase):
                 profiler=self.monitoring, frame=Frame(), event="", arg="")
             self.assertNotEqual(test_profile_event, None)  # global used here
 
-    def test_handle_exc(self):
-        def build_event_data(self, type="", value="", traceback=""):
-            return {"commitHash": "", "id": "", "tree":
-                    {"lineNumber": 1,
-                     "nSamples": 173756,
-                     "functionName": "root",
-                     "nCalls": 1,
-                     "callees": []},
-                    "publicIP": "0.0.0.0",
-                    "timestamp": 1530555317012,
-                    "application": "tyJSjp3aSyxxdoGAtqsMT4",
-                    "macAddressHash": ""}
+    def build_event_data(self, type="", value="", traceback=""):
+        return {"commitHash": "", "id": "", "tree":
+                {"lineNumber": 1,
+                 "nSamples": 173756,
+                 "functionName": "root",
+                 "nCalls": 1,
+                 "callees": []},
+                "publicIP": "0.0.0.0",
+                "timestamp": 1530555317012,
+                "application": "tyJSjp3aSyxxdoGAtqsMT4",
+                "macAddressHash": ""}
 
+    def test_handle_exc(self):
         def produce(self, event, topic):
             global test_handle_exc_event  # used to test if events produced
             test_handle_exc_event = event
@@ -86,7 +83,7 @@ class TestAukletSampler(unittest.TestCase):
             pass
 
         with patch('auklet.base.Client.build_event_data',
-                   new=build_event_data):
+                   new=self.build_event_data):
             with patch('auklet.base.Client.produce', new=produce):
                 with patch(
                         'auklet.monitoring.sampling.AukletSampler._profile') \
@@ -96,7 +93,7 @@ class TestAukletSampler(unittest.TestCase):
                     self.auklet_sampler.handle_exc(
                         type=None, value="", traceback="")
                     self.assertEqual(
-                        build_event_data(self),
+                        self.build_event_data(self),
                         test_handle_exc_event)  # global used here
 
     def test_run(self):

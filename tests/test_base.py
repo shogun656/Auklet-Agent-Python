@@ -421,23 +421,23 @@ class TestClient(unittest.TestCase):
                 AttributeError, lambda: self.client._produce(data=self.data))
             self.assertEqual(self.data, test__produce_value)
 
+    def _produce(self, data, data_type="monitoring"):
+        global test_produce_data  # used to tell data was produced
+        test_produce_data = data
+
+    def _check_data_limit(self, data, data_current, offline=False):
+        if not error or offline:  # global used here
+            return True
+        else:
+            raise KafkaError
+
     def test_produce(self):
         global error  # used to tell which test case is being tested
         error = False
 
-        def _produce(self, data, data_type="monitoring"):
-            global test_produce_data  # used to tell data was produced
-            test_produce_data = data
-
-        def _check_data_limit(self, data, data_current, offline=False):
-            if not error or offline:  # global used here
-                return True
-            else:
-                raise KafkaError
-
-        with patch('auklet.base.Client._produce', new=_produce):
+        with patch('auklet.base.Client._produce', new=self._produce):
             with patch('auklet.base.Client._check_data_limit',
-                       new=_check_data_limit):
+                       new=self._check_data_limit):
                 self.client.producer = True
 
                 with open(self.client.offline_filename, "wb") as offline:
