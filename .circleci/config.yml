@@ -6,6 +6,8 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         machine: true
+        docker:
+          - image: themattrix/tox
 
         steps:
             ##
@@ -41,11 +43,11 @@ jobs:
                   sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__about__.py
                   VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
                   sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
-            - run:
-                name: Install Python 3.6.3
-                command: |
-                  pyenv install 3.6.3
-                  pyenv global 3.6.3
+#            - run:
+#                name: Install Python 3.6.3
+#                command: |
+#                  pyenv install 3.6.3
+#                  pyenv global 3.6.3
             - run:
                 name: Show Python3 Version
                 command: |
@@ -89,14 +91,15 @@ jobs:
             - run:
                 name: Run Unit Tests
                 command: |
-                  if [[ -f ~/.localCircleBuild ]]; then
-                    CIRCLE_LOCAL_BUILD=true
-                  else
-                    CIRCLE_LOCAL_BUILD=false
-                  fi
-                  bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
-            - store_artifacts:
-                path: ~/app/tmp/htmlcov
+                  tox
+#                  if [[ -f ~/.localCircleBuild ]]; then
+#                    CIRCLE_LOCAL_BUILD=true
+#                  else
+#                    CIRCLE_LOCAL_BUILD=false
+#                  fi
+#                  bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
+#            - store_artifacts:
+#                path: ~/app/tmp/htmlcov
 
             ##
             # DOCKER
