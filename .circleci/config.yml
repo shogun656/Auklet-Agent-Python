@@ -80,7 +80,7 @@ jobs:
             - run:
                 name: Run Unit Tests
                 command: |
-                  pip install tox tox-env
+                  pip install tox tox-pyenv
                   pyenv local 2.7.12 3.6.5
                   tox
 
