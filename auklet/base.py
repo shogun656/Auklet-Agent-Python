@@ -9,7 +9,6 @@ import sys
 import uuid
 import hashlib
 
-from ipify import get_ip
 from ipify.exceptions import IpifyException
 
 try:
