@@ -10,6 +10,7 @@ import sys
 import ssl
 import uuid
 import json
+import msgpack
 import zipfile
 import hashlib
 
@@ -203,8 +204,9 @@ class Client(object):
     def _write_to_local(self, data):
         try:
             if self._check_data_limit(data, self.offline_current, True):
+                with open(self.offline_filename, "ab") as offline:
+                    offline.write(msgpack.Packer().pack(data))
                 with open(self.offline_filename, "a") as offline:
-                    offline.write(json.dumps(data))
                     offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
@@ -215,18 +217,19 @@ class Client(object):
 
     def _produce_from_local(self):
         try:
-            with open(self.offline_filename, 'r+') as offline:
+            with open(self.offline_filename, 'rb') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    loaded = json.loads(line)
+                    loaded = msgpack.unpackb(line, raw=False)
                     if 'stackTrace' in loaded.keys() \
                             or 'message' in loaded.keys():
                         data_type = "event"
                     else:
                         data_type = "monitoring"
 
-                    if self._check_data_limit(loaded, self.data_current):
-                        self._produce(loaded, data_type)
+                    # if self._check_data_limit(loaded, self.data_current):
+                    self._produce(
+                        msgpack.packb(loaded, use_bin_type=False), data_type)
             self._clear_file(self.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file
@@ -326,6 +329,14 @@ class Client(object):
             "commitHash": self.commit_hash
         }
         return log_dict
+
+    def build_msgpack_event_data(self, type, traceback, tree):
+        event_data = self.build_event_data(type, traceback, tree)
+        return msgpack.packb(event_data, use_bin_type=False)
+
+    def build_msgpack_log_data(self, msg, data_type, level):
+        log_data = self.build_log_data(msg, data_type, level)
+        return msgpack.packb(log_data, use_bin_type=False)
 
     def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],

@@ -57,7 +57,7 @@ class TestMonitoring(unittest.TestCase):
         frame = Frame()
 
         def update_hash(self, stack):
-            global test_sample_stack
+            global test_sample_stack  # used to tell if stack was created
             test_sample_stack = stack
 
         with patch('auklet.stats.MonitoringTree.update_hash', new=update_hash):
@@ -65,7 +65,7 @@ class TestMonitoring(unittest.TestCase):
             self.assertEqual(
                 str(test_sample_stack[0]).strip(')').split(", ")[1], "False")
             self.function.sample(frame=frame, event="call")
-            self.assertTrue(test_sample_stack)
+            self.assertTrue(test_sample_stack)  # global used here
             self.assertEqual(
                 str(test_sample_stack[0]).strip(')').split(", ")[1], "True")
 
