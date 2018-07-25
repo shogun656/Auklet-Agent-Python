@@ -332,11 +332,11 @@ class Client(object):
 
     def build_msgpack_event_data(self, type, traceback, tree):
         event_data = self.build_event_data(type, traceback, tree)
-        return msgpack.packb(event_data, use_bin_type=True)
+        return msgpack.packb(event_data, use_bin_type=False)
 
     def build_msgpack_log_data(self, msg, data_type, level):
         log_data = self.build_log_data(msg, data_type, level)
-        return msgpack.packb(log_data, use_bin_type=True)
+        return msgpack.packb(log_data, use_bin_type=False)
 
     def _produce(self, data, data_type="monitoring"):
         self.producer.send(self.producer_types[data_type],
