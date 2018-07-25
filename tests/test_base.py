@@ -71,6 +71,12 @@ class TestClient(unittest.TestCase):
         self.monitoring_tree = MonitoringTree()
         self.patcher.stop()
 
+    def base_patch_side_effect_with_none(self, location, side_effect, actual):
+        with patch(location) as _base:
+            _base.side_effect = side_effect
+            self.assertIsNone(actual)
+
+
     def test___init__(self):
         if sys.version_info < (3,):
             pass
@@ -81,9 +87,8 @@ class TestClient(unittest.TestCase):
                 with patch('auklet.base.Client._get_kafka_certs') \
                         as _get_kafka_certs:
                     _get_kafka_certs.return_value = True
-                    with patch('auklet.base') as KafkaProducer:
-                        KafkaProducer.side_effect = KafkaError
-                        self.assertEqual(None, self.client.__init__())
+                    self.base_patch_side_effect_with_none(
+                        'auklet.base', KafkaError, self.client.__init__())
 
 
 
@@ -204,9 +209,8 @@ class TestClient(unittest.TestCase):
         with open(self.client.limits_filename, "w") as limits:
             limits.write(str(default_data))
 
-        with patch('auklet.base.open') as _open:
-            _open.side_effect = IOError
-            self.assertEqual(None, self.client._load_limits())
+        self.base_patch_side_effect_with_none(
+            'auklet.base.open', IOError, self.client._load_limits())
 
     def test_get_kafka_certs(self):
         self.assertFalse(self.client._get_kafka_certs())
@@ -220,16 +224,16 @@ class TestClient(unittest.TestCase):
                     return file.read()
 
         if sys.version_info < (3,):
-            with patch('auklet.base.Request') as _request:
-                _request.return_value = "http://api-staging.auklet.io"
-                with patch('auklet.base.urlopen') as _urlopen:
-                    _urlopen.side_effect = urlopen
-                    with patch('io.BytesIO') as _bytesio:
-                        _bytesio.return_value = "key.pem.zip"
-                        os.system("touch key.pem")
-                        with zipfile.ZipFile("key.pem.zip", "w") as zip:
-                            zip.write("key.pem")
-                        self.assertTrue(self.client._get_kafka_certs())
+            patcher = patch('auklet.base.Request')
+            patcher.return_value = "http://api-staging.auklet.io"
+            with patch('auklet.base.urlopen') as _urlopen:
+                _urlopen.side_effect = urlopen
+                with patch('io.BytesIO') as _bytesio:
+                    _bytesio.return_value = "key.pem.zip"
+                    os.system("touch key.pem")
+                    with zipfile.ZipFile("key.pem.zip", "w") as zip:
+                        zip.write("key.pem")
+                    self.assertTrue(self.client._get_kafka_certs())
 
         else:
             with patch('auklet.base.Request') as _request:

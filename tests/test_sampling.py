@@ -18,7 +18,6 @@ class TestAukletSampler(unittest.TestCase):
             }
         def _open_auklet_url(self, url):
             _ = url
-
         self.patcher = patch(
             'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
         self.patcher2 = patch(
