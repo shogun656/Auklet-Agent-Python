@@ -9,8 +9,6 @@ import sys
 import uuid
 import hashlib
 
-from ipify.exceptions import IpifyException
-
 try:
     # For Python 3.0 and later
     from urllib.error import HTTPError, URLError
@@ -51,7 +49,7 @@ def get_device_ip():
         request = Request("https://api.ipify.org")
         res = urlopen(request)
         return u(res.read())
-    except IpifyException:
+    except (HTTPError, URLError):
         # TODO log to kafka if the ip service fails for any reason
         return None
     except Exception:
