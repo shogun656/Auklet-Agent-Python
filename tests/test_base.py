@@ -159,7 +159,7 @@ class TestClient(unittest.TestCase):
                 offline.write(msgpack.Packer().pack({'stackTrace': 'data'}))
             self.client._produce_from_local()
         self.assertEqual(test_produced_data, msgpack.packb(  # global used here
-            {'stackTrace': 'data'}, use_bin_type=True))
+            {'stackTrace': 'data'}, use_bin_type=False))
 
         os.system("rm -R .auklet")
         self.assertFalse(self.client._produce_from_local())

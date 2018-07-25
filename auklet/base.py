@@ -229,7 +229,7 @@ class Client(object):
 
                     # if self._check_data_limit(loaded, self.data_current):
                     self._produce(
-                        msgpack.packb(loaded, use_bin_type=True), data_type)
+                        msgpack.packb(loaded, use_bin_type=False), data_type)
             self._clear_file(self.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file

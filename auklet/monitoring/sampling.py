@@ -57,8 +57,8 @@ class AukletSampler(Runnable):
         self.prev_diff = time_diff
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_msgpack_event_data(type, traceback,
-                                             self.tree)
+        event = self.client.build_msgpack_event_data(
+            type, traceback, self.tree)
         self.client.produce(event, "event")
         return sys.__excepthook__(type, value, traceback)
 
