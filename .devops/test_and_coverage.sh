@@ -13,7 +13,7 @@ CIRCLE_LOCAL_BUILD=$1
 
 python setup.py install
 
-pip install coverage
+pip install coverage tox
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
