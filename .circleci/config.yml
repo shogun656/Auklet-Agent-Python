@@ -42,10 +42,6 @@ jobs:
                   VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
                   sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
             - run:
-                name: Show Python3 Version
-                command: |
-                  python3 --version
-            - run:
                 name: Upgrade Docker Compose
                 command: |
                   set -x
