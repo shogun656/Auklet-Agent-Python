@@ -81,8 +81,9 @@ jobs:
                 name: Run Unit Tests
                 command: |
                   pip install tox tox-pyenv
-                  pyenv install 3.6.5
-                  pyenv local 2.7.12 3.6.5
+                  pip install --upgrade setuptools
+                  pyenv install 3.6.3
+                  pyenv local 2.7.12 3.6.3
                   tox
 
             ##
