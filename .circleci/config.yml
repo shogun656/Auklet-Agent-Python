@@ -6,8 +6,6 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         machine: true
-        docker:
-          - image: themattrix/tox
 
         steps:
             ##
