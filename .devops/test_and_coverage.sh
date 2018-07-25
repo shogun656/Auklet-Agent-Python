@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-CIRCLE_LOCAL_BUILD=$1
+CIRCLE_CI=$1
 
 #
 # This file exists because we should be able to run tests locally without needing
