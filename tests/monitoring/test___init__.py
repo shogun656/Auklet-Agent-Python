@@ -2,34 +2,7 @@ import string
 import unittest
 from mock import patch
 
-from auklet.monitoring import MonitoringBase, Monitoring
-
-
-class TestMonitoringBase(unittest.TestCase):
-    def setUp(self):
-        self.monitoring_base = MonitoringBase()
-
-    def test_start(self):
-        self.assertRaises(
-            NotImplementedError, lambda: self.monitoring_base.start())
-        self.assertRaises(
-            RuntimeError, lambda: self.monitoring_base.start())
-
-    def test_frame_stack(self):
-        class Frame:
-            f_back = None
-        frame = Frame()
-        self.assertNotEqual(
-            self.monitoring_base.frame_stack(frame=frame), None)
-
-    def test_results(self):
-        self.monitoring_base._cpu_time_started = \
-            self.monitoring_base._wall_time_started = None
-        self.assertRaises(TypeError, lambda: self.monitoring_base.result())
-        self.monitoring_base._cpu_time_started = \
-            self.monitoring_base._wall_time_started = 0
-        self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
-
+from auklet.monitoring import Monitoring
 
 
 class TestMonitoring(unittest.TestCase):

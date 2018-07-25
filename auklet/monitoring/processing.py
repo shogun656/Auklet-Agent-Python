@@ -8,7 +8,7 @@ from uuid import uuid4
 from datetime import datetime
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from auklet.stats import Event, SystemMetrics, MonitoringTree
+from auklet.stats import Event, SystemMetrics
 from auklet.errors import AukletConfigurationError
 from auklet.base import get_commit_hash, get_abs_path, get_device_ip, u, b
 
@@ -26,7 +26,7 @@ MB_TO_B = 1e6
 S_TO_MS = 1000
 
 
-class ProcessingThread(object):
+class Client(object):
     producer_types = None
     brokers = None
     commit_hash = None
@@ -44,13 +44,11 @@ class ProcessingThread(object):
     offline_limit = None
     offline_current = 0
 
-    emission_rate = 60  # 10 seconds
-    network_rate = 10  # 10 seconds
-    hour = 3600  # 1 hour
-
     system_metrics = None
 
-    def __init__(self, apikey, app_id, base_url, mac_hash):
+    ip = None
+
+    def __init__(self, apikey, app_id, base_url, mac_hash, tree):
         self.apikey = apikey
         self.app_id = app_id
         self.base_url = base_url
@@ -63,12 +61,13 @@ class ProcessingThread(object):
         self._create_file(self.limits_filename)
         self._create_file(self.usage_filename)
         self._create_file(self.com_config_filename)
-        self.tree = MonitoringTree(self.mac_hash)
+        self.tree = tree
         self.commit_hash = get_commit_hash()
         self.start_time = int(time())
         self.prev_diff = 0
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
+        self.ip = get_device_ip()
         if self._get_kafka_certs():
             try:
                 ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -84,37 +83,6 @@ class ProcessingThread(object):
             except (KafkaError, Exception):
                 # TODO log off to kafka if kafka fails to connect
                 pass
-
-    def run(self):
-        while True:
-            print('there')
-            print(self.queue)
-            print(self.queue.get())
-            # res = self.queue.get(timeout=1)
-            # print("here: ", res)
-            # self.queue.get_nowait()
-            # self.queue.task_done()
-            # increment_call = False
-            # if event == "call":
-            #     increment_call = True
-            # stack = [(frame, increment_call)]
-            # frame = frame.f_back
-            # while frame:
-            #     stack.append((frame, False))
-            #     frame = frame.f_back
-            # time_diff = int(time()) - self.start_time
-            # if self.prev_diff != 0 and self.prev_diff != time_diff:
-            #     if time_diff % (self.emission_rate / 1000) == 0:
-            #         self.produce(
-            #             self.tree.build_tree(self.app_id))
-            #         self.tree.clear_root()
-            #     if time_diff % self.network_rate == 0:
-            #         self.update_network_metrics(self.network_rate)
-            #
-            #     if time_diff % self.hour == 0:
-            #         self.emission_rate = self.update_limits()
-            #         self.check_date()
-            # self.prev_diff = time_diff
 
     def _create_file(self, filename):
         open(filename, "a").close()
@@ -282,10 +250,12 @@ class ProcessingThread(object):
         return True
 
     def _kafka_error_callback(self, error, msg):
+        print("ERROR: ", error, " MSG: ", msg)
         self._write_to_local(msg)
 
     def update_network_metrics(self, interval):
         self.system_metrics.update_network(interval)
+        self.ip = get_device_ip()
 
     def check_date(self):
         if datetime.today().day == self.data_day:
@@ -327,7 +297,7 @@ class ProcessingThread(object):
         event = Event(type, traceback, self.tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
-        event_dict['publicIP'] = get_device_ip()
+        event_dict['publicIP'] = self.ip
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = str(datetime.utcnow())
         event_dict['systemMetrics'] = dict(self.system_metrics)
@@ -341,7 +311,7 @@ class ProcessingThread(object):
             "type": data_type,
             "level": level,
             "application": self.app_id,
-            "publicIP": get_device_ip(),
+            "publicIP": self.ip,
             "id": str(uuid4()),
             "timestamp": str(datetime.utcnow()),
             "systemMetrics": dict(SystemMetrics()),
@@ -351,6 +321,7 @@ class ProcessingThread(object):
         return log_dict
 
     def _produce(self, data, data_type="monitoring"):
+        print(data_type, ": ", data)
         self.producer.send(self.producer_types[data_type],
                            value=data) \
             .add_errback(self._kafka_error_callback, msg=data)

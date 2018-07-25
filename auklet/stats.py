@@ -16,17 +16,17 @@ __all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
 
 
 class Function(object):
-    __slots__ = ['samples', 'calls', 'line_num', 'func_name', 'file_path',
+    __slots__ = ['samples', 'line_num', 'func_name', 'file_path',
                  'children', 'parent']
 
     def __init__(self, line_num, func_name, file_path=None,
-                 parent=None, calls=0):
+                 parent=None, samples=1):
         self.line_num = line_num
         self.func_name = func_name
         self.parent = parent
         self.children = []
         self.file_path = file_path
-        self.calls = calls
+        self.samples = samples
 
     def __str__(self):
         pp = pprint.PrettyPrinter()
@@ -36,7 +36,6 @@ class Function(object):
         yield "functionName", self.func_name
         yield "nSamples", self.samples
         yield "lineNumber", self.line_num
-        yield "nCalls", self.calls
         yield "filePath", self.file_path
         yield "callees", [dict(item) for item in self.children]
 
@@ -94,8 +93,8 @@ class Event(object):
 
 
 class MonitoringTree(object):
-    __slots__ = ['commit_hash', 'root_func', 'public_ip', 'mac_hash',
-                 'abs_path']
+    __slots__ = ['commit_hash', 'public_ip', 'mac_hash',
+                 'abs_path', 'root_func']
     cached_filenames = {}
     filters = ["site-packages", "Python.framework", "auklet", "lib/python",
                "importlib"]
@@ -106,6 +105,7 @@ class MonitoringTree(object):
         self.public_ip = get_device_ip()
         self.abs_path = get_abs_path('.auklet/version')
         self.mac_hash = mac_hash
+        self.root_func = None
 
     def get_filename(self, code, frame):
         key = code.co_code
@@ -128,13 +128,8 @@ class MonitoringTree(object):
                 func_name="root",
                 parent=None,
                 file_path=None,
-                calls=1
+                samples=1
             )
-
-        calls = 0
-        if frame[1]:
-            calls = 1
-        frame = frame[0]
 
         file_path = self.get_filename(frame.f_code, frame)
         if file_path is not None:
@@ -144,8 +139,7 @@ class MonitoringTree(object):
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,
             parent=parent,
-            file_path=file_path,
-            calls=calls
+            file_path=file_path
         )
 
     def _filter_frame(self, file_name):
@@ -172,7 +166,6 @@ class MonitoringTree(object):
         new_child = new_parent.children[0]
         has_child = parent.has_child(new_child)
         if has_child:
-            has_child.calls += new_child.calls
             has_child.samples += 1
             return self._update_sample_count(has_child, new_child)
         parent.children.append(new_child)
@@ -182,7 +175,6 @@ class MonitoringTree(object):
         if self.root_func is None:
             self.root_func = new_tree_root
             return self.root_func
-        self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
 
     def clear_root(self):
