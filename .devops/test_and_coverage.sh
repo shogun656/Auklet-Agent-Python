@@ -11,7 +11,9 @@ CIRCLE_LOCAL_BUILD=$1
 # a test report was already posted for that commit. On line 19-30 we have
 # implemented a check to see if the test reporter throws this message.
 
-pip3 install coverage
+python setup.py install
+
+pip install coverage
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
@@ -19,7 +21,15 @@ if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   ./cc-test-reporter before-build
 fi
 
-bash .devops/tests.sh
+if [ -d htmlcov ]; then
+    rm -R htmlcov
+fi
+
+tox
+coverage combine .coverage_python_2 .coverage_python_3
+coverage report -m
+coverage xml
+coverage html
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   # Set -e is disabled momentarily to be able to output the error message to log.txt file.

@@ -396,7 +396,6 @@ class Runnable(object):
             # expected.
             pass
         else:
-            print("ELSE")
             raise TypeError('run() must yield just one time')
 
     def run(self, *args, **kwargs):
@@ -407,7 +406,6 @@ class Runnable(object):
         :raises NotImplementedError: :meth:`run` is not overridden.
         """
         raise NotImplementedError('Implement run()')
-        yield
 
     def __enter__(self):
         self.start()
@@ -469,7 +467,6 @@ def setup_thread_excepthook():
     init_original = threading.Thread.__init__
 
     def init(self, *args, **kwargs):
-
         init_original(self, *args, **kwargs)
         run_original = self.run
 
