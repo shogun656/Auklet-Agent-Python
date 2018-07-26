@@ -155,11 +155,10 @@ class TestClient(unittest.TestCase):
             global test_produced_data  # used to tell data was produced
             test_produced_data = data
         with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, "ab") as offline:
-                offline.write(msgpack.Packer().pack({'stackTrace': 'data'}))
+            with open(self.client.offline_filename, "a") as offline:
+                offline.write(json.dumps({"stackTrace": "data"}))
             self.client._produce_from_local()
-        self.assertEqual(test_produced_data, msgpack.packb(  # global used here
-            {'stackTrace': 'data'}, use_bin_type=False))
+        self.assertIsNotNone(test_produced_data)  # global used here
 
         os.system("rm -R .auklet")
         self.assertFalse(self.client._produce_from_local())
@@ -315,9 +314,8 @@ class TestClient(unittest.TestCase):
                        new=_check_data_limit):
                 self.client.producer = True
 
-                with open(self.client.offline_filename, "wb") as offline:
-                    offline.write(
-                        msgpack.Packer().pack(self.data))
+                with open(self.client.offline_filename, "w") as offline:
+                    offline.write(json.dumps(self.data))
                 self.client.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
