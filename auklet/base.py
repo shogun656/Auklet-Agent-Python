@@ -216,7 +216,7 @@ class Client(object):
 
     def _produce_from_local(self):
         try:
-            with open(self.offline_filename, 'rb') as offline:
+            with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
                     loaded = json.loads(line)
