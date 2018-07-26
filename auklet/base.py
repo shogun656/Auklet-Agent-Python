@@ -203,9 +203,8 @@ class Client(object):
     def _write_to_local(self, data):
         try:
             if self._check_data_limit(data, self.offline_current, True):
-                with open(self.offline_filename, "ab") as offline:
-                    offline.write(json.dumps(data))
                 with open(self.offline_filename, "a") as offline:
+                    offline.write(json.dumps(data))
                     offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
