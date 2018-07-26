@@ -153,11 +153,14 @@ class TestClient(unittest.TestCase):
 
     def test_produce_from_local(self):
         def _produce(self, data, data_type):
+            print(data)
             global test_produced_data  # used to tell data was produced
             test_produced_data = data
         with patch('auklet.base.Client._produce', new=_produce):
             with open(self.client.offline_filename, "a") as offline:
-                offline.write(json.dumps({"stackTrace": "data"}))
+                offline.write("event:")
+                offline.write(str(msgpack.packb({"stackTrace": "data"})))
+                offline.write("\n")
             self.client._produce_from_local()
         self.assertIsNotNone(test_produced_data)  # global used here
 
@@ -316,6 +319,7 @@ class TestClient(unittest.TestCase):
                 with open(self.client.offline_filename, "w") as offline:
                     offline.write("event:")
                     offline.write(str(msgpack.packb(self.data)))
+                    offline.write("\n")
                 self.client.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
