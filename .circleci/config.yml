@@ -80,7 +80,12 @@ jobs:
             - run:
                 name: Run Unit Tests
                 command: |
-                  bash .devops/test_and_coverage.sh $CIRCLE_CI
+                  if [[ -f ~/.localCircleBuild ]]; then
+                    CIRCLE_LOCAL_BUILD=true
+                  else
+                    CIRCLE_LOCAL_BUILD=false
+                  fi
+                  bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
 
             ##
             # DOCKER

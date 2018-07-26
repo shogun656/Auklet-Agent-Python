@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-CIRCLE_CI=$1
+CIRCLE_LOCAL_BUILD=$1
 
 #
 # This file exists because we should be able to run tests locally without needing
@@ -13,11 +13,17 @@ CIRCLE_CI=$1
 
 python setup.py install
 
-if [[ "$CIRCLE_CI" == 'true' ]]; then
-  pip install coverage tox tox-pyenv
-  pip install --upgrade setuptools
-  pyenv install 3.6.3
-  pyenv local 2.7.12 3.6.3
+if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
+ PYTHON_VERSIONS="2.7-dev 3.2-dev 3.3-dev 3.4-dev 3.5-dev 3.6-dev 3.7-dev"
+ pip install coverage tox tox-pyenv
+ pip install --upgrade setuptools
+ for version in $PYTHON_VERSIONS
+   do
+     pyenv install $(version)
+   done
+fi
+
+if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   chmod +x ./cc-test-reporter
   ./cc-test-reporter before-build
@@ -34,7 +40,7 @@ coverage report -m
 coverage xml
 coverage html
 
-if [[ "$CIRCLECI" == 'false' ]]; then
+if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   # Set -e is disabled momentarily to be able to output the error message to log.txt file.
   set +e
   ./cc-test-reporter after-build -t coverage.py -r $CC_TEST_REPORTER_ID --exit-code $? 2>&1 | tee exit_message.txt
