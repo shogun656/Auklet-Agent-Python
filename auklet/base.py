@@ -87,7 +87,6 @@ class Client(object):
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(json.dumps(m)),
                     "ssl_context": ctx
                 })
             except (KafkaError, Exception):
@@ -205,7 +204,7 @@ class Client(object):
         try:
             if self._check_data_limit(data, self.offline_current, True):
                 with open(self.offline_filename, "ab") as offline:
-                    offline.write(msgpack.Packer().pack(data))
+                    offline.write(json.dumps(data))
                 with open(self.offline_filename, "a") as offline:
                     offline.write("\n")
         except IOError:
@@ -220,7 +219,7 @@ class Client(object):
             with open(self.offline_filename, 'rb') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    loaded = msgpack.unpackb(line, raw=False)
+                    loaded = json.loads(line)
                     if 'stackTrace' in loaded.keys() \
                             or 'message' in loaded.keys():
                         data_type = "event"
