@@ -3,6 +3,7 @@ set -e
 
 echo "Creating files..."
 mkdir -p .auklet
+mkdir -p .coverage_files
 
 filelist="local.txt version communication usage limits"
 for file in $filelist
@@ -22,14 +23,7 @@ fi
 
 # This outputs the complete current python version to `pyver`
 pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
-
-if [[ "$pyver" < 3 ]]; then
-    echo "Python2 detected..."
-    COVERAGE_FILE=.coverage_python_2 coverage run --rcfile=".coveragerc" setup.py test
-else
-    echo "Python3 detected..."
-    COVERAGE_FILE=.coverage_python_3 coverage run --rcfile=".coveragerc" setup.py test
-fi
+COVERAGE_FILE=.coverage_files/.coverage_python_${pyver} coverage run --rcfile=".coveragerc" setup.py test
 
 if [ -d .auklet ]; then
     rm -R .auklet

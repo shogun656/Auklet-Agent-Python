@@ -19,8 +19,14 @@ if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
  pip install --upgrade setuptools
  for version in $PYTHON_VERSIONS
    do
-     pyenv install $(version)
+     pyenv install $version -n
    done
+   pyenv local 2.7-dev 3.2-dev 3.3-dev 3.4-dev 3.5-dev 3.6-dev 3.7-dev
+fi
+
+
+if [ -d htmlcov ]; then
+    rm -R htmlcov
 fi
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
@@ -29,13 +35,9 @@ if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   ./cc-test-reporter before-build
 fi
 
-if [ -d htmlcov ]; then
-    rm -R htmlcov
-fi
-
 tox
 
-coverage combine .coverage_python_2 .coverage_python_3
+coverage combine .coverage_files/
 coverage report -m
 coverage xml
 coverage html
