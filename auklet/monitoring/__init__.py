@@ -76,6 +76,9 @@ class Monitoring(AukletLogging):
             self.tree.update_hash(frames)
         self.total_samples += 1
         self.samples_taken += 1
+        self.process_periodic()
+
+    def process_periodic(self):
         sample_timer = self.total_samples * self.interval
         if sample_timer % self.emission_rate == 0:
             tree = self.tree.build_tree(self.app_id)
