@@ -14,8 +14,8 @@ def without_auklet():
     base.start(state="WithoutAuklet")
 
 
-@patch('auklet.base.Client.update_limits')
-@patch('auklet.base.Client._get_kafka_certs')
+@patch('auklet.monitoring.processing.Client.update_limits')
+@patch('auklet.monitoring.processing.Client._get_kafka_certs')
 def with_auklet(get_kafka_certs_mock, update_limits_mock):
     """
     With a little help from mock, this test will push data that
@@ -31,7 +31,7 @@ def with_auklet(get_kafka_certs_mock, update_limits_mock):
     update_limits_mock.return_value = 10000
     get_kafka_certs_mock.return_value = True
 
-    patcher = patch('auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+    patcher = patch('auklet.monitoring.processing.Client._get_kafka_brokers', new=_get_kafka_brokers)
     patcher.start()
     auklet_monitoring = Monitoring("", "", monitoring=True)
     auklet_monitoring.start()
@@ -80,6 +80,7 @@ def display_complete_results():
 def main():
     without_auklet()
     with_auklet()
+
     display_complete_results()
 
 

@@ -1,9 +1,9 @@
 import io
 import ssl
 import json
+import msgpack
 import zipfile
 
-from time import time
 from uuid import uuid4
 from datetime import datetime
 from kafka import KafkaProducer
@@ -46,9 +46,8 @@ class Client(object):
 
     system_metrics = None
 
-    ip = None
-
-    def __init__(self, apikey, app_id, base_url, mac_hash, tree):
+    def __init__(self, apikey=None, app_id=None,
+                 base_url="https://api.auklet.io/", mac_hash=None):
         self.apikey = apikey
         self.app_id = app_id
         self.base_url = base_url
@@ -61,13 +60,9 @@ class Client(object):
         self._create_file(self.limits_filename)
         self._create_file(self.usage_filename)
         self._create_file(self.com_config_filename)
-        self.tree = tree
         self.commit_hash = get_commit_hash()
-        self.start_time = int(time())
-        self.prev_diff = 0
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
-        self.ip = get_device_ip()
         if self._get_kafka_certs():
             try:
                 ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -77,7 +72,6 @@ class Client(object):
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(json.dumps(m)),
                     "ssl_context": ctx
                 })
             except (KafkaError, Exception):
@@ -194,8 +188,9 @@ class Client(object):
     def _write_to_local(self, data):
         try:
             if self._check_data_limit(data, self.offline_current, True):
-                with open(self.offline_filename, "a") as offline:
+                with open(self.offline_filename, "ab") as offline:
                     offline.write(json.dumps(data))
+                with open(self.offline_filename, "a") as offline:
                     offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
@@ -216,8 +211,9 @@ class Client(object):
                     else:
                         data_type = "monitoring"
 
-                    if self._check_data_limit(loaded, self.data_current):
-                        self._produce(loaded, data_type)
+                    # if self._check_data_limit(loaded, self.data_current):
+                    self._produce(
+                        msgpack.packb(loaded, use_bin_type=False), data_type)
             self._clear_file(self.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file
@@ -250,12 +246,10 @@ class Client(object):
         return True
 
     def _kafka_error_callback(self, error, msg):
-        print("ERROR: ", error, " MSG: ", msg)
         self._write_to_local(msg)
 
     def update_network_metrics(self, interval):
         self.system_metrics.update_network(interval)
-        self.ip = get_device_ip()
 
     def check_date(self):
         if datetime.today().day == self.data_day:
@@ -293,11 +287,11 @@ class Client(object):
         # return emission period in ms
         return config['emission_period'] * S_TO_MS
 
-    def build_event_data(self, type, traceback):
-        event = Event(type, traceback, self.tree, self.abs_path)
+    def build_event_data(self, type, traceback, tree):
+        event = Event(type, traceback, tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
-        event_dict['publicIP'] = self.ip
+        event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = str(datetime.utcnow())
         event_dict['systemMetrics'] = dict(self.system_metrics)
@@ -311,7 +305,7 @@ class Client(object):
             "type": data_type,
             "level": level,
             "application": self.app_id,
-            "publicIP": self.ip,
+            "publicIP": get_device_ip(),
             "id": str(uuid4()),
             "timestamp": str(datetime.utcnow()),
             "systemMetrics": dict(SystemMetrics()),
@@ -320,8 +314,15 @@ class Client(object):
         }
         return log_dict
 
+    def build_msgpack_event_data(self, type, traceback, tree):
+        event_data = self.build_event_data(type, traceback, tree)
+        return msgpack.packb(event_data, use_bin_type=False)
+
+    def build_msgpack_log_data(self, msg, data_type, level):
+        log_data = self.build_log_data(msg, data_type, level)
+        return msgpack.packb(log_data, use_bin_type=False)
+
     def _produce(self, data, data_type="monitoring"):
-        print(data_type, ": ", data)
         self.producer.send(self.producer_types[data_type],
                            value=data) \
             .add_errback(self._kafka_error_callback, msg=data)

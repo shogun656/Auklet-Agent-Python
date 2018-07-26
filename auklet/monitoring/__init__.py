@@ -46,7 +46,7 @@ class Monitoring(AukletLogging):
         self.app_id = app_id
         self.mac_hash = get_mac()
         self.tree = MonitoringTree(self.mac_hash)
-        self.client = Client(apikey, app_id, base_url, self.mac_hash, self.tree)
+        self.client = Client(apikey, app_id, base_url, self.mac_hash)
         self.monitor = monitoring
         self.interval = 0.01
         signal.signal(self.sig, self.sample)
@@ -81,9 +81,9 @@ class Monitoring(AukletLogging):
     def process_periodic(self):
         sample_timer = self.total_samples * self.interval
         if sample_timer % self.emission_rate == 0:
-            tree = self.tree.build_tree(self.app_id)
+            self.client.produce(
+                self.tree.build_msgpack_tree(self.client.app_id))
             self.tree.clear_root()
-            self.client.produce(tree)
             self.samples_taken = 0
         if sample_timer % self.network_rate == 0:
             self.client.update_network_metrics(self.network_rate)
@@ -92,10 +92,14 @@ class Monitoring(AukletLogging):
             self.client.check_date()
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, traceback)
-        self.client.produce(event, "event")
+        self.client.produce(
+            self.client.build_msgpack_event_data(type, traceback, self.tree),
+            "event"
+        )
         sys.__excepthook__(type, value, traceback)
 
     def log(self, msg, data_type, level="INFO"):
         self.client.produce(
-            self.client.build_log_data(msg, data_type, level), "event")
+            self.client.build_msgpack_log_data(msg, data_type, level),
+            "event"
+        )

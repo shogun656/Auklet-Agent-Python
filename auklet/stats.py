@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from time import time
+import msgpack
+
 import pprint
 import inspect
 from uuid import uuid4
+from time import time
 
 try:
     import psutil
@@ -182,15 +184,20 @@ class MonitoringTree(object):
         return True
 
     def build_tree(self, app_id):
-        return {
-            "application": app_id,
-            "publicIP": self.public_ip,
-            "id": str(uuid4()),
-            "timestamp": int(round(time() * 1000)),
-            "macAddressHash": self.mac_hash,
-            "commitHash": self.commit_hash,
-            "tree": dict(self.root_func)
-        }
+        if self.root_func is not None:
+            return {
+                "application": app_id,
+                "publicIP": self.public_ip,
+                "id": str(uuid4()),
+                "timestamp": int(round(time() * 1000)),
+                "macAddressHash": self.mac_hash,
+                "commitHash": self.commit_hash,
+                "tree": dict(self.root_func)
+            }
+        return {}
+
+    def build_msgpack_tree(self, app_id):
+        return msgpack.packb(self.build_tree(app_id), use_bin_type=False)
 
 
 class SystemMetrics(object):
