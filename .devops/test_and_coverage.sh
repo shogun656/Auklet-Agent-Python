@@ -11,42 +11,50 @@ CIRCLE_LOCAL_BUILD=$1
 # a test report was already posted for that commit. On line 19-30 we have
 # implemented a check to see if the test reporter throws this message.
 
-sudo mv .pyenv /
+mv .pyenv/plugins $(pyenv root)
 
 pip install --upgrade setuptools
 pip install tox
 
-python setup.py install
+.devops/install_plugins.sh 2.7
+.devops/install_plugins.sh 3.2
+.devops/install_plugins.sh 3.3
+.devops/install_plugins.sh 3.4
+.devops/install_plugins.sh 3.5
+.devops/install_plugins.sh 3.6
+.devops/install_plugins.sh 3.7
 
-if [ -d htmlcov ]; then
-    rm -R htmlcov
-fi
+#python setup.py install
 
-if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
-  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  chmod +x ./cc-test-reporter
-  ./cc-test-reporter before-build
-fi
-
-tox
-
-coverage combine
-coverage report -m
-coverage xml
-coverage html
-
-if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
-  # Set -e is disabled momentarily to be able to output the error message to log.txt file.
-  set +e
-  ./cc-test-reporter after-build -t coverage.py -r $CC_TEST_REPORTER_ID --exit-code $? 2>&1 | tee exit_message.txt
-  result=$?
-  set -e
-  # Then we check the third line and see if it contains the known error message
-  # and print an error message of our own but let the build succeed.
-  if [ "$(echo `sed -n '2p' exit_message.txt` | cut -d ' ' -f1-5)" = "HTTP 409: A test report" ]; then
-    echo "A test report has already been created for this commit; this build will proceed without updating test coverage data in Code Climate."
-    exit 0
-  else
-    exit $result
-  fi
-fi
+#if [ -d htmlcov ]; then
+#    rm -R htmlcov
+#fi
+#
+#if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
+#  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+#  chmod +x ./cc-test-reporter
+#  ./cc-test-reporter before-build
+#fi
+#
+##tox
+#
+#coverage combine
+#coverage report -m
+#coverage xml
+#coverage html
+#
+#if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
+#  # Set -e is disabled momentarily to be able to output the error message to log.txt file.
+#  set +e
+#  ./cc-test-reporter after-build -t coverage.py -r $CC_TEST_REPORTER_ID --exit-code $? 2>&1 | tee exit_message.txt
+#  result=$?
+#  set -e
+#  # Then we check the third line and see if it contains the known error message
+#  # and print an error message of our own but let the build succeed.
+#  if [ "$(echo `sed -n '2p' exit_message.txt` | cut -d ' ' -f1-5)" = "HTTP 409: A test report" ]; then
+#    echo "A test report has already been created for this commit; this build will proceed without updating test coverage data in Code Climate."
+#    exit 0
+#  else
+#    exit $result
+#  fi
+#fi

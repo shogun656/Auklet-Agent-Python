@@ -415,7 +415,7 @@ class TestClient(unittest.TestCase):
             def __init__(self, **configs):
                 pass
 
-            def send(self, data_type, value):
+            def send(self, data_type, value, key):
                 global test__produce_value
                 test__produce_value = value
 
