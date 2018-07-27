@@ -14,7 +14,7 @@ CIRCLE_LOCAL_BUILD=$1
 sudo mv .pyenv /
 
 pip install --upgrade setuptools
-pip install tox
+pip install tox coverage
 
 python setup.py install
 
@@ -28,7 +28,7 @@ if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   ./cc-test-reporter before-build
 fi
 
-#tox
+tox
 
 coverage combine
 coverage report -m
