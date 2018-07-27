@@ -48,8 +48,8 @@ class AukletSampler(Runnable):
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:
             if time_diff % (self.emission_rate / 1000) == 0:
-                self.broker.produce(
-                    self.tree.build_tree(self.client.app_id))
+                self.client.produce(
+                    self.tree.build_msgpack_tree(self.client.app_id))
                 self.tree.clear_root()
             if time_diff % self.network_rate == 0:
                 self.client.update_network_metrics(self.network_rate)
@@ -60,7 +60,8 @@ class AukletSampler(Runnable):
         self.prev_diff = time_diff
 
     def handle_exc(self, type, value, traceback):
-        event = self.client.build_event_data(type, traceback, self.tree)
+        event = self.client.build_msgpack_event_data(
+            type, traceback, self.tree)
         self.client.produce(event, "event")
         return sys.__excepthook__(type, value, traceback)
 

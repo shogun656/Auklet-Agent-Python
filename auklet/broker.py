@@ -63,10 +63,9 @@ class Profiler(ABC):
         except OSError:
             return False
 
-    def _get_certs(self):
-        url = Request(
-            build_url(self.base_url, "private/devices/certificates/"),
-            headers={"Authorization": "JWT %s" % self.apikey})
+    def _get_kafka_certs(self):
+        url = Request(self._build_url("private/devices/certificates/"),
+                      headers={"Authorization": "JWT %s" % self.apikey})
         try:
             try:
                 res = urlopen(url)
@@ -109,11 +108,12 @@ class KafkaClient(Profiler):
             "log": data['log_topic']
         }
 
-    def _write_to_local(self, data):
+    def _write_to_local(self, data, data_type):
         try:
             if self._check_data_limit(data, self.offline_current, True):
                 with open(self.offline_filename, "a") as offline:
-                    offline.write(json.dumps(data))
+                    offline.write(data_type + ":")
+                    offline.write(str(data))
                     offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
@@ -124,13 +124,8 @@ class KafkaClient(Profiler):
             with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    loaded = json.loads(line)
-                    if 'stackTrace' in loaded.keys() \
-                            or 'message' in loaded.keys():
-                        data_type = "event"
-                    else:
-                        data_type = "monitoring"
-
+                    data_type = line.split(":")[0]
+                    loaded = line.split(":")[1]
                     if self._check_data_limit(loaded, self.data_current):
                         self._produce(loaded, data_type)
             self._clear_file(self.offline_filename)
@@ -138,8 +133,8 @@ class KafkaClient(Profiler):
             # TODO determine what to do if we can't read the file
             return False
 
-    def _error_callback(self, error, msg):
-        self._write_to_local(msg)
+    def _error_callback(self, error, msg, data_type):
+        self._write_to_local(msg, data_type)
 
     def create_producer(self):
         if self._get_certs():
@@ -159,9 +154,15 @@ class KafkaClient(Profiler):
                 pass
 
     def _produce(self, data, data_type="monitoring"):
+        try:
+            data = str.encode(data)
+        except TypeError:
+            # Expected
+            pass
+
         self.producer.send(self.producer_types[data_type],
-                           value=data) \
-            .add_errback(self._error_callback, msg=data)
+                           value=data, key="python") \
+            .add_errback(self._error_callback, data_type, msg=data)
 
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
@@ -170,9 +171,9 @@ class KafkaClient(Profiler):
                     self._produce(data, data_type)
                     self._produce_from_local()
                 else:
-                    self._write_to_local(data)
+                    self._write_to_local(data, data_type)
             except KafkaError:
-                self._write_to_local(data)
+                self._write_to_local(data, data_type)
 
 
 class MQTTClient(Profiler):
@@ -205,5 +206,11 @@ class MQTTClient(Profiler):
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
+        try:
+            data = str.encode(data)
+        except TypeError:
+            # Expected
+            pass
+
         self.producer.publish(self.producer_types[data_type],
                               payload=self._serialize(data))

@@ -5,6 +5,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import msgpack
 
 from uuid import uuid4
 from datetime import datetime
@@ -183,6 +184,13 @@ class Client(object):
         }
         return log_dict
 
+    def build_msgpack_event_data(self, type, traceback, tree):
+        event_data = self.build_event_data(type, traceback, tree)
+        return msgpack.packb(event_data, use_bin_type=False)
+
+    def build_msgpack_log_data(self, msg, data_type, level):
+        log_data = self.build_log_data(msg, data_type, level)
+        return msgpack.packb(log_data, use_bin_type=False)
 
 class Runnable(object):
     """The base class for runnable classes such as :class:`monitoring.
