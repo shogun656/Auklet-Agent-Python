@@ -16,8 +16,6 @@ sudo mv .pyenv /
 pip install --upgrade setuptools
 pip install tox coverage
 
-python setup.py install
-
 if [ -d htmlcov ]; then
     rm -R htmlcov
 fi
