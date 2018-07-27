@@ -2,6 +2,7 @@
 
 set -e
 
-pyenv root
+VERSION=$1
 
 pyenv commands
+pyenv install-latest $VERSION

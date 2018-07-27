@@ -339,11 +339,6 @@ class Client(object):
         return msgpack.packb(log_data, use_bin_type=True)
 
     def _produce(self, data, data_type="monitoring"):
-<<<<<<< Updated upstream
-        self.producer.send(self.producer_types[data_type],
-                           value=data) \
-            .add_errback(self._kafka_error_callback, msg=data)
-=======
         try:
             data = str.encode(data)
         except TypeError:
@@ -353,7 +348,6 @@ class Client(object):
         self.producer.send(self.producer_types[data_type],
                            value=data, key="python") \
             .add_errback(self._kafka_error_callback, data_type, msg=data)
->>>>>>> Stashed changes
 
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:

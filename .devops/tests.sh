@@ -23,6 +23,7 @@ fi
 
 # This outputs the complete current python version to `pyver`
 pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+echo $pyver
 COVERAGE_FILE=.coverage.python${pyver} coverage run --rcfile=".coveragerc" setup.py test
 
 if [ -d .auklet ]; then
