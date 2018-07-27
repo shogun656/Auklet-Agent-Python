@@ -12,6 +12,7 @@ CIRCLE_LOCAL_BUILD=$1
 # implemented a check to see if the test reporter throws this message.
 
 pip install --upgrade setuptools
+pip install tox
 
 python setup.py install
 
