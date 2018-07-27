@@ -21,6 +21,7 @@ if [ ! -f key.pem.zip ]; then
     zip key.pem.zip key.pem
 fi
 
+pyenv versions
 # This outputs the complete current python version to `pyver`
 pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
 echo Python $pyver
