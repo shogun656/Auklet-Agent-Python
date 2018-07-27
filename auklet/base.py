@@ -338,7 +338,8 @@ class Client(object):
             # Expected
             pass
 
-        self.producer.send(self.producer_types[data_type], value=data) \
+        self.producer.send(self.producer_types[data_type], 
+                           value=data, key="python") \
             .add_errback(self._kafka_error_callback, data_type, msg=data)
 
     def produce(self, data, data_type="monitoring"):
