@@ -23,8 +23,6 @@ fi
 
 python setup.py install
 
-pyenv versions
-python --version
 # This outputs the complete current python version to `pyver`
 pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
 echo Python $pyver
