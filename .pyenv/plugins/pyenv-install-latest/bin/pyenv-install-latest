@@ -45,5 +45,5 @@ done
 latest=$(get_version $1)
 [[ -z $latest ]] && { echo "Python version is not found." >&2; exit 1; }
 echo "Install $latest..."
-pyenv install -s $install_args $latest
-pyenv local $latest
+#pyenv install -s $install_args $latest
+pyenv local 3.5.2
