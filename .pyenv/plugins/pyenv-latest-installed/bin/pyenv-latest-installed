@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Usage: pyenv latest-installed [<`pyenv local` options>] [<version-prefix>]
+
+set -e
+[ -n "$PYENV_DEBUG" ] && set -b
+
+DEFAULT_QUERY="[0-9]"
+
+get_version() {
+  local query=$1
+  [[ -z $query ]] && query=$DEFAULT_QUERY
+  pyenv versions \
+    | grep -vE "(^Available versions:|-src|dev|rc|alpha|beta|(a|b)[0-9]+)" \
+    | grep -E "^\s*$query" \
+    | sed 's/^\s\+//' \
+    | tail -1
+}
+
+latest=$(get_version $1)
+
+pyenv local $latest 

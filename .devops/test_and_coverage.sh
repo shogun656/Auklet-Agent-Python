@@ -13,8 +13,8 @@ CIRCLE_LOCAL_BUILD=$1
 
 python setup.py install
 
-#git clone https://github.com/momo-lab/pyenv-install-latest.git "$(pyenv root)"/plugins/pyenv-install-latest
-#git clone https://github.com/joshuahufford/pyenv-latest-installed.git "$(pyenv root)"/plugins/pyenv-latest-installed
+git clone https://github.com/momo-lab/pyenv-install-latest.git "$(pyenv root)"/plugins/pyenv-install-latest
+git clone https://github.com/joshuahufford/pyenv-latest-installed.git "$(pyenv root)"/plugins/pyenv-latest-installed
 
 #if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
 PYTHON_VERSIONS="2.7"
