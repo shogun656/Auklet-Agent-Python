@@ -14,6 +14,7 @@ CIRCLE_LOCAL_BUILD=$1
 sudo mv .pyenv /
 
 pip install tox
+pip install --upgrade setuptools
 
 if [ -d htmlcov ]; then
     rm -R htmlcov
