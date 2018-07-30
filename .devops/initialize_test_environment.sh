@@ -20,7 +20,6 @@ if [[ "$INSTALL_LATEST" == 'false' ]]; then
 else
     pyenv install-latest $VERSION
     LATEST_VERSION=$(pyenv versions | grep $VERSION | grep -v '2.7.12' | grep -v '3.5.2')
-
 fi
 
 bash .devops/tests.sh
