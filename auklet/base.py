@@ -87,7 +87,6 @@ class Client(object):
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(json.dumps(m)),
                     "ssl_context": ctx
                 })
             except (KafkaError, Exception):
@@ -201,12 +200,12 @@ class Client(object):
             f.write(mlz.open(temp_file.filename).read())
         return True
 
-    def _write_to_local(self, data):
+    def _write_to_local(self, data, data_type):
         try:
             if self._check_data_limit(data, self.offline_current, True):
-                with open(self.offline_filename, "ab") as offline:
-                    offline.write(msgpack.Packer().pack(data))
                 with open(self.offline_filename, "a") as offline:
+                    offline.write(data_type + ":")
+                    offline.write(str(data))
                     offline.write("\n")
         except IOError:
             # TODO determine what to do with data we fail to write
@@ -217,19 +216,13 @@ class Client(object):
 
     def _produce_from_local(self):
         try:
-            with open(self.offline_filename, 'rb') as offline:
+            with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    loaded = msgpack.unpackb(line, raw=False)
-                    if 'stackTrace' in loaded.keys() \
-                            or 'message' in loaded.keys():
-                        data_type = "event"
-                    else:
-                        data_type = "monitoring"
-
-                    # if self._check_data_limit(loaded, self.data_current):
-                    self._produce(
-                        msgpack.packb(loaded, use_bin_type=True), data_type)
+                    data_type = line.split(":")[0]
+                    loaded = line.split(":")[1]
+                    if self._check_data_limit(loaded, self.data_current):
+                        self._produce(loaded, data_type)
             self._clear_file(self.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file
@@ -261,8 +254,8 @@ class Client(object):
         self._update_usage_file()
         return True
 
-    def _kafka_error_callback(self, error, msg):
-        self._write_to_local(msg)
+    def _kafka_error_callback(self, error, msg, data_type):
+        self._write_to_local(msg, data_type)
 
     def update_network_metrics(self, interval):
         self.system_metrics.update_network(interval)
@@ -332,11 +325,11 @@ class Client(object):
 
     def build_msgpack_event_data(self, type, traceback, tree):
         event_data = self.build_event_data(type, traceback, tree)
-        return msgpack.packb(event_data, use_bin_type=True)
+        return msgpack.packb(event_data, use_bin_type=False)
 
     def build_msgpack_log_data(self, msg, data_type, level):
         log_data = self.build_log_data(msg, data_type, level)
-        return msgpack.packb(log_data, use_bin_type=True)
+        return msgpack.packb(log_data, use_bin_type=False)
 
     def _produce(self, data, data_type="monitoring"):
         try:
@@ -345,7 +338,7 @@ class Client(object):
             # Expected
             pass
 
-        self.producer.send(self.producer_types[data_type],
+        self.producer.send(self.producer_types[data_type], 
                            value=data, key="python") \
             .add_errback(self._kafka_error_callback, data_type, msg=data)
 
@@ -356,9 +349,9 @@ class Client(object):
                     self._produce(data, data_type)
                     self._produce_from_local()
                 else:
-                    self._write_to_local(data)
+                    self._write_to_local(data, data_type)
             except KafkaError:
-                self._write_to_local(data)
+                self._write_to_local(data, data_type)
 
 
 class Runnable(object):
@@ -412,6 +405,7 @@ class Runnable(object):
         :raises NotImplementedError: :meth:`run` is not overridden.
         """
         raise NotImplementedError('Implement run()')
+        yield
 
     def __enter__(self):
         self.start()
@@ -473,6 +467,7 @@ def setup_thread_excepthook():
     init_original = threading.Thread.__init__
 
     def init(self, *args, **kwargs):
+
         init_original(self, *args, **kwargs)
         run_original = self.run
 
