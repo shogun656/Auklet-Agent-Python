@@ -1,21 +1,15 @@
 import os
 import ast
-import json
-import msgpack
 import unittest
 
 
 from mock import patch
 from datetime import datetime
-from kafka.errors import KafkaError
-from ipify.exceptions import IpifyException
 
 from tests import data_factory
 
-from auklet.base import *
-from auklet.utils import *
+from auklet.base import Client, Runnable
 from auklet.stats import MonitoringTree
-from auklet.errors import AukletConfigurationError
 
 
 class TestClient(unittest.TestCase):
@@ -46,22 +40,9 @@ class TestClient(unittest.TestCase):
         return Traceback
 
     def setUp(self):
-        def _get_kafka_brokers(self):
-            self.brokers = ["api-staging.auklet.io:9093"]
-            self.producer_types = {
-                "monitoring": "profiling",
-                "event": "events",
-                "log": "logging"
-            }
-        self.patcher = patch(
-            'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
-        self.patcher.start()
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.monitoring_tree = MonitoringTree()
-
-    def tearDown(self):
-        self.patcher.stop()
 
     def test___init__(self):
         class SystemMetrics(object):
@@ -250,47 +231,6 @@ class TestRunnable(unittest.TestCase):
             self.assertTrue(running)  # global variable used here
 
     def test___exit__(self):
-        pass
-
-
-class Test(unittest.TestCase):
-    def test_frame_stack(self):
-        class FrameStack:
-            f_back = None
-        frame = FrameStack()
-        self.assertNotEqual(frame_stack(frame), None)
-
-    def test_get_mac(self):
-        self.assertNotEqual(get_mac(), None)
-
-    def test_get_commit_hash(self):
-        with open(".auklet/version", "w") as my_file:
-            my_file.write("commit_hash")
-        self.assertNotEqual(get_commit_hash(), "")
-
-        os.system("rm -R .auklet")
-        self.assertEqual(get_commit_hash(), "")
-        os.system("mkdir .auklet")
-        os.system("touch .auklet/local.txt")
-        os.system("touch .auklet/version")
-
-    def test_get_abs_path(self):
-        path = os.path.abspath(__file__)
-        self.assertEqual(get_abs_path(path + "/.auklet"), path)
-
-        with patch('os.path.abspath') as mock_abspath:
-            mock_abspath.side_effect = IndexError
-            self.assertEqual(get_abs_path(path), '')
-
-    def test_get_device_ip(self):
-        self.assertNotEqual(get_device_ip(), None)
-        with patch('auklet.base.get_ip') as mock_error:
-            mock_error.side_effect = IpifyException
-            self.assertIsNone(get_device_ip())
-            mock_error.side_effect = Exception
-            self.assertIsNone(get_device_ip())
-
-    def test_setup_thread_excepthook(self):
         pass
 
 

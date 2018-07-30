@@ -64,27 +64,6 @@ class Profiler(ABC):
         except OSError:
             return False
 
-    def _get_kafka_certs(self):
-        url = Request(build_url(self.client.base_url,
-                                "private/devices/certificates/"),
-                      headers={"Authorization": "JWT %s" % self.client.apikey})
-        try:
-            try:
-                res = urlopen(url)
-            except HTTPError as e:
-                # Allow for accessing redirect w/o including the
-                # Authorization token.
-                res = urlopen(e.geturl())
-        except URLError:
-            return False
-        mlz = zipfile.ZipFile(io.BytesIO(res.read()))
-        for temp_file in mlz.filelist:
-            filename = ".auklet/%s.pem" % temp_file.filename
-            create_file(filename)
-            f = open(filename, "wb")
-            f.write(mlz.open(temp_file.filename).read())
-        return True
-
     @abc.abstractmethod
     def _read_from_conf(self, data):
         pass
@@ -106,6 +85,27 @@ class KafkaClient(Profiler):
             "event": data['event_topic'],
             "log": data['log_topic']
         }
+
+    def _get_kafka_certs(self):
+        url = Request(build_url(self.client.base_url,
+                                "private/devices/certificates/"),
+                      headers={"Authorization": "JWT %s" % self.client.apikey})
+        try:
+            try:
+                res = urlopen(url)
+            except HTTPError as e:
+                # Allow for accessing redirect w/o including the
+                # Authorization token.
+                res = urlopen(e.geturl())
+        except URLError:
+            return False
+        mlz = zipfile.ZipFile(io.BytesIO(res.read()))
+        for temp_file in mlz.filelist:
+            filename = ".auklet/%s.pem" % temp_file.filename
+            create_file(filename)
+            f = open(filename, "wb")
+            f.write(mlz.open(temp_file.filename).read())
+        return True
 
     def _write_to_local(self, data, data_type):
         try:

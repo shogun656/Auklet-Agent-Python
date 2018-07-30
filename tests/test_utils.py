@@ -51,3 +51,46 @@ class TestUtils(unittest.TestCase):
         clear_file(file_name)
         self.assertEqual(os.path.getsize(file_name), 0)
         os.remove(file_name)
+
+    def test_frame_stack(self):
+        class FrameStack:
+            f_back = None
+        frame = FrameStack()
+        self.assertNotEqual(frame_stack(frame), None)
+
+    def test_get_mac(self):
+        self.assertNotEqual(get_mac(), None)
+
+    def test_get_commit_hash(self):
+        with open(".auklet/version", "w") as my_file:
+            my_file.write("commit_hash")
+        self.assertNotEqual(get_commit_hash(), "")
+
+        os.system("rm -R .auklet")
+        self.assertEqual(get_commit_hash(), "")
+        os.system("mkdir .auklet")
+        os.system("touch .auklet/local.txt")
+        os.system("touch .auklet/version")
+
+    def test_get_abs_path(self):
+        path = os.path.abspath(__file__)
+        self.assertEqual(get_abs_path(path + "/.auklet"), path)
+
+        with patch('os.path.abspath') as mock_abspath:
+            mock_abspath.side_effect = IndexError
+            self.assertEqual(get_abs_path(path), '')
+
+    def test_get_device_ip(self):
+        self.assertNotEqual(get_device_ip(), None)
+        with patch('auklet.utils.get_ip') as mock_error:
+            mock_error.side_effect = IpifyException
+            self.assertIsNone(get_device_ip())
+            mock_error.side_effect = Exception
+            self.assertIsNone(get_device_ip())
+
+    def test_setup_thread_excepthook(self):
+        pass
+
+
+if __name__ == '__main__':
+    unittest.main()

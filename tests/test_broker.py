@@ -17,6 +17,7 @@ from auklet.utils import *
 from auklet.broker import KafkaClient, MQTTClient
 
 class TestKafkaBroker(unittest.TestCase):
+    data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
 
     def setUp(self):
         def _load_conf(self):
@@ -52,12 +53,12 @@ class TestKafkaBroker(unittest.TestCase):
         self.assertTrue(self.broker._load_conf())
         open(filename, "w").close()
 
-    def test_get_certs(self):
-        with patch('auklet.base.Client._build_url') as mock_zip_file:
+    def test_get_kafka_certs(self):
+        with patch('auklet.utils.build_url') as mock_zip_file:
             with patch('zipfile.ZipFile') as mock_url:
                 mock_url.file_list.return_value = ""
                 mock_zip_file.return_value = "http://api-staging.auklet.io"
-                self.assertTrue(self.broker._get_certs())
+                self.assertTrue(self.broker._get_kafka_certs())
 
     def test_write_to_local(self):
         self.broker._write_to_local(data=self.data, data_type="")
@@ -101,6 +102,7 @@ class TestKafkaBroker(unittest.TestCase):
     def test_produce(self):
         global error  # used to tell which test case is being tested
         error = False
+
         def _produce(self, data, data_type="monitoring"):
             global test_produce_data  # used to tell data was produced
             test_produce_data = data
@@ -129,6 +131,7 @@ class TestKafkaBroker(unittest.TestCase):
 
 
 class TestMQTTBroker(unittest.TestCase):
+    data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
 
     def setUp(self):
         def _load_conf(self):
@@ -157,3 +160,21 @@ class TestMQTTBroker(unittest.TestCase):
 
     def tearDown(self):
         self.patcher.stop()
+
+    def test__produce(self):
+        pass
+
+    def test_produce(self):
+        def _produce(self, data, data_type="monitoring"):
+            global test_produce_data  # used to tell data was produced
+            test_produce_data = data
+
+        with patch('auklet.broker.KafkaClient._produce', new=_produce):
+            self.broker.producer = True
+            self.broker.produce(self.data)
+            self.assertNotEqual(
+                str(test_produce_data), None)  # global used here
+
+
+if __name__ == '__main__':
+    unittest.main()
