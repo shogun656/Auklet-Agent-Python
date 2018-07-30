@@ -6,7 +6,6 @@ from auklet.monitoring import Monitoring
 from auklet.stats import MonitoringTree
 from auklet.base import Client
 from auklet.broker import KafkaClient
-from auklet.utils import open_auklet_url
 
 
 class TestAukletSampler(unittest.TestCase):
@@ -19,8 +18,8 @@ class TestAukletSampler(unittest.TestCase):
                 "log": "logging"
             }
 
-        def open_auklet_url(url, apikey):
-            _ = url
+        def update_limits(self):
+            pass
 
         def _get_certs(self):
             return True
@@ -28,12 +27,12 @@ class TestAukletSampler(unittest.TestCase):
         self.patcher = patch(
             'auklet.broker.Profiler._load_conf', new=_load_conf)
         self.patcher2 = patch(
-            'auklet.utils.open_auklet_url', new=open_auklet_url)
+            'auklet.base.Client.update_limits', new=update_limits)
         self.patcher3 = patch(
             'auklet.broker.KafkaClient._get_certs', new=_get_certs)
         self.patcher.start()
-        self.patcher2.start()
         self.patcher3.start()
+        self.patcher2.start()
 
         self.monitoring = Monitoring(
             apikey="", app_id="",
@@ -48,11 +47,6 @@ class TestAukletSampler(unittest.TestCase):
         self.tree = self.monitoring_tree
         self.auklet_sampler = AukletSampler(
             client=self.client, broker=self.broker, tree=self.tree)
-
-    def tearDown(self):
-        self.patcher.stop()
-        self.patcher2.stop()
-        self.patcher3.stop()
 
     def test_profile(self):
         pass
