@@ -4,7 +4,6 @@ from mock import patch
 from auklet.monitoring import MonitoringBase, Monitoring
 
 
-
 class TestMonitoringBase(unittest.TestCase):
     def setUp(self):
         self.monitoring_base = MonitoringBase()
@@ -38,12 +37,20 @@ class TestMonitoringBase(unittest.TestCase):
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
+        def _get_certs(self):
+            return True
+        self.patcher = patch(
+            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
+        self.patcher.start()
         self.monitoring = Monitoring(
             apikey="",
             app_id="",
             base_url="https://api-staging.io",
             monitoring=True)
         self.monitoring.monitor = True
+
+    def tearDown(self):
+        self.patcher.stop()
 
     def test_start(self):
         self.monitoring.start()
