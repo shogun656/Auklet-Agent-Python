@@ -14,6 +14,32 @@ from auklet.utils import *
 from auklet.broker import KafkaClient, MQTTClient
 
 
+class TestLoadConfig(unittest.TestCase):
+    config = ast.literal_eval(str(data_factory.ConfigFactory()))
+
+    def setUp(self):
+        def _get_certs(self):
+            return True
+
+        self.patcher = patch(
+            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
+        self.patcher.start()
+        self.client = Client(
+            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.broker = KafkaClient(self.client)
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_load_conf(self):
+        # This test needs it's own class as the setUp was making it fail
+        filename = self.broker.com_config_filename
+        with open(filename, "w") as config:
+            config.write(json.dumps(self.config))
+        self.assertTrue(self.broker._load_conf())
+        open(filename, "w").close()
+
+
 class TestKafkaBroker(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
     config = ast.literal_eval(str(data_factory.ConfigFactory()))
@@ -44,22 +70,10 @@ class TestKafkaBroker(unittest.TestCase):
         self.patcher2.stop()
 
     def test_write_kafka_conf(self):
-        filename = self.client.com_config_filename
+        filename = self.broker.com_config_filename
         self.broker._write_conf(info=self.config)
         self.assertGreater(os.path.getsize(filename), 0)
         open(filename, "w").close()
-
-    def test_load_conf(self):
-        try:
-            self.patcher.stop()
-        except RuntimeError:
-            pass
-        filename = self.broker.com_config_filename
-        with open(filename, "w") as config:
-            config.write(json.dumps(self.config))
-        self.assertTrue(self.broker._load_conf())
-        open(filename, "w").close()
-        self.patcher.start()
 
     def test_get_certs(self):
         with patch('auklet.utils.build_url') as mock_zip_file:

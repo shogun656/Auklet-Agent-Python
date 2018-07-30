@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from auklet.utils import open_auklet_url, build_url, create_file, clear_file, b, u
+from auklet.utils import build_url, create_file, clear_file
 
 try:
     # For Python 3.0 and later
