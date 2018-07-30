@@ -5,7 +5,8 @@ jobs:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
-        machine: true
+        machine:
+            image: circleci/classic:201711-01
 
         steps:
             ##
@@ -71,13 +72,6 @@ jobs:
             # TESTS
             ##
             - run:
-                name: Run Whitesource
-                command: |
-                  set -ou pipefail
-                  if [[ ! -f ~/.localCircleBuild ]]; then
-                    bash .devops/whitesource.sh
-                  fi
-            - run:
                 name: Run Unit Tests
                 command: |
                   if [[ -f ~/.localCircleBuild ]]; then
@@ -86,6 +80,13 @@ jobs:
                     CIRCLE_LOCAL_BUILD=false
                   fi
                   bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
+            - run:
+                name: Run Whitesource
+                command: |
+                  set -ou pipefail
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    bash .devops/whitesource.sh
+                  fi
 
             ##
             # DOCKER
