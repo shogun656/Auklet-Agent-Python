@@ -6,15 +6,13 @@ import unittest
 import paho.mqtt.client as mqtt
 
 from mock import patch
-from datetime import datetime
 from kafka.errors import KafkaError
-from ipify.exceptions import IpifyException
-
 from tests import data_factory
 
 from auklet.base import Client
 from auklet.utils import *
 from auklet.broker import KafkaClient, MQTTClient
+
 
 class TestKafkaBroker(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
@@ -54,19 +52,20 @@ class TestKafkaBroker(unittest.TestCase):
         self.assertGreater(os.path.getsize(filename), 0)
         open(filename, "w").close()
 
-    def test_load_kafka_conf(self):
+    def test_load_conf(self):
+        self.patcher2.stop()
         filename = self.client.com_config_filename
         with open(filename, "w") as config:
             config.write(json.dumps(self.config))
         self.assertTrue(self.broker._load_conf())
         open(filename, "w").close()
 
-    def test_get_kafka_certs(self):
+    def test_get_certs(self):
         with patch('auklet.utils.build_url') as mock_zip_file:
             with patch('zipfile.ZipFile') as mock_url:
                 mock_url.file_list.return_value = ""
                 mock_zip_file.return_value = "http://api-staging.auklet.io"
-                self.assertTrue(self.broker._get_kafka_certs())
+                self.assertTrue(self.broker._get_certs())
 
     def test_write_to_local(self):
         self.broker._write_to_local(data=self.data, data_type="")
@@ -159,15 +158,17 @@ class TestMQTTBroker(unittest.TestCase):
             self.producer.loop_start()
         self.patcher = patch(
             'auklet.broker.MQTTClient._load_conf', new=_load_conf)
-        self.patcher = patch(
+        self.patcher2 = patch(
             'auklet.broker.MQTTClient.create_producer', new=create_producer)
         self.patcher.start()
+        self.patcher2.start()
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.broker = MQTTClient(self.client)
 
     def tearDown(self):
         self.patcher.stop()
+        self.patcher2.stop()
 
     def test__produce(self):
         pass

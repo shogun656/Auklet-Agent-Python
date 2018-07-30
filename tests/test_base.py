@@ -48,7 +48,7 @@ class TestClient(unittest.TestCase):
             global test__init__system_metrics  # used to tell a producer exists
             test__init__system_metrics = True
 
-        with patch('kafka.stats.SystemMetrics', new=SystemMetrics):
+        with patch('auklet.stats.SystemMetrics', new=SystemMetrics):
             self.client.__init__()
             self.assertTrue(test__init__system_metrics)  # global used here
 

@@ -9,22 +9,29 @@ from auklet.base import Client
 
 class TestAukletSampler(unittest.TestCase):
     def setUp(self):
-        def _load_config(self):
+        def _load_conf(self):
             self.brokers = ["api-staging.auklet.io:9093"]
             self.producer_types = {
                 "monitoring": "profiling",
                 "event": "events",
                 "log": "logging"
             }
+
         def open_auklet_url(self, url):
             _ = url
 
+        def _get_certs(self):
+            return True
+
         self.patcher = patch(
-            'auklet.broker.Profiler._load_config', new=_load_config)
+            'auklet.broker.Profiler._load_conf', new=_load_conf)
         self.patcher2 = patch(
             'auklet.utils.open_auklet_url', new=open_auklet_url)
+        self.patcher3 = patch(
+            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
         self.patcher.start()
         self.patcher2.start()
+        self.patcher3.start()
 
         self.monitoring = Monitoring(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
@@ -42,6 +49,7 @@ class TestAukletSampler(unittest.TestCase):
     def tearDown(self):
         self.patcher.stop()
         self.patcher2.stop()
+        self.patcher3.stop()
 
     def test_profile(self):
         pass

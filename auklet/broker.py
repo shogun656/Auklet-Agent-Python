@@ -30,6 +30,7 @@ ABC = abc.ABCMeta('ABC', (object,), {'__slots__': ()})
 class Profiler(ABC):
     producer = None
     brokers = None
+    client = None
     com_config_filename = ".auklet/communication"
 
     def __init__(self, client):
@@ -65,9 +66,9 @@ class Profiler(ABC):
             return False
 
     def _get_certs(self):
-        url = Request(build_url(self.client.base_url,
-                                "private/devices/certificates/"),
-                      headers={"Authorization": "JWT %s" % self.client.apikey})
+        url = Request(
+            build_url(self.client.base_url, "private/devices/certificates/"),
+            headers={"Authorization": "JWT %s" % self.client.apikey})
         try:
             try:
                 res = urlopen(url)

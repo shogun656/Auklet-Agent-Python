@@ -36,11 +36,19 @@ class TestMonitoringBase(unittest.TestCase):
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
+        def _get_certs(self):
+            return True
+        self.patcher = patch(
+            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
+        self.patcher.start()
         self.function = Monitoring(
             apikey="",
             app_id="",
             base_url="https://api-staging.io",
             monitoring=True)
+
+    def tearDown(self):
+        self.patcher.stop()
 
     def test_start(self):
         self.assertTrue(self.function.monitor)
