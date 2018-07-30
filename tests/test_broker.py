@@ -51,7 +51,7 @@ class TestKafkaBroker(unittest.TestCase):
 
     def test_load_conf(self):
         self.patcher.stop()
-        filename = self.client.com_config_filename
+        filename = self.broker.com_config_filename
         with open(filename, "w") as config:
             config.write(json.dumps(self.config))
         self.assertTrue(self.broker._load_conf())
