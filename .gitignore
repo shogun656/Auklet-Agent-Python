@@ -210,4 +210,8 @@ coverage.xml
 tests/.auklet
 tests/monitoring/.auklet
 .tox/
+.pyenv/
+
+tests/key.pem
+tests/key.pem.zip
 
