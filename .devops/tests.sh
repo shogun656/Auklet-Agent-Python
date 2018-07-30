@@ -21,6 +21,9 @@ if [ ! -f key.pem.zip ]; then
     zip key.pem.zip key.pem
 fi
 
+pip install --upgrade setuptools
+pip install coverage
+
 python setup.py install
 
 # This outputs the complete current python version to `pyver`

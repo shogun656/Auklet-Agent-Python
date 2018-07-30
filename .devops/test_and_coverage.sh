@@ -13,8 +13,7 @@ CIRCLE_LOCAL_BUILD=$1
 
 sudo mv .pyenv /
 
-pip install --upgrade setuptools
-pip install tox coverage
+pip install tox
 
 if [ -d htmlcov ]; then
     rm -R htmlcov
