@@ -6,6 +6,10 @@ from auklet.monitoring import MonitoringBase, Monitoring
 
 class TestMonitoringBase(unittest.TestCase):
     def setUp(self):
+        def _get_certs(self):
+            return True
+        self.patcher = patch(
+            'auklet.broker.Profiler._get_certs', new=_get_certs)
         self.monitoring_base = MonitoringBase()
 
     def test_start(self):

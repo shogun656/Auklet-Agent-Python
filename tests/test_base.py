@@ -14,7 +14,6 @@ from auklet.stats import MonitoringTree
 
 class TestClient(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
-    config = ast.literal_eval(str(data_factory.ConfigFactory()))
 
     @staticmethod
     def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):

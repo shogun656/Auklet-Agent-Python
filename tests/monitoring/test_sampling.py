@@ -1,4 +1,3 @@
-import time
 import unittest
 from mock import patch
 
@@ -6,7 +5,6 @@ from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring import Monitoring
 from auklet.stats import MonitoringTree
 from auklet.base import Client
-from auklet.utils import *
 
 
 class TestAukletSampler(unittest.TestCase):
@@ -22,7 +20,7 @@ class TestAukletSampler(unittest.TestCase):
             _ = url
 
         self.patcher = patch(
-            'auklet.broker.Producer._load_config', new=_load_config)
+            'auklet.broker.Profiler._load_config', new=_load_config)
         self.patcher2 = patch(
             'auklet.utils.open_auklet_url', new=open_auklet_url)
         self.patcher.start()

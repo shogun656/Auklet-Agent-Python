@@ -18,6 +18,7 @@ from auklet.broker import KafkaClient, MQTTClient
 
 class TestKafkaBroker(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
+    config = ast.literal_eval(str(data_factory.ConfigFactory()))
 
     def setUp(self):
         def _load_conf(self):
@@ -27,15 +28,22 @@ class TestKafkaBroker(unittest.TestCase):
                 "event": "events",
                 "log": "logging"
             }
+
+        def _get_certs(self):
+            return True
         self.patcher = patch(
+            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
+        self.patcher2 = patch(
             'auklet.broker.KafkaClient._load_conf', new=_load_conf)
         self.patcher.start()
+        self.patcher2.start()
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.broker = KafkaClient(self.client)
 
     def tearDown(self):
         self.patcher.stop()
+        self.patcher2.stop()
 
     def test_get_brokers(self):
         pass
