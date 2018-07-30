@@ -1,9 +1,7 @@
-import sys
 import unittest
 from mock import patch
 
 from auklet.monitoring import MonitoringBase, Monitoring
-from auklet.monitoring import AukletSampler
 
 
 
@@ -70,7 +68,6 @@ class TestMonitoring(unittest.TestCase):
             f_code = CoCode()
 
         def update_hash(self, stack):
-            # print(stack)
             global test_sample_stack  # used to tell if stack was created
             test_sample_stack = stack
 
@@ -83,12 +80,8 @@ class TestMonitoring(unittest.TestCase):
             self.monitoring.sample(frame=Frame, event="call")
             self.build_assert_equal("True")
 
-    # def test_run(self):
-    #     self.assert_()
-
     def test_log(self):
         self.assertEqual(self.monitoring.log(msg="msg", data_type="str"), None)
-
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ from mock import patch
 
 from auklet.stats import Function, Event, MonitoringTree, SystemMetrics
 
+
 class TestFunction(unittest.TestCase):
     def get_test_child(self):
         class TestChild:

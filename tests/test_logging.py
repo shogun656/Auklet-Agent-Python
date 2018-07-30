@@ -1,7 +1,6 @@
 import unittest
 
 from auklet.monitoring.logging import AukletLogging
-from auklet.monitoring import Monitoring, MonitoringBase
 
 
 class TestAukletLogging(unittest.TestCase):

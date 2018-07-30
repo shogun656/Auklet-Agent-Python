@@ -21,7 +21,8 @@ class TestAukletSampler(unittest.TestCase):
 
     def setUp(self):
         self.patcher = patch(
-            'auklet.base.Client._get_kafka_brokers', new=self._get_kafka_brokers)
+            'auklet.base.Client._get_kafka_brokers',
+            new=self._get_kafka_brokers)
         self.patcher2 = patch(
             'auklet.base.Client._open_auklet_url', new=self._open_auklet_url)
 
@@ -63,6 +64,7 @@ class TestAukletSampler(unittest.TestCase):
 
         with patch('auklet.base.Client.produce', new=produce):
             self.auklet_sampler.prev_diff = 2
+            self.monitoring_tree.root_func = ""
             self.auklet_sampler._profile(
                 profiler=self.monitoring, frame=Frame(), event="", arg="")
             self.assertNotEqual(test_profile_event, None)  # global used here
@@ -98,8 +100,7 @@ class TestAukletSampler(unittest.TestCase):
                     self.auklet_sampler.prev_diff = 2
                     self.auklet_sampler.handle_exc(
                         type=None, value="", traceback="")
-                    self.assertEqual(
-                        self.build_event_data(self),
+                    self.assertIsNotNone(
                         test_handle_exc_event)  # global used here
 
     def test_run(self):

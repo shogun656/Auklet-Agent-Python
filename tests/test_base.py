@@ -7,8 +7,6 @@ import msgpack
 import unittest
 import zipfile
 
-print(sys.version_info)
-
 from mock import patch
 from datetime import datetime
 from kafka.errors import KafkaError
@@ -17,7 +15,6 @@ from ipify.exceptions import IpifyException
 from tests import data_factory
 
 from auklet import base
-
 from auklet.base import *
 from auklet.stats import MonitoringTree
 from auklet.errors import AukletConfigurationError
@@ -251,12 +248,12 @@ class TestClient(unittest.TestCase):
         os.system("touch .auklet/limits")
 
     def test_write_to_local(self):
-        self.client._write_to_local(self.data)
+        self.client._write_to_local(self.data, data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 
         os.system("rm -R .auklet")
-        self.assertFalse(self.client._write_to_local(self.data))
+        self.assertFalse(self.client._write_to_local(self.data, data_type=""))
         os.system("mkdir .auklet")
         os.system("touch %s" % self.client.offline_filename)
         self.recreate_files()
@@ -274,13 +271,14 @@ class TestClient(unittest.TestCase):
         def _produce(self, data, data_type):
             global test_produced_data  # used to tell data was produced
             test_produced_data = data
-        with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, "ab") as offline:
-                offline.write(msgpack.Packer().pack({'stackTrace': 'data'}))
-            self.client._produce_from_local()
-        self.assertNotEqual(None, msgpack.packb(  # global used here
-            {'stackTrace': 'data'}, use_bin_type=True))
 
+        with patch('auklet.base.Client._produce', new=_produce):
+            with open(self.client.offline_filename, "a") as offline:
+                offline.write("event:")
+                offline.write(str(msgpack.packb({"stackTrace": "data"})))
+                offline.write("\n")
+            self.client._produce_from_local()
+        self.assertIsNotNone(test_produced_data)  # global used here
         os.system("rm -R .auklet")
         self.assertFalse(self.client._produce_from_local())
         os.system("mkdir .auklet")
@@ -326,7 +324,7 @@ class TestClient(unittest.TestCase):
             self.client._check_data_limit(data=self.data, current_use=0))
 
     def test_kafka_error_callback(self):
-        self.client._kafka_error_callback(msg="", error="")
+        self.client._kafka_error_callback(msg="", error="", data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 
@@ -441,29 +439,31 @@ class TestClient(unittest.TestCase):
         global error  # used to tell which test case is being tested
         error = False
 
-        with patch('auklet.base.Client._produce', new=self._produce):
-            with patch('auklet.base.Client._check_data_limit',
-                       new=self._check_data_limit):
-                self.client.producer = True
+        def _produce(self, data, data_type="monitoring"):
+            global test_produce_data  # used to tell data was produced
+            test_produce_data = data
 
-                with open(self.client.offline_filename, "wb") as offline:
-                    offline.write(
-                        msgpack.Packer().pack(self.data))
+        def _check_data_limit(self, data, data_current, offline=False):
+            if not error or offline:  # global used here
+                return True
+            else:
+                raise KafkaError
+
+        with patch('auklet.base.Client._produce', new=_produce):
+            with patch('auklet.base.Client._check_data_limit',
+                       new=_check_data_limit):
+                self.client.producer = True
+                with open(self.client.offline_filename, "w") as offline:
+                    offline.write("event:")
+                    offline.write(str(msgpack.packb(self.data)))
+                    offline.write("\n")
                 self.client.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
-
                 error = True
                 self.client.produce(self.data)
                 self.assertGreater(
                     os.path.getsize(self.client.offline_filename), 0)
-
-                with patch('auklet.base.Client._check_data_limit') \
-                        as _check_data_limit:
-                    _check_data_limit.return_value = False
-                    self.client.produce({"key", "value"})
-                    self.assertGreater(
-                        os.path.getsize(self.client.offline_filename), 0)
 
 
 class TestRunnable(unittest.TestCase):
@@ -580,13 +580,13 @@ class Test(unittest.TestCase):
         thread_keyboard_interrupt.start()
         os.system("sleep 2")
 
-
     def test_version_info(self):
         self.assertNotEqual(None, base.b('b'))
         self.assertNotEqual(None, base.u(b'u'))
 
     def test_deferral(self):
         self.assertIsNotNone(deferral())
+
 
 if __name__ == '__main__':
     unittest.main()
