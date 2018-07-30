@@ -4,12 +4,9 @@ from mock import patch
 from auklet.monitoring import MonitoringBase, Monitoring
 
 
+
 class TestMonitoringBase(unittest.TestCase):
     def setUp(self):
-        def _get_certs(self):
-            return True
-        self.patcher = patch(
-            'auklet.broker.Profiler._get_certs', new=_get_certs)
         self.monitoring_base = MonitoringBase()
 
     def test_start(self):
@@ -33,61 +30,58 @@ class TestMonitoringBase(unittest.TestCase):
             self.monitoring_base._wall_time_started = 0
         self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
 
+        with patch('auklet.monitoring.max') as mock_max:
+            mock_max.side_effect = AttributeError
+            self.assertEqual(
+                str(self.monitoring_base.result()), "(0, 0.0, 0.0)")
+
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
-        def _get_certs(self):
-            return True
-        self.patcher = patch(
-            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
-        self.patcher.start()
-        self.function = Monitoring(
+        self.monitoring = Monitoring(
             apikey="",
             app_id="",
             base_url="https://api-staging.io",
             monitoring=True)
-
-    def tearDown(self):
-        self.patcher.stop()
+        self.monitoring.monitor = True
 
     def test_start(self):
-        self.assertTrue(self.function.monitor)
-        self.function.monitor = False
-        self.assertFalse(self.function.monitor)
-        self.function.monitor = True
+        self.monitoring.start()
+        self.assertTrue(self.monitoring.monitor)
+        self.monitoring.stop()
+        self.monitoring.monitor = False
+
+    def build_assert_equal(self, expected):
+        self.assertEqual(
+            expected, str(test_sample_stack[0]).strip(')').split(", ")[-1])
 
     def test_sample(self):
         class CoCode:
             co_code = None
             co_firstlineno = None
             co_name = None
-        class Frame:
+        class FBack:
             f_back = None
             f_code = CoCode()
-        frame = Frame()
+        class Frame:
+            f_back = FBack()
+            f_code = CoCode()
 
         def update_hash(self, stack):
             global test_sample_stack  # used to tell if stack was created
             test_sample_stack = stack
 
         with patch('auklet.stats.MonitoringTree.update_hash', new=update_hash):
-            self.function.sample(frame=frame, event="event")
-            self.assertEqual(
-                str(test_sample_stack[0]).strip(')').split(", ")[1], "False")
-            self.function.sample(frame=frame, event="call")
+            self.monitoring.sample(frame=Frame(), event="event")
+            self.assertIsNotNone(test_sample_stack)
+            self.monitoring.sample(frame=Frame(), event="call")
             self.assertTrue(test_sample_stack)  # global used here
-            self.assertEqual(
-                str(test_sample_stack[0]).strip(')').split(", ")[1], "True")
-
-    def test_run(self):
-        self.function.run()
-        self.assertEqual(self.function.sampler.start(self.function), None)
-        self.function.sampler.stop()
-        self.function.sampler.start(self.function)
-        self.assertEqual(self.function.sampler.stop(), None)
+            self.build_assert_equal("True")
+            self.monitoring.sample(frame=Frame, event="call")
+            self.build_assert_equal("True")
 
     def test_log(self):
-        self.assertEqual(self.function.log(msg="msg", data_type="str"), None)
+        self.assertEqual(self.monitoring.log(msg="msg", data_type="str"), None)
 
 
 if __name__ == '__main__':
