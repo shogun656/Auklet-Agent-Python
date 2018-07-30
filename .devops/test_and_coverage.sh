@@ -14,6 +14,10 @@ CIRCLE_LOCAL_BUILD=$1
 pip install tox
 pip install --upgrade setuptools
 
+git clone https://github.com/momo-lab/pyenv-install-latest.git .pyenv/plugins/pyenv-install-latest
+
+sudo mv .pyenv /
+
 if [ -d htmlcov ]; then
     rm -R htmlcov
 fi
