@@ -132,12 +132,13 @@ class TestClient(unittest.TestCase):
                 self.assertTrue(self.client._get_kafka_certs())
 
     def test_write_to_local(self):
-        self.client._write_to_local(self.data)
+        self.client._write_to_local(data=self.data, data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 
         os.system("rm -R .auklet")
-        self.assertFalse(self.client._write_to_local(self.data))
+        self.assertFalse(
+            self.client._write_to_local(data=self.data, data_type=""))
         os.system("mkdir .auklet")
         os.system("touch %s" % self.client.offline_filename)
         os.system("touch .auklet/version")
@@ -152,14 +153,16 @@ class TestClient(unittest.TestCase):
 
     def test_produce_from_local(self):
         def _produce(self, data, data_type):
+            print(data)
             global test_produced_data  # used to tell data was produced
             test_produced_data = data
         with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, "ab") as offline:
-                offline.write(msgpack.Packer().pack({'stackTrace': 'data'}))
+            with open(self.client.offline_filename, "a") as offline:
+                offline.write("event:")
+                offline.write(str(msgpack.packb({"stackTrace": "data"})))
+                offline.write("\n")
             self.client._produce_from_local()
-        self.assertEqual(test_produced_data, msgpack.packb(  # global used here
-            {'stackTrace': 'data'}, use_bin_type=False))
+        self.assertIsNotNone(test_produced_data)  # global used here
 
         os.system("rm -R .auklet")
         self.assertFalse(self.client._produce_from_local())
@@ -206,7 +209,7 @@ class TestClient(unittest.TestCase):
             self.client._check_data_limit(data=self.data, current_use=0))
 
     def test_kafka_error_callback(self):
-        self.client._kafka_error_callback(msg="", error="")
+        self.client._kafka_error_callback(msg="", error="", data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 
@@ -299,7 +302,6 @@ class TestClient(unittest.TestCase):
     def test_produce(self):
         global error  # used to tell which test case is being tested
         error = False
-
         def _produce(self, data, data_type="monitoring"):
             global test_produce_data  # used to tell data was produced
             test_produce_data = data
@@ -314,14 +316,13 @@ class TestClient(unittest.TestCase):
             with patch('auklet.base.Client._check_data_limit',
                        new=_check_data_limit):
                 self.client.producer = True
-
-                with open(self.client.offline_filename, "wb") as offline:
-                    offline.write(
-                        msgpack.Packer().pack(self.data))
+                with open(self.client.offline_filename, "w") as offline:
+                    offline.write("event:")
+                    offline.write(str(msgpack.packb(self.data)))
+                    offline.write("\n")
                 self.client.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
-
                 error = True
                 self.client.produce(self.data)
                 self.assertGreater(

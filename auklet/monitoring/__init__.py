@@ -80,7 +80,7 @@ class Monitoring(AukletLogging):
 
     def process_periodic(self):
         sample_timer = self.total_samples * self.interval
-        if sample_timer % self.emission_rate == 0:
+        if sample_timer % 10 == 0:
             self.client.produce(
                 self.tree.build_msgpack_tree(self.client.app_id))
             self.tree.clear_root()
