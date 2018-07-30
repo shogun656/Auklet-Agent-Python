@@ -180,7 +180,6 @@ class TestMQTTBroker(unittest.TestCase):
             test_produce_data = data
 
         with patch('auklet.broker.KafkaClient._produce', new=_produce):
-            self.broker.producer = True
             self.broker.produce(self.data)
             self.assertNotEqual(
                 str(test_produce_data), None)  # global used here
