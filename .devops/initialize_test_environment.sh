@@ -4,15 +4,13 @@ set -e
 
 VERSION=$1
 
+INSTALL_LATEST='true'
+
 if [ "${#VERSION}" -gt 4 ]; then  # This checks if a complete version is passed
     INSTALL_LATEST='false'      # and if so, it will install that exact version
-else
-    INSTALL_LATEST='true'
 fi
 
 eval "$(pyenv init -)"
-
-echo $INSTALL_LATEST
 
 if [[ "$INSTALL_LATEST" == 'false' ]]; then
     pyenv install $VERSION

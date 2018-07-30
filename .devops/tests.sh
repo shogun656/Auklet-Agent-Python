@@ -3,7 +3,6 @@ set -e
 
 echo "Creating files..."
 mkdir -p .auklet
-mkdir -p .coverage_files
 
 filelist="local.txt version communication usage limits"
 for file in $filelist
