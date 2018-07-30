@@ -50,7 +50,10 @@ class TestKafkaBroker(unittest.TestCase):
         open(filename, "w").close()
 
     def test_load_conf(self):
-        self.patcher.stop()
+        try:
+            self.patcher.stop()
+        except RuntimeError:
+            pass
         filename = self.broker.com_config_filename
         with open(filename, "w") as config:
             config.write(json.dumps(self.config))
