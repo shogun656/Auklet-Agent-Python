@@ -28,6 +28,8 @@ fi
 
 tox
 
+pip install coverage
+
 coverage combine
 coverage report -m
 coverage xml
