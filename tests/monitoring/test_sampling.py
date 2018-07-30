@@ -4,27 +4,27 @@ from mock import patch
 
 from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring import Monitoring
-from auklet.errors import AukletConfigurationError
 from auklet.stats import MonitoringTree
 from auklet.base import Client
+from auklet.utils import *
 
 
 class TestAukletSampler(unittest.TestCase):
     def setUp(self):
-        def _get_kafka_brokers(self):
+        def _load_config(self):
             self.brokers = ["api-staging.auklet.io:9093"]
             self.producer_types = {
                 "monitoring": "profiling",
                 "event": "events",
                 "log": "logging"
             }
-        def _open_auklet_url(self, url):
+        def open_auklet_url(self, url):
             _ = url
 
         self.patcher = patch(
-            'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
+            'auklet.broker.Producer._load_config', new=_load_config)
         self.patcher2 = patch(
-            'auklet.base.Client._open_auklet_url', new=_open_auklet_url)
+            'auklet.utils.open_auklet_url', new=open_auklet_url)
         self.patcher.start()
         self.patcher2.start()
 
@@ -86,7 +86,7 @@ class TestAukletSampler(unittest.TestCase):
 
         with patch('auklet.base.Client.build_event_data',
                    new=build_event_data):
-            with patch('auklet.base.Client.produce', new=produce):
+            with patch('auklet.broker.KafkaClient.produce', new=produce):
                 self.auklet_sampler.handle_exc(
                     type=None, value="", traceback="")
                 self.assertIsNotNone(test_handle_exc_event)  # global used here

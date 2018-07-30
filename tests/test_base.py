@@ -64,113 +64,22 @@ class TestClient(unittest.TestCase):
         self.patcher.stop()
 
     def test___init__(self):
-        def _get_kafka_certs(self):
-            return True
+        class SystemMetrics(object):
+            global test__init__system_metrics  # used to tell a producer exists
+            test__init__system_metrics = True
 
-        class KafkaProducer(object):
-            global test__init__producer  # used to tell a producer exists
-            test__init__producer = True
-
-        with patch('auklet.base.Client._get_kafka_certs',
-                   new=_get_kafka_certs):
-            with patch('kafka.KafkaProducer', new=KafkaProducer):
-                self.client.__init__()
-                self.assertTrue(test__init__producer)  # global used here
-
-    def test_create_file(self):
-        files = ['.auklet/local.txt', '.auklet/limits',
-                 '.auklet/usage', '.auklet/communication']
-        for f in files:
-            file = False
-            if os.path.isfile(f):
-                file = True
-            self.assertTrue(file)
-
-    def test_build_url(self):
-        extension = str("private/devices/config/")
-        self.assertEqual(
-
-            build_url(self.client.base_url, extension),
-            self.client.base_url + extension)
-
-    def test_open_auklet_url(self):
-        url = self.client.base_url + "private/devices/config/"
-        self.assertRaises(
-            AukletConfigurationError,
-            lambda: self.client._open_auklet_url(url))
-        url = "http://google.com/"
-        self.assertNotEqual(self.client._open_auklet_url(url), None)
+        with patch('kafka.stats.SystemMetrics', new=SystemMetrics):
+            self.client.__init__()
+            self.assertTrue(test__init__system_metrics)  # global used here
 
     def test_get_config(self):
         pass
-
-    def test_get_kafka_brokers(self):
-        pass
-
-    def test_write_kafka_conf(self):
-        filename = self.client.com_config_filename
-        self.client._write_kafka_conf(info=self.config)
-        self.assertGreater(os.path.getsize(filename), 0)
-        open(filename, "w").close()
-
-    def test_load_kafka_conf(self):
-        filename = self.client.com_config_filename
-        with open(filename, "w") as config:
-            config.write(json.dumps(self.config))
-        self.assertTrue(self.client._load_kafka_conf())
-        open(filename, "w").close()
 
     def test_load_limits(self):
         loaded = True
         if self.client._load_limits():
             loaded = False
         self.assertTrue(loaded)
-
-    def test_get_kafka_certs(self):
-        with patch('auklet.base.Client._build_url') as mock_zip_file:
-            with patch('zipfile.ZipFile') as mock_url:
-                mock_url.file_list.return_value = ""
-                mock_zip_file.return_value = "http://api-staging.auklet.io"
-                self.assertTrue(self.client._get_kafka_certs())
-
-    def test_write_to_local(self):
-        self.client._write_to_local(data=self.data, data_type="")
-        self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
-        self.client._clear_file(self.client.offline_filename)
-
-        os.system("rm -R .auklet")
-        self.assertFalse(
-            self.client._write_to_local(data=self.data, data_type=""))
-        os.system("mkdir .auklet")
-        os.system("touch %s" % self.client.offline_filename)
-        os.system("touch .auklet/version")
-
-    def test_clear_file(self):
-        file_name = "unit_test_temp"
-        with open(file_name, "w") as unit_test_temp_file:
-            unit_test_temp_file.write("data")
-        self.client._clear_file(file_name)
-        self.assertEqual(os.path.getsize(file_name), 0)
-        os.remove(file_name)
-
-    def test_produce_from_local(self):
-        def _produce(self, data, data_type):
-            print(data)
-            global test_produced_data  # used to tell data was produced
-            test_produced_data = data
-        with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, "a") as offline:
-                offline.write("event:")
-                offline.write(str(msgpack.packb({"stackTrace": "data"})))
-                offline.write("\n")
-            self.client._produce_from_local()
-        self.assertIsNotNone(test_produced_data)  # global used here
-
-        os.system("rm -R .auklet")
-        self.assertFalse(self.client._produce_from_local())
-        os.system("mkdir .auklet")
-        os.system("touch %s" % self.client.offline_filename)
-        os.system("touch .auklet/version")
 
     def test_build_usage_json(self):
         data = self.client._build_usage_json()
@@ -187,33 +96,28 @@ class TestClient(unittest.TestCase):
     def test_check_data_limit(self):
         self.client.offline_limit = None
         self.assertTrue(
-            self.client._check_data_limit(
+            self.client.check_data_limit(
                 data=self.data, current_use=0, offline=True))
 
         self.client.data_limit = None
         self.assertTrue(
-            self.client._check_data_limit(data=self.data, current_use=0))
+            self.client.check_data_limit(data=self.data, current_use=0))
 
         self.client.offline_limit = self.client.data_limit = 1
         self.assertFalse(
-            self.client._check_data_limit(data=self.data, current_use=0))
+            self.client.check_data_limit(data=self.data, current_use=0))
 
         self.client.data_limit = 1000
-        self.client._check_data_limit(
+        self.client.check_data_limit(
             data=self.data, current_use=0, offline=True)
         self.assertNotEqual(self.client.offline_current, 0)
 
-        self.client._check_data_limit(
+        self.client.check_data_limit(
             data=self.data, current_use=0)
         self.assertNotEqual(self.client.data_current, 0)
 
         self.assertTrue(
-            self.client._check_data_limit(data=self.data, current_use=0))
-
-    def test_kafka_error_callback(self):
-        self.client._kafka_error_callback(msg="", error="", data_type="")
-        self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
-        self.client._clear_file(self.client.offline_filename)
+            self.client.check_data_limit(data=self.data, current_use=0))
 
     def test_update_network_metrics(self):
         self.client.update_network_metrics(1000)
@@ -297,38 +201,6 @@ class TestClient(unittest.TestCase):
         self.assertBuildLogData(
             self.client.build_msgpack_log_data(
                 msg='msg', data_type='data_type', level='level'))
-
-    def test__produce(self):
-        pass
-
-    def test_produce(self):
-        global error  # used to tell which test case is being tested
-        error = False
-        def _produce(self, data, data_type="monitoring"):
-            global test_produce_data  # used to tell data was produced
-            test_produce_data = data
-
-        def _check_data_limit(self, data, data_current, offline=False):
-            if not error or offline:  # global used here
-                return True
-            else:
-                raise KafkaError
-
-        with patch('auklet.base.Client._produce', new=_produce):
-            with patch('auklet.base.Client._check_data_limit',
-                       new=_check_data_limit):
-                self.client.producer = True
-                with open(self.client.offline_filename, "w") as offline:
-                    offline.write("event:")
-                    offline.write(str(msgpack.packb(self.data)))
-                    offline.write("\n")
-                self.client.produce(self.data)
-                self.assertNotEqual(
-                    str(test_produce_data), None)  # global used here
-                error = True
-                self.client.produce(self.data)
-                self.assertGreater(
-                    os.path.getsize(self.client.offline_filename), 0)
 
 
 class TestRunnable(unittest.TestCase):

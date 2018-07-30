@@ -1,4 +1,3 @@
-import string
 import unittest
 from mock import patch
 
@@ -29,7 +28,6 @@ class TestMonitoringBase(unittest.TestCase):
         self.monitoring_base._cpu_time_started = \
             self.monitoring_base._wall_time_started = 0
         self.assertNotEqual(str(self.monitoring_base.result()), "(0, 0, 0)")
-
 
 
 class TestMonitoring(unittest.TestCase):

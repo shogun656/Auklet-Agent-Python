@@ -32,16 +32,15 @@ class Profiler(ABC):
     brokers = None
     com_config_filename = ".auklet/communication"
 
-    def __init__(self, client, base_url, apikey):
+    def __init__(self, client):
         self._load_conf()
         self.create_producer()
         self.client = client
-        self.base_url = base_url
-        self.apikey = apikey
 
     def _get_brokers(self):
         res = open_auklet_url(
-            build_url(self.base_url, "private/devices/config/"))
+            build_url(self.client.base_url, "private/devices/config/"),
+            self.client.apikey)
         if res is None:
             return self._load_conf()
         info = json.loads(u(res.read()))
@@ -66,8 +65,9 @@ class Profiler(ABC):
             return False
 
     def _get_kafka_certs(self):
-        url = Request(build_url(self.base_url, "private/devices/certificates/"),
-                      headers={"Authorization": "JWT %s" % self.apikey})
+        url = Request(build_url(self.client.base_url,
+                                "private/devices/certificates/"),
+                      headers={"Authorization": "JWT %s" % self.client.apikey})
         try:
             try:
                 res = urlopen(url)
@@ -84,9 +84,6 @@ class Profiler(ABC):
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
         return True
-
-    def _serialize(self, msg):
-        return json.dumps(msg)
 
     @abc.abstractmethod
     def _read_from_conf(self, data):
