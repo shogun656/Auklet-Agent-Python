@@ -62,7 +62,7 @@ class AukletSampler(Runnable):
     def handle_exc(self, type, value, traceback):
         event = self.client.build_msgpack_event_data(
             type, traceback, self.tree)
-        self.client.produce(event, "event")
+        self.broker.produce(event, "event")
         return sys.__excepthook__(type, value, traceback)
 
     def run(self, profiler):

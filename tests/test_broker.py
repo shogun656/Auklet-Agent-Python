@@ -59,6 +59,7 @@ class TestKafkaBroker(unittest.TestCase):
             config.write(json.dumps(self.config))
         self.assertTrue(self.broker._load_conf())
         open(filename, "w").close()
+        self.patcher2.start()
 
     def test_get_certs(self):
         with patch('auklet.utils.build_url') as mock_zip_file:

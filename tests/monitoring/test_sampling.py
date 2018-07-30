@@ -17,7 +17,7 @@ class TestAukletSampler(unittest.TestCase):
                 "log": "logging"
             }
 
-        def open_auklet_url(self, url):
+        def open_auklet_url(url, apikey):
             _ = url
 
         def _get_certs(self):
@@ -34,8 +34,8 @@ class TestAukletSampler(unittest.TestCase):
         self.patcher3.start()
 
         self.monitoring = Monitoring(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-
+            apikey="", app_id="",
+            base_url="https://api-staging.auklet.io/", kafka=True)
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
 
@@ -70,7 +70,7 @@ class TestAukletSampler(unittest.TestCase):
         #     self.auklet_sampler.prev_diff = 1
         #     self.auklet_sampler._profile(
         #         profiler=self.monitoring, frame=Frame(), event="", arg="")
-        #     # self.assertNotEqual(test_profile_event, None)  # global used here
+        #     # self.assertNotEqual(test_profile_event, None) # global used here
 
     def test_handle_exc(self):
         def build_event_data(self, type="", value="", traceback=""):
