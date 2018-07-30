@@ -43,9 +43,6 @@ class TestKafkaBroker(unittest.TestCase):
         self.patcher.stop()
         self.patcher2.stop()
 
-    def test_get_brokers(self):
-        pass
-
     def test_write_kafka_conf(self):
         filename = self.client.com_config_filename
         self.broker._write_conf(info=self.config)
@@ -176,7 +173,7 @@ class TestMQTTBroker(unittest.TestCase):
             global test_produce_data  # used to tell data was produced
             test_produce_data = data
 
-        with patch('auklet.broker.MQTTClient._produce', new=produce):
+        with patch('auklet.broker.MQTTClient.produce', new=produce):
             self.broker.produce(self.data)
             self.assertNotEqual(
                 str(test_produce_data), None)  # global used here

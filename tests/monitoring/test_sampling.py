@@ -6,6 +6,7 @@ from auklet.monitoring import Monitoring
 from auklet.stats import MonitoringTree
 from auklet.base import Client
 from auklet.broker import KafkaClient
+from auklet.utils import open_auklet_url
 
 
 class TestAukletSampler(unittest.TestCase):

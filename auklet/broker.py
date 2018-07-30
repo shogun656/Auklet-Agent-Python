@@ -38,16 +38,6 @@ class Profiler(ABC):
         self.create_producer()
         self.client = client
 
-    def _get_brokers(self):
-        res = open_auklet_url(
-            build_url(self.client.base_url, "private/devices/config/"),
-            self.client.apikey)
-        if res is None:
-            return self._load_conf()
-        info = json.loads(u(res.read()))
-        self._write_conf(info)
-        self._read_from_conf(info)
-
     def _write_conf(self, info):
         with open(self.com_config_filename, "w") as conf:
             conf.write(json.dumps(info))
