@@ -7,6 +7,8 @@ import msgpack
 import unittest
 import zipfile
 
+print(sys.version_info)
+
 from mock import patch
 from datetime import datetime
 from kafka.errors import KafkaError
