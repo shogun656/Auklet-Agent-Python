@@ -11,8 +11,6 @@ CIRCLE_LOCAL_BUILD=$1
 # a test report was already posted for that commit. On line 19-30 we have
 # implemented a check to see if the test reporter throws this message.
 
-sudo mv .pyenv /
-
 pip install tox
 pip install --upgrade setuptools
 
