@@ -1,6 +1,6 @@
 graft auklet/licenses
 include requirements.txt
-include test_requirements.txt
+include test.txt
 include .devops/tests.sh
 include .devops/test_and_coverage.sh
 include .devops/install_plugins.sh
