@@ -30,9 +30,9 @@ class TestKafkaBroker(unittest.TestCase):
         def _get_certs(self):
             return True
         self.patcher = patch(
-            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
-        self.patcher2 = patch(
             'auklet.broker.KafkaClient._load_conf', new=_load_conf)
+        self.patcher2 = patch(
+            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
         self.patcher.start()
         self.patcher2.start()
         self.client = Client(
@@ -53,13 +53,13 @@ class TestKafkaBroker(unittest.TestCase):
         open(filename, "w").close()
 
     def test_load_conf(self):
-        self.patcher2.stop()
+        self.patcher.stop()
         filename = self.client.com_config_filename
         with open(filename, "w") as config:
             config.write(json.dumps(self.config))
         self.assertTrue(self.broker._load_conf())
         open(filename, "w").close()
-        self.patcher2.start()
+        self.patcher.start()
 
     def test_get_certs(self):
         with patch('auklet.utils.build_url') as mock_zip_file:
@@ -171,15 +171,12 @@ class TestMQTTBroker(unittest.TestCase):
         self.patcher.stop()
         self.patcher2.stop()
 
-    def test__produce(self):
-        pass
-
     def test_produce(self):
-        def _produce(self, data, data_type="monitoring"):
+        def produce(self, data, data_type="monitoring"):
             global test_produce_data  # used to tell data was produced
             test_produce_data = data
 
-        with patch('auklet.broker.KafkaClient._produce', new=_produce):
+        with patch('auklet.broker.MQTTClient._produce', new=produce):
             self.broker.produce(self.data)
             self.assertNotEqual(
                 str(test_produce_data), None)  # global used here

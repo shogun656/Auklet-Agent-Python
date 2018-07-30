@@ -5,6 +5,7 @@ from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring import Monitoring
 from auklet.stats import MonitoringTree
 from auklet.base import Client
+from auklet.broker import KafkaClient
 
 
 class TestAukletSampler(unittest.TestCase):
@@ -38,13 +39,14 @@ class TestAukletSampler(unittest.TestCase):
             base_url="https://api-staging.auklet.io/", kafka=True)
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.broker = KafkaClient(self.client)
 
         self.monitoring_tree = MonitoringTree()
         self.monitoring_tree.root_func = \
             {"key": self.monitoring_tree.get_filename}
         self.tree = self.monitoring_tree
         self.auklet_sampler = AukletSampler(
-            client=self.client, tree=self.tree)
+            client=self.client, broker=self.broker, tree=self.tree)
 
     def tearDown(self):
         self.patcher.stop()

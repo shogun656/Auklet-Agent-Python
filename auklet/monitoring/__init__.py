@@ -82,5 +82,5 @@ class Monitoring(MonitoringBase, AukletLogging):
         self.sampler.stop()
 
     def log(self, msg, data_type, level="INFO"):
-        self.client.produce(
+        self.broker.produce(
             self.client.build_msgpack_log_data(msg, data_type, level), "event")
