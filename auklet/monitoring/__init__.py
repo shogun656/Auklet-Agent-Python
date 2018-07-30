@@ -53,7 +53,8 @@ class Monitoring(MonitoringBase, AukletLogging):
         self.mac_hash = get_mac()
         self.client = Client(apikey, app_id, base_url, self.mac_hash)
         self.tree = MonitoringTree(self.mac_hash)
-        self.broker = KafkaClient(base_url) if kafka else MQTTClient(base_url)
+        self.broker = KafkaClient(self.client, base_url, apikey) if kafka else \
+            MQTTClient(self.client, base_url, apikey)
         sampler = AukletSampler(self.client, self.broker, self.tree)
         super(Monitoring, self).__init__()
         self.sampler = sampler

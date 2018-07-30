@@ -22,8 +22,8 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError, URLError
 
 
-def open_auklet_url(self, url):
-    url = Request(url, headers={"Authorization": "JWT %s" % self.apikey})
+def open_auklet_url(url, apikey):
+    url = Request(url, headers={"Authorization": "JWT %s" % apikey})
     try:
         res = urlopen(url)
     except HTTPError as e:

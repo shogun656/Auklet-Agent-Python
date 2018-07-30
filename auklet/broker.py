@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from auklet.utils import open_auklet_url, build_url, b, u
+from auklet.utils import open_auklet_url, build_url, create_file, clear_file, b, u
 
 try:
     # For Python 3.0 and later
@@ -32,10 +32,12 @@ class Profiler(ABC):
     brokers = None
     com_config_filename = ".auklet/communication"
 
-    def __init__(self, base_url):
+    def __init__(self, client, base_url, apikey):
         self._load_conf()
         self.create_producer()
+        self.client = client
         self.base_url = base_url
+        self.apikey = apikey
 
     def _get_brokers(self):
         res = open_auklet_url(
@@ -64,7 +66,7 @@ class Profiler(ABC):
             return False
 
     def _get_kafka_certs(self):
-        url = Request(self._build_url("private/devices/certificates/"),
+        url = Request(build_url(self.base_url, "private/devices/certificates/"),
                       headers={"Authorization": "JWT %s" % self.apikey})
         try:
             try:
@@ -78,7 +80,7 @@ class Profiler(ABC):
         mlz = zipfile.ZipFile(io.BytesIO(res.read()))
         for temp_file in mlz.filelist:
             filename = ".auklet/%s.pem" % temp_file.filename
-            self._create_file(filename)
+            create_file(filename)
             f = open(filename, "wb")
             f.write(mlz.open(temp_file.filename).read())
         return True
@@ -110,8 +112,9 @@ class KafkaClient(Profiler):
 
     def _write_to_local(self, data, data_type):
         try:
-            if self._check_data_limit(data, self.offline_current, True):
-                with open(self.offline_filename, "a") as offline:
+            if self.client.check_data_limit(data, self.client.offline_current,
+                                            True):
+                with open(self.client.offline_filename, "a") as offline:
                     offline.write(data_type + ":")
                     offline.write(str(data))
                     offline.write("\n")
@@ -121,14 +124,15 @@ class KafkaClient(Profiler):
 
     def _produce_from_local(self):
         try:
-            with open(self.offline_filename, 'r+') as offline:
+            with open(self.client.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
                     data_type = line.split(":")[0]
                     loaded = line.split(":")[1]
-                    if self._check_data_limit(loaded, self.data_current):
+                    if self.client.check_data_limit(loaded,
+                                                    self.client.data_current):
                         self._produce(loaded, data_type)
-            self._clear_file(self.offline_filename)
+            clear_file(self.client.offline_filename)
         except IOError:
             # TODO determine what to do if we can't read the file
             return False
@@ -146,7 +150,6 @@ class KafkaClient(Profiler):
                     "ssl_cafile": ".auklet/ck_ca.pem",
                     "security_protocol": "SSL",
                     "ssl_check_hostname": False,
-                    "value_serializer": lambda m: b(self._serialize(m)),
                     "ssl_context": ctx
                 })
             except (KafkaError, Exception):
@@ -167,7 +170,7 @@ class KafkaClient(Profiler):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                if self._check_data_limit(data, self.data_current):
+                if self.client.check_data_limit(data, self.client.data_current):
                     self._produce(data, data_type)
                     self._produce_from_local()
                 else:
@@ -212,5 +215,4 @@ class MQTTClient(Profiler):
             # Expected
             pass
 
-        self.producer.publish(self.producer_types[data_type],
-                              payload=self._serialize(data))
+        self.producer.publish(self.producer_types[data_type], payload=data)

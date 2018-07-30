@@ -13,6 +13,7 @@ from ipify.exceptions import IpifyException
 from tests import data_factory
 
 from auklet.base import *
+from auklet.utils import *
 from auklet.stats import MonitoringTree
 from auklet.errors import AukletConfigurationError
 
@@ -88,7 +89,8 @@ class TestClient(unittest.TestCase):
     def test_build_url(self):
         extension = str("private/devices/config/")
         self.assertEqual(
-            self.client._build_url(extension),
+
+            build_url(self.client.base_url, extension),
             self.client.base_url + extension)
 
     def test_open_auklet_url(self):

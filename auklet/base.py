@@ -66,7 +66,8 @@ class Client(object):
         res = open_auklet_url(
             build_url(
                 self.base_url,
-                "private/devices/{}/app_config/".format(self.app_id)))
+                "private/devices/{}/app_config/".format(self.app_id)),
+            self.apikey)
         if res is not None:
             return json.loads(u(res.read()))['config']
 
@@ -102,7 +103,7 @@ class Client(object):
         except IOError:
             return False
 
-    def _check_data_limit(self, data, current_use, offline=False):
+    def check_data_limit(self, data, current_use, offline=False):
         if self.offline_limit is None and offline:
             return True
         if self.data_limit is None and not offline:
