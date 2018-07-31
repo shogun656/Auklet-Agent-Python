@@ -271,6 +271,16 @@ class TestClient(unittest.TestCase):
         self.assertEqual(os.path.getsize(file_name), 0)
         os.remove(file_name)
 
+    def write_test_to_local(self):
+        with open(self.client.offline_filename, "w") as offline:
+            offline.write("event::")
+            if sys.version_info < (3,):
+                offline.write(str(self.data))
+            else:
+                offline.write(str(msgpack.packb(self.data)))
+            offline.write("\n")
+
+
     def test_produce_from_local(self):
         open(self.client.offline_filename, "w").close()
         def _produce(self, data, data_type):
@@ -278,13 +288,7 @@ class TestClient(unittest.TestCase):
             test_produced_data = data
 
         with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, "a") as offline:
-                offline.write("event::")
-                if sys.version_info < (3,):
-                    offline.write(str(self.data))
-                else:
-                    offline.write(str(msgpack.packb(self.data)))
-                offline.write("\n")
+            self.write_test_to_local()
             self.client._produce_from_local()
         self.assertIsNotNone(test_produced_data)  # global used here
         os.system("rm -R .auklet")
@@ -461,13 +465,7 @@ class TestClient(unittest.TestCase):
             with patch('auklet.base.Client._check_data_limit',
                        new=_check_data_limit):
                 self.client.producer = True
-                with open(self.client.offline_filename, "w") as offline:
-                    offline.write("event::")
-                    if sys.version_info < (3,):
-                        offline.write(str(self.data))
-                    else:
-                        offline.write(str(msgpack.packb(self.data)))
-                    offline.write("\n")
+                self.write_test_to_local()
                 self.client.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
