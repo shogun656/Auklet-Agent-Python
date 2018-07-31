@@ -18,11 +18,11 @@ class TestLoadConfig(unittest.TestCase):
     config = ast.literal_eval(str(data_factory.ConfigFactory()))
 
     def setUp(self):
-        def _get_certs(self):
-            return True
+        def __init__(self, client):
+            pass
 
         self.patcher = patch(
-            'auklet.broker.KafkaClient._get_certs', new=_get_certs)
+            'auklet.broker.Profiler.__init__', new=__init__)
         self.patcher.start()
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
