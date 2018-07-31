@@ -35,7 +35,8 @@ class TestLoadConfig(unittest.TestCase):
         # This test needs it's own class as the setUp was making it fail
         filename = self.broker.com_config_filename
         self.broker._write_conf(info=self.config)
-        self.assertTrue(self.broker._load_conf())
+        load_conf = self.broker._load_conf()
+        self.assertTrue(load_conf)
         open(filename, "w").close()
 
 
