@@ -10,6 +10,23 @@ from auklet.broker import KafkaClient
 
 class TestAukletSampler(unittest.TestCase):
     def setUp(self):
+        self.start_patcher()
+
+        self.monitoring = Monitoring(
+            apikey="", app_id="",
+            base_url="https://api-staging.auklet.io/", kafka=True)
+        self.client = Client(
+            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        self.broker = KafkaClient(self.client)
+
+        self.monitoring_tree = MonitoringTree()
+        self.monitoring_tree.root_func = \
+            {"key": self.monitoring_tree.get_filename}
+        self.tree = self.monitoring_tree
+        self.auklet_sampler = AukletSampler(
+            client=self.client, broker=self.broker, tree=self.tree)
+
+    def start_patcher(self):
         def _load_conf(self):
             self.brokers = ["api-staging.auklet.io:9093"]
             self.producer_types = {
@@ -33,20 +50,6 @@ class TestAukletSampler(unittest.TestCase):
         self.patcher.start()
         self.patcher3.start()
         self.patcher2.start()
-
-        self.monitoring = Monitoring(
-            apikey="", app_id="",
-            base_url="https://api-staging.auklet.io/", kafka=True)
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-        self.broker = KafkaClient(self.client)
-
-        self.monitoring_tree = MonitoringTree()
-        self.monitoring_tree.root_func = \
-            {"key": self.monitoring_tree.get_filename}
-        self.tree = self.monitoring_tree
-        self.auklet_sampler = AukletSampler(
-            client=self.client, broker=self.broker, tree=self.tree)
 
     def test_profile(self):
         pass
