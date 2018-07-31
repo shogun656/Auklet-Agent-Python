@@ -1,6 +1,5 @@
 import os
 import ast
-import json
 import msgpack
 import unittest
 import paho.mqtt.client as mqtt
@@ -12,32 +11,6 @@ from tests import data_factory
 from auklet.base import Client
 from auklet.utils import *
 from auklet.broker import KafkaClient, MQTTClient
-
-
-class TestLoadConfig(unittest.TestCase):
-    config = ast.literal_eval(str(data_factory.ConfigFactory()))
-
-    def setUp(self):
-        def __init__(self, client):
-            pass
-
-        self.patcher = patch(
-            'auklet.broker.Profiler.__init__', new=__init__)
-        self.patcher.start()
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-        self.broker = KafkaClient(self.client)
-
-    def tearDown(self):
-        self.patcher.stop()
-
-    def test_load_conf(self):
-        # This test needs it's own class as the setUp was making it fail
-        filename = self.broker.com_config_filename
-        self.broker._write_conf(info=self.config)
-        load_conf = self.broker._load_conf()
-        self.assertTrue(load_conf)
-        open(filename, "w").close()
 
 
 class TestKafkaBroker(unittest.TestCase):

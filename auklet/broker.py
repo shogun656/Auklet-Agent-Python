@@ -44,25 +44,15 @@ class Profiler(ABC):
 
     def _load_conf(self):
         try:
-            print("1")
             with open(self.com_config_filename, "r") as conf:
-                print("2")
                 json_data = conf.read()
-                print(json_data)
-                print("3")
                 if json_data:
-                    print("4")
                     data = json.loads(json_data)
-                    print(data)
-                    print("5")
                     self._read_from_conf(data)
-                    print("6")
                     return True
                 else:
-                    print("7")
                     return False
         except OSError:
-            print("8")
             return False
 
     def _get_certs(self):
