@@ -32,17 +32,17 @@ class TestMonitoringBase(unittest.TestCase):
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
-        self.function = Monitoring(
+        self.monitoring = Monitoring(
             apikey="",
             app_id="",
             base_url="https://api-staging.io",
             monitoring=True)
 
     def test_start(self):
-        self.assertTrue(self.function.monitor)
-        self.function.monitor = False
-        self.assertFalse(self.function.monitor)
-        self.function.monitor = True
+        self.assertTrue(self.monitoring.monitor)
+        self.monitoring.monitor = False
+        self.assertFalse(self.monitoring.monitor)
+        self.monitoring.monitor = True
 
     def test_sample(self):
         class CoCode:
@@ -58,16 +58,25 @@ class TestMonitoring(unittest.TestCase):
             global test_sample_stack  # used to tell if stack was created
             test_sample_stack = stack
 
+        with patch('auklet.stats.MonitoringTree.update_hash', new=update_hash):
+            self.monitoring.sample(frame=frame, event="event")
+            self.assertEqual(
+                str(test_sample_stack[0]).strip(')').split(", ")[1], "False")
+            self.monitoring.sample(frame=frame, event="call")
+            self.assertTrue(test_sample_stack)  # global used here
+            self.assertEqual(
+                str(test_sample_stack[0]).strip(')').split(", ")[1], "True")
+
     def test_run(self):
-        self.function.run()
-        self.assertEqual(self.function.sampler.start(self.function), None)
-        self.function.sampler.stop()
-        self.function.sampler.start(self.function)
-        self.assertEqual(self.function.sampler.stop(), None)
+        self.monitoring.run()
+        self.assertEqual(self.monitoring.sampler.start(self.monitoring), None)
+        self.monitoring.sampler.stop()
+        self.monitoring.sampler.start(self.monitoring)
+        self.assertEqual(self.monitoring.sampler.stop(), None)
 
     def test_log(self):
-        self.assertEqual(self.function.log(msg="msg", data_type="str"), None)
-        
-        
+        self.assertEqual(self.monitoring.log(msg="msg", data_type="str"), None)
+
+
 if __name__ == '__main__':
     unittest.main()
