@@ -248,7 +248,11 @@ class TestClient(unittest.TestCase):
         os.system("touch .auklet/limits")
 
     def test_write_to_local(self):
-        self.client._write_to_local(self.data, data_type="")
+        open(self.client.offline_filename, "w").close()
+        if sys.version_info < (3,):
+            self.client._write_to_local(data=self.data, data_type="event")
+        else:
+            self.client._write_to_local(data=msgpack.packb(self.data), data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 
@@ -267,23 +271,31 @@ class TestClient(unittest.TestCase):
         self.assertEqual(os.path.getsize(file_name), 0)
         os.remove(file_name)
 
+    def write_test_to_local(self):
+        with open(self.client.offline_filename, "w") as offline:
+            offline.write("event::")
+            if sys.version_info < (3,):
+                offline.write(str(self.data))
+            else:
+                offline.write(str(msgpack.packb(self.data)))
+            offline.write("\n")
+
+
     def test_produce_from_local(self):
+        open(self.client.offline_filename, "w").close()
         def _produce(self, data, data_type):
             global test_produced_data  # used to tell data was produced
             test_produced_data = data
 
         with patch('auklet.base.Client._produce', new=_produce):
-            with open(self.client.offline_filename, "w") as offline:
-                offline.write("event:")
-                offline.write(msgpack.packb(self.data))
-                offline.write("\n")
+            self.write_test_to_local()
             self.client._produce_from_local()
-        # self.assertIsNotNone(test_produced_data)  # global used here
-        # os.system("rm -R .auklet")
-        # self.assertFalse(self.client._produce_from_local())
-        # os.system("mkdir .auklet")
-        # os.system("touch %s" % self.client.offline_filename)
-        # self.recreate_files()
+        self.assertIsNotNone(test_produced_data)  # global used here
+        os.system("rm -R .auklet")
+        self.assertFalse(self.client._produce_from_local())
+        os.system("mkdir .auklet")
+        os.system("touch %s" % self.client.offline_filename)
+        self.recreate_files()
 
     def test_build_usage_json(self):
         data = self.client._build_usage_json()
@@ -440,8 +452,6 @@ class TestClient(unittest.TestCase):
         error = False
 
         def _produce(self, data, data_type="monitoring"):
-            # print(data)
-            # print(data_type)
             global test_produce_data  # used to tell data was produced
             test_produce_data = data
 
@@ -455,16 +465,12 @@ class TestClient(unittest.TestCase):
             with patch('auklet.base.Client._check_data_limit',
                        new=_check_data_limit):
                 self.client.producer = True
-                with open(self.client.offline_filename, "w") as offline:
-                    offline.write("event:")
-                    packed_data = msgpack.packb(self.data)
-                    offline.write(str(packed_data))
-                    offline.write("\n")
-                self.client.produce(msgpack.packb(self.data))
+                self.write_test_to_local()
+                self.client.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
                 error = True
-                self.client.produce(msgpack.packb(self.data))
+                self.client.produce(self.data)
                 self.assertGreater(
                     os.path.getsize(self.client.offline_filename), 0)
 
@@ -508,8 +514,10 @@ class TestRunnable(unittest.TestCase):
             self.assertRaises(TypeError, lambda: self.runnable.stop())
 
     def test_run(self):
-        self.runnable._running = False
-        self.run()
+        if sys.version_info < (3,):
+            self.assertIsNone(self.run())
+        else:
+            self.assertTrue(self.run())
 
     def test___enter__(self):
         def start(self):

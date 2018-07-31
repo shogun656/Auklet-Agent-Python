@@ -4,6 +4,12 @@ from mock import patch
 
 from auklet.stats import Function, Event, MonitoringTree, SystemMetrics
 
+try:
+    import psutil
+except ImportError:
+    # Some platforms that applications could be running on require specific
+    # installation of psutil which we cannot configure currently
+    psutil = None
 
 class TestFunction(unittest.TestCase):
     def get_test_child(self):
@@ -254,8 +260,11 @@ class TestSystemMetrics(unittest.TestCase):
         self.system_metrics = SystemMetrics()
 
     def test_update_network(self):
-        self.system_metrics.update_network(interval=1)
-        self.assertNotEqual(self.system_metrics.prev_inbound, 0)
+        if psutil is not None:
+            self.system_metrics.update_network(interval=1)
+            self.assertNotEqual(self.system_metrics.prev_inbound, 0)
+        else:
+            pass
 
 
 if __name__ == '__main__':
