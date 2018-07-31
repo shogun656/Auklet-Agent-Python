@@ -1,7 +1,8 @@
 import sys
 import unittest
 
-from auklet.errors import AukletException, AukletConnectionError, AukletConfigurationError
+from auklet.errors \
+    import AukletException, AukletConnectionError, AukletConfigurationError
 
 
 class TestAukletException(unittest.TestCase):

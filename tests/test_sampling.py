@@ -1,10 +1,8 @@
-import time
 import unittest
 from mock import patch
 
 from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring import Monitoring
-from auklet.errors import AukletConfigurationError
 from auklet.stats import MonitoringTree
 from auklet.base import Client
 
@@ -30,7 +28,6 @@ class TestAukletSampler(unittest.TestCase):
 
         self.monitoring = Monitoring(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
 
@@ -79,18 +76,6 @@ class TestAukletSampler(unittest.TestCase):
                     "timestamp": 1530555317012,
                     "application": "tyJSjp3aSyxxdoGAtqsMT4",
                     "macAddressHash": ""}
-
-        def produce(self, event, topic):
-            global test_handle_exc_event  # used to test if events produced
-            test_handle_exc_event = event
-            _ = topic
-
-        with patch('auklet.base.Client.build_event_data',
-                   new=build_event_data):
-            with patch('auklet.base.Client.produce', new=produce):
-                self.auklet_sampler.handle_exc(
-                    type=None, value="", traceback="")
-                self.assertIsNotNone(test_handle_exc_event)  # global used here
 
     def test_run(self):
         self.assertNotEqual(self.auklet_sampler.run(profiler=""), None)
