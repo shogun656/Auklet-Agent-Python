@@ -28,7 +28,7 @@ python setup.py install
 pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
 echo Python $pyver
 
-COVERAGE_FILE=.coverage.python${pyver} coverage run --rcfile=".coveragerc" setup.py test
+coverage run --rcfile=".coveragerc" setup.py test
 
 if [ -d .auklet ]; then
     rm -R .auklet

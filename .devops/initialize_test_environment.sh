@@ -14,12 +14,11 @@ eval "$(pyenv init -)"
 
 if [[ "$INSTALL_LATEST" == 'false' ]]; then
     pyenv install $VERSION
-    LATEST_VERSION=$(pyenv versions | grep $VERSION | grep -v '2.7.12' | grep -v '3.5.2' | grep -v system)
-    pyenv global $LATEST_VERSION
 else
     pyenv install-latest $VERSION
-    LATEST_VERSION=$(pyenv versions | grep $VERSION | grep -v '2.7.12' | grep -v '3.5.2' | grep -v system)
-    pyenv global $LATEST_VERSION
 fi
+
+LATEST_VERSION=$(pyenv versions | grep $VERSION | grep -vE "(2.7.12|3.5.2|system)")
+pyenv global $LATEST_VERSION
 
 bash .devops/tests.sh

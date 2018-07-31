@@ -14,17 +14,11 @@ CIRCLE_LOCAL_BUILD=$1
 pip install tox
 pip install --upgrade setuptools
 
-if [ ! -d .pyenv ]; then
-    git clone https://github.com/momo-lab/pyenv-install-latest.git .pyenv/plugins/pyenv-install-latest
-fi
-
 if [ ! -d /.pyenv/plugins ]; then
-    sudo mv .pyenv /
+    sudo git clone https://github.com/momo-lab/pyenv-install-latest.git /.pyenv/plugins/pyenv-install-latest
 fi
 
-if [ -d htmlcov ]; then
-    rm -R htmlcov
-fi
+rm -Rf htmlcov
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
