@@ -196,10 +196,12 @@ ENV/
 # Built Python Package/Profiler files
 dist/*
 build/*
+certs/*
 auklet.egg-info/*
 tmp/*
 .auklet/*
 auklet/example_app.py
+.env
 
 # Testing Scripts
 pi_digits.py

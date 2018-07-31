@@ -100,7 +100,7 @@ jobs:
                 name: Run Docker Benchmark Tests
                 command: |
                   set -x
-                  docker-compose run benchmark bash /compose/benchmark/startBenchmark.sh
+                  docker-compose run benchmark bash /startBenchmark.sh
 
             ##
             # SAVE CACHES

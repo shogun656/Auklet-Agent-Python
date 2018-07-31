@@ -1,8 +1,6 @@
-import io
 import os
 import sys
 import ast
-import json
 import msgpack
 import unittest
 import zipfile
@@ -14,8 +12,7 @@ from ipify.exceptions import IpifyException
 
 from tests import data_factory
 
-from auklet import base
-from auklet.base import *
+from auklet.base import Client, Runnable
 from auklet.stats import MonitoringTree
 from auklet.errors import AukletConfigurationError
 
@@ -55,26 +52,14 @@ class TestClient(unittest.TestCase):
         return Traceback
 
     def setUp(self):
-        def _get_kafka_brokers(self):
-            self.brokers = ["http://api-staging.auklet.io:9093"]
-            self.producer_types = {
-               "monitoring": "profiling",
-               "event": "events",
-               "log": "logging"
-            }
-        self.patcher = patch(
-            'auklet.base.Client._get_kafka_brokers', new=_get_kafka_brokers)
-        self.patcher.start()
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.monitoring_tree = MonitoringTree()
-        self.patcher.stop()
 
     def base_patch_side_effect_with_none(self, location, side_effect, actual):
         with patch(location) as _base:
             _base.side_effect = side_effect
             self.assertIsNone(actual)
-
 
     def test___init__(self):
         if sys.version_info < (3,):
@@ -89,7 +74,15 @@ class TestClient(unittest.TestCase):
                     self.base_patch_side_effect_with_none(
                         'auklet.base', KafkaError, self.client.__init__())
 
+        class KafkaProducer(object):
+            global test__init__producer  # used to tell a producer exists
+            test__init__producer = True
 
+        with patch('auklet.base.Client._get_kafka_certs',
+                   new=_get_kafka_certs):
+            with patch('kafka.KafkaProducer', new=KafkaProducer):
+                self.client.__init__()
+                self.assertTrue(test__init__producer)  # global used here
 
     def test_create_file(self):
         files = ['.auklet/local.txt', '.auklet/limits',
@@ -108,19 +101,11 @@ class TestClient(unittest.TestCase):
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
-
-        with patch('auklet.base.urlopen') as url_open:
-            self.assertIsNotNone(self.client._open_auklet_url(url))
-
-            url_open.side_effect = HTTPError(
-                url=None, code=401, msg=None, hdrs=None, fp=None)
-            self.assertRaises(AukletConfigurationError,
-                              lambda: self.client._open_auklet_url(url))
-
-            url_open.side_effect = HTTPError(
-                url=None, code=None, msg=None, hdrs=None, fp=None)
-            self.assertRaises(HTTPError,
-                              lambda: self.client._open_auklet_url(url))
+        self.assertRaises(
+            AukletConfigurationError,
+            lambda: self.client._open_auklet_url(url))
+        url = "http://google.com/"
+        self.assertNotEqual(self.client._open_auklet_url(url), None)
 
     def test_get_config(self):
         with patch('auklet.base.Client._open_auklet_url') as _open_auklet_url:
@@ -312,33 +297,28 @@ class TestClient(unittest.TestCase):
     def test_check_data_limit(self):
         self.client.offline_limit = None
         self.assertTrue(
-            self.client._check_data_limit(
+            self.client.check_data_limit(
                 data=self.data, current_use=0, offline=True))
 
         self.client.data_limit = None
         self.assertTrue(
-            self.client._check_data_limit(data=self.data, current_use=0))
+            self.client.check_data_limit(data=self.data, current_use=0))
 
         self.client.offline_limit = self.client.data_limit = 1
         self.assertFalse(
-            self.client._check_data_limit(data=self.data, current_use=0))
+            self.client.check_data_limit(data=self.data, current_use=0))
 
         self.client.data_limit = 1000
-        self.client._check_data_limit(
+        self.client.check_data_limit(
             data=self.data, current_use=0, offline=True)
         self.assertNotEqual(self.client.offline_current, 0)
 
-        self.client._check_data_limit(
+        self.client.check_data_limit(
             data=self.data, current_use=0)
         self.assertNotEqual(self.client.data_current, 0)
 
         self.assertTrue(
-            self.client._check_data_limit(data=self.data, current_use=0))
-
-    def test_kafka_error_callback(self):
-        self.client._kafka_error_callback(msg="", error="", data_type="")
-        self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
-        self.client._clear_file(self.client.offline_filename)
+            self.client.check_data_limit(data=self.data, current_use=0))
 
     def test_update_network_metrics(self):
         self.client.update_network_metrics(1000)
