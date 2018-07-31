@@ -1,5 +1,7 @@
 import os
+import sys
 import ast
+import json
 import msgpack
 import unittest
 import paho.mqtt.client as mqtt
@@ -10,7 +12,7 @@ from tests import data_factory
 
 from auklet.base import Client
 from auklet.utils import *
-from auklet.broker import KafkaClient, MQTTClient
+from auklet.broker import Profiler, KafkaClient, MQTTClient
 
 
 class TestKafkaBroker(unittest.TestCase):
@@ -29,12 +31,14 @@ class TestKafkaBroker(unittest.TestCase):
 
         def _get_certs(self):
             return True
+
         self.patcher = patch(
             'auklet.broker.KafkaClient._load_conf', new=_load_conf)
         self.patcher2 = patch(
             'auklet.broker.KafkaClient._get_certs', new=_get_certs)
         self.patcher.start()
         self.patcher2.start()
+
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.broker = KafkaClient(self.client)
@@ -43,11 +47,12 @@ class TestKafkaBroker(unittest.TestCase):
         self.patcher.stop()
         self.patcher2.stop()
 
-    def test_write_kafka_conf(self):
+    def test_write_conf(self):
         filename = self.broker.com_config_filename
         self.broker._write_conf(info=self.config)
         self.assertGreater(os.path.getsize(filename), 0)
         open(filename, "w").close()
+
 
     def test_get_certs(self):
         with patch('auklet.utils.build_url') as mock_zip_file:
@@ -56,17 +61,26 @@ class TestKafkaBroker(unittest.TestCase):
                 mock_zip_file.return_value = "http://api-staging.auklet.io"
                 self.assertTrue(self.broker._get_certs())
 
+    def recreate_files(self):
+        os.system("touch .auklet/version")
+        os.system("touch .auklet/communication")
+        os.system("touch .auklet/usage")
+        os.system("touch .auklet/limits")
+
     def test_write_to_local(self):
-        self.broker._write_to_local(data=self.data, data_type="")
+        open(self.client.offline_filename, "w").close()
+        if sys.version_info < (3,):
+            self.broker._write_to_local(data=self.data, data_type="event")
+        else:
+            self.broker._write_to_local(data=msgpack.packb(self.data), data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         clear_file(self.client.offline_filename)
 
         os.system("rm -R .auklet")
-        self.assertFalse(
-            self.broker._write_to_local(data=self.data, data_type=""))
+        self.assertFalse(self.broker._write_to_local(self.data, data_type=""))
         os.system("mkdir .auklet")
         os.system("touch %s" % self.client.offline_filename)
-        os.system("touch .auklet/version")
+        self.recreate_files()
 
     def test_produce_from_local(self):
         def _produce(self, data, data_type):

@@ -48,6 +48,7 @@ class Profiler(ABC):
                 json_data = conf.read()
                 if json_data:
                     data = json.loads(json_data)
+                    print(data)
                     self._read_from_conf(data)
                     return True
                 else:
@@ -100,10 +101,9 @@ class KafkaClient(Profiler):
 
     def _write_to_local(self, data, data_type):
         try:
-            if self.client.check_data_limit(data, self.client.offline_current,
-                                            True):
+            if self.client.check_data_limit(data, self.client.offline_current, True):
                 with open(self.client.offline_filename, "a") as offline:
-                    offline.write(data_type + ":")
+                    offline.write(data_type + "::")
                     offline.write(str(data))
                     offline.write("\n")
         except IOError:

@@ -17,7 +17,7 @@ try:
     # For Python 3.0 and later
     from urllib.error import HTTPError, URLError
     from urllib.request import Request, urlopen
-except ImportError:
+except ImportError:  # pragma: no cover
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError, URLError
 
@@ -193,6 +193,7 @@ class Client(object):
         log_data = self.build_log_data(msg, data_type, level)
         return msgpack.packb(log_data, use_bin_type=False)
 
+
 class Runnable(object):
     """The base class for runnable classes such as :class:`monitoring.
     MonitoringBase`.
@@ -244,7 +245,6 @@ class Runnable(object):
         :raises NotImplementedError: :meth:`run` is not overridden.
         """
         raise NotImplementedError('Implement run()')
-        yield
 
     def __enter__(self):
         self.start()
