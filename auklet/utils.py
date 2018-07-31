@@ -3,8 +3,6 @@ import sys
 import uuid
 import hashlib
 
-from ipify import get_ip
-from ipify.exceptions import IpifyException
 from auklet.errors import AukletConfigurationError
 
 __all__ = ['open_auklet_url', 'create_file', 'clear_file', 'build_url',
@@ -73,8 +71,10 @@ def get_abs_path(path):
 
 def get_device_ip():
     try:
-        return get_ip()
-    except IpifyException:
+        request = Request("https://api.ipify.org")
+        res = urlopen(request)
+        return u(res.read())
+    except (HTTPError, URLError):
         # TODO log to kafka if the ip service fails for any reason
         return None
     except Exception:

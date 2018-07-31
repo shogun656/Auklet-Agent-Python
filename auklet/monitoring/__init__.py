@@ -33,6 +33,8 @@ class Monitoring(AukletLogging):
     sig = signal.SIGALRM
     stopping = False
 
+    interval = 1e-2  # 10ms
+
     total_samples = 0
 
     emission_rate = 60  # 10 seconds
@@ -54,9 +56,7 @@ class Monitoring(AukletLogging):
         self.tree = MonitoringTree(self.mac_hash)
         self.broker = KafkaClient(self.client) if kafka else \
             MQTTClient(self.client)
-        super(Monitoring, self).__init__()
         self.monitor = monitoring
-        self.interval = 0.01
         signal.signal(self.sig, self.sample)
         signal.siginterrupt(self.sig, False)
         super(Monitoring, self).__init__()
@@ -88,8 +88,8 @@ class Monitoring(AukletLogging):
 
     def process_periodic(self):
         sample_timer = self.total_samples * self.interval
-        if sample_timer % 10 == 0:
-            self.client.produce(
+        if sample_timer % self.emission_rate == 0:
+            self.broker.produce(
                 self.tree.build_msgpack_tree(self.client.app_id))
             self.tree.clear_root()
             self.samples_taken = 0

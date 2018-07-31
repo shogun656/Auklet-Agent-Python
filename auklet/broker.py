@@ -1,4 +1,4 @@
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import
 
 import abc
 import io
@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from auklet.utils import build_url, create_file, clear_file
+from auklet.utils import build_url, create_file, clear_file, u, b
 
 try:
     # For Python 3.0 and later
@@ -35,8 +35,8 @@ class Profiler(ABC):
 
     def __init__(self, client):
         self._load_conf()
-        self.create_producer()
         self.client = client
+        self.create_producer()
 
     def _write_conf(self, info):
         with open(self.com_config_filename, "w") as conf:
@@ -103,9 +103,7 @@ class KafkaClient(Profiler):
             if self.client.check_data_limit(data, self.client.offline_current,
                                             True):
                 with open(self.client.offline_filename, "a") as offline:
-                    offline.write(data_type + ":")
-                    offline.write(str(data))
-                    offline.write("\n")
+                    offline.write("{}:{}\n".format(data_type, u(data)))
         except IOError:
             # TODO determine what to do with data we fail to write
             return False
@@ -115,8 +113,7 @@ class KafkaClient(Profiler):
             with open(self.client.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    data_type = line.split(":")[0]
-                    loaded = line.split(":")[1]
+                    data_type, loaded = line.split(":")
                     if self.client.check_data_limit(loaded,
                                                     self.client.data_current):
                         self._produce(loaded, data_type)
@@ -145,14 +142,8 @@ class KafkaClient(Profiler):
                 pass
 
     def _produce(self, data, data_type="monitoring"):
-        try:
-            data = str.encode(data)
-        except TypeError:
-            # Expected
-            pass
-
         self.producer.send(self.producer_types[data_type],
-                           value=data, key="python") \
+                           value=data, key=b("python")) \
             .add_errback(self._error_callback, data_type, msg=data)
 
     def produce(self, data, data_type="monitoring"):
@@ -197,10 +188,4 @@ class MQTTClient(Profiler):
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
-        try:
-            data = str.encode(data)
-        except TypeError:
-            # Expected
-            pass
-
         self.producer.publish(self.producer_types[data_type], payload=data)
