@@ -248,7 +248,11 @@ class TestClient(unittest.TestCase):
         os.system("touch .auklet/limits")
 
     def test_write_to_local(self):
-        self.client._write_to_local(self.data, data_type="")
+        open(self.client.offline_filename, "w").close()
+        if sys.version_info < (3,):
+            self.client._write_to_local(data=self.data, data_type="event")
+        else:
+            self.client._write_to_local(data=msgpack.packb(self.data), data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         self.client._clear_file(self.client.offline_filename)
 
@@ -268,14 +272,18 @@ class TestClient(unittest.TestCase):
         os.remove(file_name)
 
     def test_produce_from_local(self):
+        open(self.client.offline_filename, "w").close()
         def _produce(self, data, data_type):
             global test_produced_data  # used to tell data was produced
             test_produced_data = data
 
         with patch('auklet.base.Client._produce', new=_produce):
             with open(self.client.offline_filename, "a") as offline:
-                offline.write("event:")
-                offline.write(str(msgpack.packb({"stackTrace": "data"})))
+                offline.write("event::")
+                if sys.version_info < (3,):
+                    offline.write(str(self.data))
+                else:
+                    offline.write(str(msgpack.packb(self.data)))
                 offline.write("\n")
             self.client._produce_from_local()
         self.assertIsNotNone(test_produced_data)  # global used here
@@ -454,8 +462,11 @@ class TestClient(unittest.TestCase):
                        new=_check_data_limit):
                 self.client.producer = True
                 with open(self.client.offline_filename, "w") as offline:
-                    offline.write("event:")
-                    offline.write(str(msgpack.packb(self.data)))
+                    offline.write("event::")
+                    if sys.version_info < (3,):
+                        offline.write(str(self.data))
+                    else:
+                        offline.write(str(msgpack.packb(self.data)))
                     offline.write("\n")
                 self.client.produce(self.data)
                 self.assertNotEqual(
@@ -505,8 +516,10 @@ class TestRunnable(unittest.TestCase):
             self.assertRaises(TypeError, lambda: self.runnable.stop())
 
     def test_run(self):
-        self.runnable._running = False
-        self.run()
+        if sys.version_info < (3,):
+            self.assertIsNone(self.run())
+        else:
+            self.assertTrue(self.run())
 
     def test___enter__(self):
         def start(self):

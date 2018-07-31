@@ -204,7 +204,7 @@ class Client(object):
         try:
             if self._check_data_limit(data, self.offline_current, True):
                 with open(self.offline_filename, "a") as offline:
-                    offline.write(data_type + ":")
+                    offline.write(data_type + "::")
                     offline.write(str(data))
                     offline.write("\n")
         except IOError:
@@ -219,8 +219,10 @@ class Client(object):
             with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    data_type = line.split(":")[0]
-                    loaded = line.split(":")[1]
+                    data_type = line.split("::")[0]
+                    loaded = line.split("::")[1]
+                    if sys.version_info < (3,):
+                        loaded = msgpack.packb(loaded)
                     if self._check_data_limit(loaded, self.data_current):
                         self._produce(loaded, data_type)
             self._clear_file(self.offline_filename)
@@ -343,6 +345,8 @@ class Client(object):
             .add_errback(self._kafka_error_callback, data_type, msg=data)
 
     def produce(self, data, data_type="monitoring"):
+        if sys.version_info < (3,):
+            data = msgpack.packb(data)
         if self.producer is not None:
             try:
                 if self._check_data_limit(data, self.data_current):
