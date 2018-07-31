@@ -34,8 +34,7 @@ class TestLoadConfig(unittest.TestCase):
     def test_load_conf(self):
         # This test needs it's own class as the setUp was making it fail
         filename = self.broker.com_config_filename
-        with open(filename, "w") as config:
-            config.write(json.dumps(self.config))
+        self.broker._write_conf(info=self.config)
         self.assertTrue(self.broker._load_conf())
         open(filename, "w").close()
 
@@ -52,6 +51,7 @@ class TestKafkaBroker(unittest.TestCase):
                 "event": "events",
                 "log": "logging"
             }
+            return True
 
         def _get_certs(self):
             return True
@@ -164,6 +164,7 @@ class TestMQTTBroker(unittest.TestCase):
                 "event": "python/agent/events",
                 "log": "python/agent/logging"
             }
+            return True
 
         def create_producer(self):
             # Make non SSL producer for testing
