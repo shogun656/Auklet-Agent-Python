@@ -9,20 +9,24 @@ import signal
 from six import iteritems
 from six.moves import _thread
 
-from auklet.base import get_mac, setup_thread_excepthook, b
-from auklet.monitoring.processing import Client
+from auklet.broker import KafkaClient, MQTTClient
+from auklet.utils import get_mac, setup_thread_excepthook, b
 from auklet.monitoring.logging import AukletLogging
+from auklet.monitoring.processing import Client
 from auklet.stats import MonitoringTree
 
-
 __all__ = ['Monitoring']
-
 
 except_hook_set = False
 
 
 class Monitoring(AukletLogging):
+    #: The frames sampler.  Usually it is an instance of :class:`profiling.
+    #: sampling.samplers.Sampler`
     sampler = None
+    tree = None
+    client = None
+    broker = None
     monitor = True
     samples_taken = 0
     timer = signal.ITIMER_REAL
@@ -36,7 +40,8 @@ class Monitoring(AukletLogging):
     hour = 3600  # 1 hour
 
     def __init__(self, apikey=None, app_id=None,
-                 base_url="https://api.auklet.io/", monitoring=True):
+                 base_url="https://api.auklet.io/", monitoring=True,
+                 kafka=True):
         global except_hook_set
         sys.excepthook = self.handle_exc
         if not except_hook_set:
@@ -45,8 +50,11 @@ class Monitoring(AukletLogging):
             except_hook_set = True
         self.app_id = app_id
         self.mac_hash = get_mac()
-        self.tree = MonitoringTree(self.mac_hash)
         self.client = Client(apikey, app_id, base_url, self.mac_hash)
+        self.tree = MonitoringTree(self.mac_hash)
+        self.broker = KafkaClient(self.client) if kafka else \
+            MQTTClient(self.client)
+        super(Monitoring, self).__init__()
         self.monitor = monitoring
         self.interval = 0.01
         signal.signal(self.sig, self.sample)
@@ -92,7 +100,7 @@ class Monitoring(AukletLogging):
             self.client.check_date()
 
     def handle_exc(self, type, value, traceback):
-        self.client.produce(
+        self.broker.produce(
             self.client.build_msgpack_event_data(
                 type, traceback, self.tree),
             "event"
@@ -100,7 +108,5 @@ class Monitoring(AukletLogging):
         sys.__excepthook__(type, value, traceback)
 
     def log(self, msg, data_type, level="INFO"):
-        self.client.produce(
-            self.client.build_msgpack_log_data(msg, data_type, level),
-            "event"
-        )
+        self.broker.produce(
+            self.client.build_msgpack_log_data(msg, data_type, level), "event")

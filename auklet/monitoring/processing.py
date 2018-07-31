@@ -10,7 +10,7 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
 from auklet.errors import AukletConfigurationError
-from auklet.base import get_commit_hash, get_abs_path, get_device_ip, u, b
+from auklet.utils import get_commit_hash, get_abs_path, get_device_ip, u, b
 
 try:
     # For Python 3.0 and later

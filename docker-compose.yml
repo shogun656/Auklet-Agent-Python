@@ -1,17 +1,33 @@
 version: '2'
+
 services:
-  benchmark:
-    build:
-      context: .
-      dockerfile: ./compose/benchmark/Dockerfile
+  mqtt:
+    image: erlio/docker-vernemq
+    ports:
+      - "1883:1883"
     environment:
-      - PYTHONUNBUFFERED=0
-    command: bash /compose/benchmark/startBenchmark.sh
-    depends_on:
-      - kafka
+#      DOCKER_VERNEMQ_LISTENER.ssl.cafile: 'app/certs/ck_ca'
+#      DOCKER_VERNEMQ_LISTENER.ssl.certfile: 'app/certs/ck_cert'
+#      DOCKER_VERNEMQ_LISTENER.ssl.keyfile: 'app/certs/ck_private_key'
+#      DOCKER_VERNEMQ_LISTENER.ssl.default: '127.0.0.1:8883'
+#      DOCKER_VERNEMQ_LISTENER.ssl.require_certificate: 'on'
+      DOCKER_VERNEMQ_ALLOW_ANONYMOUS: 'on'
 
   kafka:
     build:
       context: .
       dockerfile: ./compose/kafka/Dockerfile
     command: bash /startKafka.sh
+
+  benchmark:
+    build:
+      context: .
+      dockerfile: ./compose/benchmark/Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=0
+    command: bash /startBenchmark.sh
+    volumes:
+      - .:/app
+    depends_on:
+      - kafka
+      - mqtt

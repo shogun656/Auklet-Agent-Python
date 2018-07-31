@@ -1,13 +1,15 @@
-# Portions of this file are taken from
-# https://github.com/what-studio/profiling/tree/0.1.1,
-# the license for which can be found in the "licenses/profiling.txt" file
-# in this repository/package.
-from __future__ import absolute_import, unicode_literals
-
 import os
 import sys
 import uuid
 import hashlib
+
+from ipify import get_ip
+from ipify.exceptions import IpifyException
+from auklet.errors import AukletConfigurationError
+
+__all__ = ['open_auklet_url', 'create_file', 'clear_file', 'build_url',
+           'get_commit_hash', 'get_mac', 'get_device_ip',
+           'setup_thread_excepthook', 'get_abs_path', 'b', 'u']
 
 try:
     # For Python 3.0 and later
@@ -17,9 +19,34 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError, URLError
 
-__all__ = ['get_commit_hash',
-           'get_mac', 'get_device_ip', 'setup_thread_excepthook',
-           'get_abs_path', 'u', 'b']
+
+def open_auklet_url(url, apikey):
+    url = Request(url, headers={"Authorization": "JWT %s" % apikey})
+    try:
+        res = urlopen(url)
+    except HTTPError as e:
+        if e.code == 401:
+            raise AukletConfigurationError(
+                "Invalid configuration of Auklet Monitoring, "
+                "ensure proper API key and app ID passed to "
+                "Monitoring class"
+            )
+        raise e
+    except URLError:
+        return None
+    return res
+
+
+def create_file(filename):
+    open(filename, "a").close()
+
+
+def clear_file(filename):
+    open(filename, "w").close()
+
+
+def build_url(base_url, extension):
+    return '%s%s' % (base_url, extension)
 
 
 def get_mac():
@@ -46,10 +73,8 @@ def get_abs_path(path):
 
 def get_device_ip():
     try:
-        request = Request("https://api.ipify.org")
-        res = urlopen(request)
-        return u(res.read())
-    except (HTTPError, URLError):
+        return get_ip()
+    except IpifyException:
         # TODO log to kafka if the ip service fails for any reason
         return None
     except Exception:
