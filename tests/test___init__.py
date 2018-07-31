@@ -1,4 +1,3 @@
-import string
 import unittest
 from mock import patch
 

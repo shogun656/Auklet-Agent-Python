@@ -1,10 +1,8 @@
-import time
 import unittest
 from mock import patch
 
 from auklet.monitoring.sampling import AukletSampler
 from auklet.monitoring import Monitoring
-from auklet.errors import AukletConfigurationError
 from auklet.stats import MonitoringTree
 from auklet.base import Client
 
