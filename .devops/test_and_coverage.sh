@@ -15,7 +15,7 @@ pip install tox
 pip install --upgrade setuptools
 
 if [ ! -d /.pyenv/plugins ]; then
-    sudo git clone https://github.com/momo-lab/pyenv-install-latest.git /.pyenv/plugins/pyenv-install-latest
+    sudo git clone https://github.com/momo-lab/pyenv-install-latest.git /root/.pyenv/plugins/pyenv-install-latest
 fi
 
 rm -Rf htmlcov
