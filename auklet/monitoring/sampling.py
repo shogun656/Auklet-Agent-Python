@@ -48,7 +48,7 @@ class AukletSampler(Runnable):
         profiler.sample(frame, event)
         if self.prev_diff != 0 and self.prev_diff != time_diff:
             if time_diff % (self.emission_rate / 1000) == 0:
-                self.client.produce(
+                self.broker.produce(
                     self.tree.build_msgpack_tree(self.client.app_id))
                 self.tree.clear_root()
             if time_diff % self.network_rate == 0:
