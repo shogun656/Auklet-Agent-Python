@@ -189,9 +189,7 @@ class Client(object):
         try:
             if self._check_data_limit(data, self.offline_current, True):
                 with open(self.offline_filename, "a") as offline:
-                    offline.write(data_type + ":")
-                    offline.write(str(data))
-                    offline.write("\n")
+                    offline.write("{}:{}\n".format(data_type, u(data)))
         except IOError:
             # TODO determine what to do with data we fail to write
             return False
@@ -204,10 +202,9 @@ class Client(object):
             with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    print(line)
                     data_type = line.split(":")[0]
                     loaded = line.split(":")[1]
-                    print(type(loaded))
+                    print(loaded)
                     if self._check_data_limit(loaded, self.data_current):
                         self._produce(loaded, data_type)
             self._clear_file(self.offline_filename)
@@ -242,9 +239,6 @@ class Client(object):
         return True
 
     def _kafka_error_callback(self, error, msg, data_type):
-        print(error)
-        import traceback
-        traceback.print_exc()
         self._write_to_local(msg, data_type)
 
     def update_network_metrics(self, interval):
@@ -322,13 +316,8 @@ class Client(object):
         return msgpack.packb(log_data, use_bin_type=False)
 
     def _produce(self, data, data_type="monitoring"):
-        try:
-            data = str.encode(data)
-        except (TypeError, UnicodeDecodeError):
-            # Expected
-            pass
         self.producer.send(self.producer_types[data_type],
-                           value=data, key="python") \
+                           value=data, key=b("python")) \
             .add_errback(self._kafka_error_callback, msg=data,
                          data_type=data_type)
 

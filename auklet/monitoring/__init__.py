@@ -9,7 +9,7 @@ import signal
 from six import iteritems
 from six.moves import _thread
 
-from auklet.base import get_mac, setup_thread_excepthook
+from auklet.base import get_mac, setup_thread_excepthook, b
 from auklet.monitoring.processing import Client
 from auklet.monitoring.logging import AukletLogging
 from auklet.stats import MonitoringTree
@@ -93,7 +93,8 @@ class Monitoring(AukletLogging):
 
     def handle_exc(self, type, value, traceback):
         self.client.produce(
-            self.client.build_msgpack_event_data(type, traceback, self.tree),
+            self.client.build_msgpack_event_data(
+                type, traceback, self.tree),
             "event"
         )
         sys.__excepthook__(type, value, traceback)
