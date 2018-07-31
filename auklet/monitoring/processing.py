@@ -202,9 +202,7 @@ class Client(object):
             with open(self.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    data_type = line.split(":")[0]
-                    loaded = line.split(":")[1]
-                    print(loaded)
+                    data_type, loaded = line.split(":")[0]
                     if self._check_data_limit(loaded, self.data_current):
                         self._produce(loaded, data_type)
             self._clear_file(self.offline_filename)
