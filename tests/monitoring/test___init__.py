@@ -53,7 +53,7 @@ class TestMonitoring(unittest.TestCase):
             self.monitoring.sample(None, current_frame=Frame())
             self.assertTrue(test_sample_stack)  # global used here
             self.build_assert_equal("True")
-            self.monitoring.sample(None, current_frame=Frame)
+            self.monitoring.sample(None, current_frame=Frame())
             self.build_assert_equal("True")
 
     def test_log(self):

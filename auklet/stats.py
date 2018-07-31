@@ -14,7 +14,7 @@ except ImportError:
     # installation of psutil which we cannot configure currently
     psutil = None
 
-__all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
+__all__ = ['MonitoringTree', 'Event', 'SystemMetrics', 'Function']
 
 
 class Function(object):

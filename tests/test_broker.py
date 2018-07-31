@@ -8,8 +8,9 @@ from mock import patch
 from kafka.errors import KafkaError
 from tests import data_factory
 
-from auklet.base import Client
+
 from auklet.utils import *
+from auklet.monitoring.processing import Client
 from auklet.broker import KafkaClient, MQTTClient
 
 

@@ -126,10 +126,7 @@ class TestMonitoringTree(unittest.TestCase):
     def get_frame(self):
         class Frame:
             f_code = self.get_code()
-        frame = []
-        frame.append(Frame)
-        frame.append(Frame)
-        return frame
+        return Frame()
 
     def get_root_function(self):
         return {'callees': [],
@@ -179,7 +176,7 @@ class TestMonitoringTree(unittest.TestCase):
         frame = Frame()
 
         result = str(self.monitoring_tree._build_tree(
-            new_stack=[[frame, frame]]))
+            new_stack=[frame, frame]))
 
         self.assertEqual(
             result, str(data_factory.StackTraceFactory()))
