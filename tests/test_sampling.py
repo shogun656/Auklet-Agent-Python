@@ -47,6 +47,7 @@ class TestAukletSampler(unittest.TestCase):
 
     def test_profile(self):
         pass
+        # I am going to let this test pass until the refactor is complete
         # class CoCode:
         #     co_code = None
         #     co_firstlineno = None
@@ -64,7 +65,7 @@ class TestAukletSampler(unittest.TestCase):
         #     self.auklet_sampler.prev_diff = 1
         #     self.auklet_sampler._profile(
         #         profiler=self.monitoring, frame=Frame(), event="", arg="")
-        #     # self.assertNotEqual(test_profile_event, None)  # global used here
+        #     self.assertNotEqual(test_profile_event, None)  # global used here
 
     def test_handle_exc(self):
         def build_event_data(self, type="", value="", traceback=""):
