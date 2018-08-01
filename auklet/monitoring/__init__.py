@@ -9,7 +9,7 @@ import signal
 from six import iteritems
 from six.moves import _thread
 
-from auklet.broker import KafkaClient, MQTTClient
+from auklet.broker import MQTTClient
 from auklet.utils import get_mac, setup_thread_excepthook, b
 from auklet.monitoring.logging import AukletLogging
 from auklet.monitoring.processing import Client
@@ -42,8 +42,7 @@ class Monitoring(AukletLogging):
     hour = 3600  # 1 hour
 
     def __init__(self, apikey=None, app_id=None,
-                 base_url="https://api.auklet.io/", monitoring=True,
-                 kafka=True):
+                 base_url="https://api.auklet.io/", monitoring=True):
         global except_hook_set
         sys.excepthook = self.handle_exc
         if not except_hook_set:
@@ -54,8 +53,7 @@ class Monitoring(AukletLogging):
         self.mac_hash = get_mac()
         self.client = Client(apikey, app_id, base_url, self.mac_hash)
         self.tree = MonitoringTree(self.mac_hash)
-        self.broker = KafkaClient(self.client) if kafka else \
-            MQTTClient(self.client)
+        self.broker = MQTTClient(self.client)
         self.monitor = monitoring
         signal.signal(self.sig, self.sample)
         signal.siginterrupt(self.sig, False)
