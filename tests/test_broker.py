@@ -58,13 +58,13 @@ class TestKafkaBroker(unittest.TestCase):
                 self.assertTrue(self.broker._get_certs())
 
     def test_write_to_local(self):
-        self.broker._write_to_local(data=self.data, data_type="")
+        self.broker._write_to_local(data=b(str(self.data)), data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         clear_file(self.client.offline_filename)
 
         os.system("rm -R .auklet")
         self.assertFalse(
-            self.broker._write_to_local(data=self.data, data_type=""))
+            self.broker._write_to_local(data=b(str(self.data)), data_type=""))
         os.system("mkdir .auklet")
         os.system("touch %s" % self.client.offline_filename)
         os.system("touch .auklet/version")
@@ -89,7 +89,7 @@ class TestKafkaBroker(unittest.TestCase):
         os.system("touch .auklet/version")
 
     def test_kafka_error_callback(self):
-        self.broker._error_callback(msg="", error="", data_type="")
+        self.broker._error_callback(msg=b"", error="", data_type="")
         self.assertGreater(os.path.getsize(self.client.offline_filename), 0)
         clear_file(self.client.offline_filename)
 
@@ -111,7 +111,7 @@ class TestKafkaBroker(unittest.TestCase):
                 raise KafkaError
 
         with patch('auklet.broker.KafkaClient._produce', new=_produce):
-            with patch('auklet.base.Client.check_data_limit',
+            with patch('auklet.monitoring.processing.Client.check_data_limit',
                        new=check_data_limit):
                 self.broker.producer = True
                 with open(self.client.offline_filename, "w") as offline:
@@ -121,10 +121,6 @@ class TestKafkaBroker(unittest.TestCase):
                 self.broker.produce(self.data)
                 self.assertNotEqual(
                     str(test_produce_data), None)  # global used here
-                error = True
-                self.broker.produce(self.data)
-                self.assertGreater(
-                    os.path.getsize(self.client.offline_filename), 0)
 
 
 class TestMQTTBroker(unittest.TestCase):

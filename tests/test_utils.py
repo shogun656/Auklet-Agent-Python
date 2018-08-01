@@ -75,7 +75,7 @@ class TestUtils(unittest.TestCase):
 
     def test_get_device_ip(self):
         self.assertNotEqual(get_device_ip(), None)
-        with patch('auklet.utils.get_ip') as mock_error:
+        with patch('auklet.utils.urlopen') as mock_error:
             mock_error.side_effect = HTTPError
             self.assertIsNone(get_device_ip())
             mock_error.side_effect = Exception

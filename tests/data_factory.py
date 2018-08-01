@@ -3,7 +3,7 @@ import factory
 
 class MonitoringDataGenerator(object):
     def __init__(self, commitHash, id, publicIP, timestamp, application,
-                 macAddressHash, lineNumber, nSamples, functionName, nCalls):
+                 macAddressHash, lineNumber, nSamples, functionName):
         self.commitHash = commitHash
         self.id = id
         self.publicIP = publicIP
@@ -14,7 +14,6 @@ class MonitoringDataGenerator(object):
         self.lineNumber = lineNumber
         self.nSamples = nSamples
         self.functionName = functionName
-        self.nCalls = nCalls
 
     def __str__(self):
         return '{"commitHash": "%s", ' \
@@ -26,12 +25,11 @@ class MonitoringDataGenerator(object):
                '"callees": ' \
                '[{"lineNumber": %d, ' \
                '"nSamples": %d, ' \
-               '"functionName": "%s", ' \
-               '"nCalls": %d}]}' \
+               '"functionName": "%s"' \
+               '}]}' \
                % (self.commitHash, self.id, self.publicIP,
                   self.timestamp, self.application, self.macAddressHash,
-                  self.lineNumber, self.nSamples, self.functionName,
-                  self.nCalls)
+                  self.lineNumber, self.nSamples, self.functionName)
 
 
 class MonitoringDataFactory(factory.Factory):
@@ -48,7 +46,6 @@ class MonitoringDataFactory(factory.Factory):
     lineNumber = int(836)
     nSamples = int(5745)
     functionName = "root"
-    nCalls = 0
 
 
 class ConfigGenerator(object):
@@ -80,18 +77,16 @@ class ConfigFactory(factory.Factory):
 
 
 class StackTraceGenerator(object):
-    def __init__(self, functionName, lineNumber, nCalls, nSamples):
+    def __init__(self, functionName, lineNumber, nSamples):
         self.functionName = functionName
         self.lineNumber = lineNumber
-        self.nCalls = nCalls
         self.nSamples = nSamples
 
     def __str__(self):
         return '''{'callees': [],\n 'filePath': None,\n ''' \
                ''''functionName': '%s',\n 'lineNumber': %d,\n ''' \
-               ''''nCalls': %d,\n 'nSamples': %d}''' \
-               % (self.functionName, self.lineNumber,
-                  self.nCalls, self.nSamples)
+               ''''nSamples': %d}''' \
+               % (self.functionName, self.lineNumber, self.nSamples)
 
 
 class StackTraceFactory(factory.Factory):
@@ -101,35 +96,31 @@ class StackTraceFactory(factory.Factory):
 
     functionName = "root"
     lineNumber = 1
-    nCalls = 1
     nSamples = 1
 
 class SingleNestedStackGenerator(object):
     def __init__(self, callees_functionName, callees_lineNumber,
-                 callees_nCalls, callees_nSamples, functionName,
-                 lineNumber, nCalls, nSamples):
+                 callees_nSamples, functionName,
+                 lineNumber, nSamples):
         self.callees_functionName = callees_functionName
         self.callees_lineNumber = callees_lineNumber
-        self.callees_nCalls = callees_nCalls
         self.callees_nSamples = callees_nSamples
         self.functionName = functionName
         self.lineNumber = lineNumber
-        self.nCalls = nCalls
         self.nSamples = nSamples
 
     def __str__(self):
-        return '''{'callees': [{'callees': [],\n''' \
-               '''              'filePath': None,\n''' \
-               '''              'functionName': '%s',\n''' \
-               '''              'lineNumber': %d,\n''' \
-               '''              'nCalls': %d,\n''' \
-               '''              'nSamples': %d}],\n 'filePath': None,\n''' \
-               ''' 'functionName': '%s',\n 'lineNumber': %d,\n''' \
-               ''' 'nCalls': %d,\n 'nSamples': %d}''' \
+        return '''{'callees': [{'callees': [],''' \
+               '''              'filePath': None,''' \
+               '''              'functionName': '%s',''' \
+               '''              'lineNumber': %d,''' \
+               '''              'nSamples': %d}],''' \
+               '''              'filePath': None,''' \
+               ''' 'functionName': '%s', 'lineNumber': %d,''' \
+               ''' 'nSamples': %d}''' \
                % (self.callees_functionName, self.callees_lineNumber,
-                  self.callees_nCalls, self.callees_nSamples,
-                  self.functionName, self.lineNumber, self.nCalls,
-                  self.nSamples)
+                  self.callees_nSamples, self.functionName,
+                  self.lineNumber, self.nSamples)
 
 
 class SingleNestedStackTraceFactory(factory.Factory):
@@ -139,10 +130,8 @@ class SingleNestedStackTraceFactory(factory.Factory):
 
     callees_functionName = ""
     callees_lineNumber = 0
-    callees_nCalls = 1
     callees_nSamples = 1
 
     functionName = "root"
     lineNumber = 1
-    nCalls = 1
     nSamples = 1

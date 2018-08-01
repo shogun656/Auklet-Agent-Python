@@ -27,10 +27,6 @@ class TestMonitoring(unittest.TestCase):
         self.monitoring.stop()
         self.monitoring.monitor = False
 
-    def build_assert_equal(self, expected):
-        self.assertEqual(
-            expected, str(test_sample_stack[0]).strip(')').split(", ")[-1])
-
     def test_sample(self):
         class CoCode:
             co_code = None
@@ -51,10 +47,7 @@ class TestMonitoring(unittest.TestCase):
             self.monitoring.sample(None, current_frame=Frame())
             self.assertIsNotNone(test_sample_stack)
             self.monitoring.sample(None, current_frame=Frame())
-            self.assertTrue(test_sample_stack)  # global used here
-            self.build_assert_equal("True")
-            self.monitoring.sample(None, current_frame=Frame())
-            self.build_assert_equal("True")
+            self.assertTrue(test_sample_stack)
 
     def test_log(self):
         self.assertEqual(self.monitoring.log(msg="msg", data_type="str"), None)
