@@ -2,9 +2,11 @@ from __future__ import absolute_import, unicode_literals
 
 import abc
 import io
+import sys
 import logging
 import ssl
 import json
+import msgpack
 import zipfile
 import paho.mqtt.client as mqtt
 
@@ -24,7 +26,7 @@ __all__ = ["Profiler", "KafkaClient", "MQTTClient"]
 
 # compatible with Python 2 *and* 3
 # https://stackoverflow.com/questions/35673474/using-abc-abcmeta-in-a-way-it-is-compatible-both-with-python-2-7-and-python-3-5
-ABC = abc.ABCMeta('ABC', (object,), {'__slots__': ()})
+ABC = abc.ABCMeta(str('ABC'), (object,), {'__slots__': ()})
 
 
 class Profiler(ABC):
@@ -48,7 +50,6 @@ class Profiler(ABC):
                 json_data = conf.read()
                 if json_data:
                     data = json.loads(json_data)
-                    print(data)
                     self._read_from_conf(data)
                     return True
                 else:
@@ -60,6 +61,7 @@ class Profiler(ABC):
         url = Request(
             build_url(self.client.base_url, "private/devices/certificates/"),
             headers={"Authorization": "JWT %s" % self.client.apikey})
+        print(url)
         try:
             try:
                 res = urlopen(url)
@@ -101,7 +103,8 @@ class KafkaClient(Profiler):
 
     def _write_to_local(self, data, data_type):
         try:
-            if self.client.check_data_limit(data, self.client.offline_current, True):
+            if self.client.check_data_limit(
+                    data, self.client.offline_current, True):
                 with open(self.client.offline_filename, "a") as offline:
                     offline.write(data_type + "::")
                     offline.write(str(data))
@@ -115,10 +118,12 @@ class KafkaClient(Profiler):
             with open(self.client.offline_filename, 'r+') as offline:
                 lines = offline.read().splitlines()
                 for line in lines:
-                    data_type = line.split(":")[0]
-                    loaded = line.split(":")[1]
-                    if self.client.check_data_limit(loaded,
-                                                    self.client.data_current):
+                    data_type = line.split("::")[0]
+                    loaded = line.split("::")[1]
+                    if sys.version_info < (3,):
+                        loaded = msgpack.packb(loaded)
+                    if self.client.check_data_limit(
+                            loaded, self.client.data_current):
                         self._produce(loaded, data_type)
             clear_file(self.client.offline_filename)
         except IOError:
@@ -158,7 +163,8 @@ class KafkaClient(Profiler):
     def produce(self, data, data_type="monitoring"):
         if self.producer is not None:
             try:
-                if self.client.check_data_limit(data, self.client.data_current):
+                if self.client.check_data_limit(
+                        data, self.client.data_current):
                     self._produce(data, data_type)
                     self._produce_from_local()
                 else:

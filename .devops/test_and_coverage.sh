@@ -22,6 +22,7 @@ if [ ! -d /.pyenv/plugins ]; then
     sudo mv .pyenv /
 fi
 
+
 rm -Rf htmlcov
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
