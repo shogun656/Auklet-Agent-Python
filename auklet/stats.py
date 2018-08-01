@@ -12,7 +12,7 @@ try:
 except ImportError:  # pragma: no cover
     # Some platforms that applications could be running on require specific
     # installation of psutil which we cannot configure currently
-    psutil = None  # pragma: no cover
+    psutil = None
 
 __all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
 
