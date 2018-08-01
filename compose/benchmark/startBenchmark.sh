@@ -8,5 +8,5 @@ while ! nc -z mqtt 1883; do
 done
 
 mkdir .auklet
-python3.6 /setup.py install
-python3.6 src/benchmark/run_tests.py
+python3 /setup.py install
+python3 src/benchmark/run_tests.py
