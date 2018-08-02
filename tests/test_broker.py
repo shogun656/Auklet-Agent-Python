@@ -27,6 +27,7 @@ class TestMQTTBroker(unittest.TestCase):
             # Make non SSL producer for testing
             self.producer = mqtt.Client()
             self.producer.on_disconnect = self.on_disconnect
+            print(self.brokers, self.port)
             self.producer.connect_async(self.brokers, self.port)
             self.producer.loop_start()
         self.patcher = patch(
