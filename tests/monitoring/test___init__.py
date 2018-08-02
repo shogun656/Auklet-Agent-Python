@@ -42,7 +42,12 @@ class TestMonitoring(unittest.TestCase):
             self.assertTrue(test_sample_stack)
 
     def test_log(self):
-        self.assertEqual(self.monitoring.log(msg="msg", data_type="str"), None)
+        def new_publish():
+            return True
+
+        with patch('auklet.broker.mqtt.Client.publish', new=new_publish()):
+            self.assertEqual(
+                self.monitoring.log(msg="msg", data_type="str"), None)
 
 
 if __name__ == '__main__':

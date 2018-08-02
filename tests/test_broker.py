@@ -6,7 +6,7 @@ from mock import patch
 from tests import data_factory
 
 from auklet.monitoring.processing import Client
-from auklet.broker import KafkaClient, MQTTClient
+from auklet.broker import MQTTClient
 
 
 class TestMQTTBroker(unittest.TestCase):
