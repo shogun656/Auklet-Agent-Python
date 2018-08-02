@@ -33,7 +33,7 @@ class Monitoring(AukletLogging):
     sig = signal.SIGALRM
     stopping = False
 
-    interval = 1e-2  # 10ms
+    interval = 1e-3  # 1ms
 
     total_samples = 0
 
