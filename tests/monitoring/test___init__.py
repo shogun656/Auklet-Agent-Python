@@ -45,7 +45,7 @@ class TestMonitoring(unittest.TestCase):
         def new_publish():
             return True
 
-        with patch('auklet.broker.mqtt.Client.publish', new=new_publish()):
+        with patch('auklet.broker.MQTTClient.producer.publish', new=new_publish()):
             self.assertEqual(
                 self.monitoring.log(msg="msg", data_type="str"), None)
 
