@@ -3,6 +3,7 @@ import sys
 import uuid
 import hashlib
 
+from auklet.__about__ import __version__ as auklet_version
 from auklet.errors import AukletConfigurationError
 
 __all__ = ['open_auklet_url', 'create_file', 'clear_file', 'build_url',
@@ -79,6 +80,10 @@ def get_device_ip():
         return None
     except Exception:
         return None
+
+
+def get_agent_version():
+    return auklet_version
 
 
 def setup_thread_excepthook():
