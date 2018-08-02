@@ -14,13 +14,13 @@ CIRCLE_LOCAL_BUILD=$1
 pip install tox
 pip install --upgrade setuptools
 
-if [ ! -d .pyenv ]; then
-    git clone https://github.com/momo-lab/pyenv-install-latest.git .pyenv/plugins/pyenv-install-latest
+if [ ! -d /.pyenv ]; then
+    sudo git clone https://github.com/momo-lab/pyenv-install-latest.git .pyenv/plugins/pyenv-install-latest
 fi
 
-if [ ! -d /.pyenv/plugins ]; then
-    sudo mv .pyenv /
-fi
+#if [ ! -d /.pyenv/plugins ]; then
+#    sudo mv .pyenv /
+#fi
 
 
 
