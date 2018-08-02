@@ -199,7 +199,6 @@ class MonitoringTree(object):
         return {}
 
     def build_msgpack_tree(self, app_id):
-        print(self.build_tree(app_id))
         return msgpack.packb(self.build_tree(app_id), use_bin_type=False)
 
 
