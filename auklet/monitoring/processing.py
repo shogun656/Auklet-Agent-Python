@@ -1,15 +1,9 @@
-import io
-import ssl
 import json
 import msgpack
-import zipfile
 
 from uuid import uuid4
 from datetime import datetime
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
-from auklet.errors import AukletConfigurationError
 from auklet.utils import create_file, get_commit_hash, \
     get_abs_path, get_device_ip, open_auklet_url, build_url, u
 

@@ -2,10 +2,10 @@ from __future__ import absolute_import
 
 import abc
 import io
-import logging
 import ssl
 import json
 import zipfile
+import logging
 import paho.mqtt.client as mqtt
 
 from auklet.utils import build_url, create_file
