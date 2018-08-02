@@ -4,7 +4,7 @@ import abc
 import io
 import ssl
 import json
-import msgpack
+
 import zipfile
 import logging
 import paho.mqtt.client as mqtt
