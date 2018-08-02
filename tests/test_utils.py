@@ -1,20 +1,19 @@
 import os
-import ast
-import json
-import msgpack
 import unittest
 
-
 from mock import patch
-from datetime import datetime
-from kafka.errors import KafkaError
-from ipify.exceptions import IpifyException
 
-from tests import data_factory
-
-from auklet.base import Client
 from auklet.utils import *
+from auklet.monitoring.processing import Client
 from auklet.errors import AukletConfigurationError
+
+try:
+    # For Python 3.0 and later
+    from urllib.error import HTTPError
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import HTTPError
+
 
 class TestUtils(unittest.TestCase):
     def setUp(self):
@@ -52,12 +51,6 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(os.path.getsize(file_name), 0)
         os.remove(file_name)
 
-    def test_frame_stack(self):
-        class FrameStack:
-            f_back = None
-        frame = FrameStack()
-        self.assertNotEqual(frame_stack(frame), None)
-
     def test_get_mac(self):
         self.assertNotEqual(get_mac(), None)
 
@@ -82,8 +75,8 @@ class TestUtils(unittest.TestCase):
 
     def test_get_device_ip(self):
         self.assertNotEqual(get_device_ip(), None)
-        with patch('auklet.utils.get_ip') as mock_error:
-            mock_error.side_effect = IpifyException
+        with patch('auklet.utils.urlopen') as mock_error:
+            mock_error.side_effect = HTTPError
             self.assertIsNone(get_device_ip())
             mock_error.side_effect = Exception
             self.assertIsNone(get_device_ip())

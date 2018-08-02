@@ -16,7 +16,7 @@ def without_auklet():
     base.start(state="WithoutAuklet")
 
 
-@patch('auklet.base.Client.update_limits')
+@patch('auklet.monitoring.processing.Client.update_limits')
 @patch('auklet.broker.KafkaClient._get_certs')
 def with_auklet_and_kafka(get_certs_mock, update_limits_mock):
     """
@@ -47,7 +47,8 @@ def with_auklet_and_kafka(get_certs_mock, update_limits_mock):
 
     conf_patcher.stop()
 
-@patch('auklet.base.Client.update_limits')
+
+@patch('auklet.monitoring.processing.Client.update_limits')
 @patch('auklet.broker.MQTTClient._get_certs')
 def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
     """
