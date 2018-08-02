@@ -1,17 +1,11 @@
-# Portions of this file are taken from
-# https://github.com/what-studio/profiling/tree/0.1.1,
-# the license for which can be found in the "licenses/profiling.txt" file
-# in this repository/package.
-from __future__ import absolute_import, unicode_literals
-
 import json
 import msgpack
 
 from uuid import uuid4
 from datetime import datetime
+from auklet.stats import Event, SystemMetrics
 from auklet.utils import create_file, get_commit_hash, \
     get_abs_path, get_device_ip, open_auklet_url, build_url, u
-from auklet.stats import Event, SystemMetrics
 
 try:
     # For Python 3.0 and later
@@ -21,13 +15,13 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError, URLError
 
-__all__ = ['Client', 'Runnable']
 
 MB_TO_B = 1e6
 S_TO_MS = 1000
 
 
 class Client(object):
+    producer_types = None
     brokers = None
     commit_hash = None
     mac_hash = None
@@ -52,6 +46,7 @@ class Client(object):
         self.app_id = app_id
         self.base_url = base_url
         self.send_enabled = True
+        self.producer = None
         self.mac_hash = mac_hash
         self._load_limits()
         create_file(self.offline_filename)
@@ -108,7 +103,7 @@ class Client(object):
             return True
         if self.data_limit is None and not offline:
             return True
-        data_size = len(json.dumps(data))
+        data_size = len(data)
         temp_current = current_use + data_size
         if temp_current >= self.data_limit:
             return False
@@ -192,63 +187,3 @@ class Client(object):
     def build_msgpack_log_data(self, msg, data_type, level):
         log_data = self.build_log_data(msg, data_type, level)
         return msgpack.packb(log_data, use_bin_type=False)
-
-
-class Runnable(object):
-    """The base class for runnable classes such as :class:`monitoring.
-    MonitoringBase`.
-    """
-
-    #: The generator :meth:`run` returns.  It will be set by :meth:`start`.
-    _running = None
-
-    def is_running(self):
-        """Whether the instance is running."""
-        return self._running is not None
-
-    def start(self, *args, **kwargs):
-        """Starts the instance.
-        :raises RuntimeError: has been already started.
-        :raises TypeError: :meth:`run` is not canonical.
-        """
-        if self.is_running():
-            raise RuntimeError('Already started')
-        self._running = self.run(*args, **kwargs)
-        try:
-            yielded = next(self._running)
-        except StopIteration:
-            raise TypeError('run() must yield just one time')
-        if yielded is not None:
-            raise TypeError('run() must yield without value')
-
-    def stop(self):
-        """Stops the instance.
-        :raises RuntimeError: has not been started.
-        :raises TypeError: :meth:`run` is not canonical.
-        """
-        if not self.is_running():
-            raise RuntimeError('Not started')
-        running, self._running = self._running, None
-        try:
-            next(running)
-        except StopIteration:
-            # expected.
-            pass
-        else:
-            raise TypeError('run() must yield just one time')
-
-    def run(self, *args, **kwargs):
-        """Override it to implement the starting and stopping behavior.
-        An overriding method must be a generator function which yields just one
-        time without any value.  :meth:`start` creates and iterates once the
-        generator it returns.  Then :meth:`stop` will iterates again.
-        :raises NotImplementedError: :meth:`run` is not overridden.
-        """
-        raise NotImplementedError('Implement run()')
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, *exc_info):
-        self.stop()

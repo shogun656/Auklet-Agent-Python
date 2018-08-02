@@ -3,15 +3,11 @@ import sys
 import uuid
 import hashlib
 
-from contextlib import contextmanager
-from collections import deque
-from ipify import get_ip
-from ipify.exceptions import IpifyException
 from auklet.errors import AukletConfigurationError
 
 __all__ = ['open_auklet_url', 'create_file', 'clear_file', 'build_url',
-           'frame_stack', 'deferral', 'get_commit_hash', 'get_mac',
-           'get_device_ip', 'setup_thread_excepthook', 'get_abs_path', 'b', 'u']
+           'get_commit_hash', 'get_mac', 'get_device_ip',
+           'setup_thread_excepthook', 'get_abs_path', 'b', 'u']
 
 try:
     # For Python 3.0 and later
@@ -51,15 +47,6 @@ def build_url(base_url, extension):
     return '%s%s' % (base_url, extension)
 
 
-def frame_stack(frame):
-    """Returns a deque of frame stack."""
-    frames = deque()
-    while frame is not None:
-        frames.appendleft(frame)
-        frame = frame.f_back
-    return frames
-
-
 def get_mac():
     mac_num = hex(uuid.getnode()).replace('0x', '').upper()
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
@@ -83,8 +70,10 @@ def get_abs_path(path):
 
 def get_device_ip():
     try:
-        return get_ip()
-    except IpifyException:
+        request = Request("https://api.ipify.org")
+        res = urlopen(request)
+        return u(res.read())
+    except (HTTPError, URLError):
         # TODO log to kafka if the ip service fails for any reason
         return None
     except Exception:
@@ -117,26 +106,6 @@ def setup_thread_excepthook():
         self.run = run_with_except_hook
 
     threading.Thread.__init__ = init
-
-
-@contextmanager
-def deferral():
-    """Defers a function call when it is being required.
-    ::
-       with deferral() as defer:
-           sys.setprofile(f)
-           defer(sys.setprofile, None)
-           # do something.
-    """
-    deferred = []
-    defer = lambda func, *args, **kwargs: deferred.append(
-        (func, args, kwargs))
-    try:
-        yield defer
-    finally:
-        while deferred:
-            func, args, kwargs = deferred.pop()
-            func(*args, **kwargs)
 
 
 if sys.version_info < (3,):
