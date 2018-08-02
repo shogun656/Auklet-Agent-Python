@@ -176,20 +176,6 @@ class TestClient(unittest.TestCase):
                   "locals":
                     {"key": "value"}}]}
 
-    def traceback(self):
-        class Code:
-            co_code = "file_name"
-            co_name = ""
-        class Frame:
-            f_code = Code()
-            f_lineno = 0
-            f_locals = ""
-        class Traceback:
-            tb_lineno = 0
-            tb_frame = Frame()
-            tb_next = None
-        return Traceback
-
     def base_patch_side_effect_with_none(self, location, side_effect, actual):
         with patch(location) as _base:
             _base.side_effect = side_effect
@@ -204,13 +190,29 @@ class TestClient(unittest.TestCase):
             limits.write(str(data))
 
     def assertBuildEventData(self, function):
+        def traceback():
+            class Code:
+                co_code = "file_name"
+                co_name = ""
+
+            class Frame:
+                f_code = Code()
+                f_lineno = 0
+                f_locals = ""
+
+            class Traceback:
+                tb_lineno = 0
+                tb_frame = Frame()
+                tb_next = None
+            return Traceback
+
         with patch(
                 'auklet.monitoring.processing.Event', new=self.get_mock_event):
             self.monitoring_tree.cached_filenames["file_name"] = "file_name"
             self.assertNotEqual(
                 function(
                     type=Exception,
-                    traceback=self.traceback(),
+                    traceback=traceback(),
                     tree=self.monitoring_tree),
                 None)
 
