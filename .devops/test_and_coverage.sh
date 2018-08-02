@@ -23,6 +23,7 @@ if [ ! -d /.pyenv/plugins ]; then
 fi
 
 
+
 rm -Rf htmlcov
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then

@@ -58,6 +58,6 @@ setup(
         'Topic :: Software Development :: Debuggers',
     ],
     install_requires=requirements('requirements.txt'),
-    tests_require=requirements('test.txt'),
+    tests_require=requirements('requirements.testing.txt'),
     test_suite='tests',
 )
