@@ -1,65 +1,77 @@
 import os
 import ast
+import json
 import unittest
-
 
 from mock import patch
 from datetime import datetime
 
 from tests import data_factory
 
-from auklet.monitoring.processing import Client
 from auklet.stats import MonitoringTree
+from auklet.monitoring.processing import Client
+
+try:
+    # For Python 3.0 and later
+    from urllib.error import HTTPError, URLError
+    from urllib.request import Request, urlopen
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen, Request, HTTPError, URLError
 
 
 class TestClient(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
-
-    @staticmethod
-    def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
-        return {"stackTrace":
-                [{"functionName": "",
-                  "filePath": "",
-                  "lineNumber": 0,
-                  "locals":
-                    {"key": "value"}}]}
-
-    def traceback(self):
-        class Code:
-            co_code = "file_name"
-            co_name = ""
-        class Frame:
-            f_code = Code()
-            f_lineno = 0
-            f_locals = ""
-        class Traceback:
-            tb_lineno = 0
-            tb_frame = Frame()
-            tb_next = None
-        return Traceback
 
     def setUp(self):
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.monitoring_tree = MonitoringTree()
 
-    def test___init__(self):
-        class SystemMetrics(object):
-            global test__init__system_metrics  # used to tell a producer exists
-            test__init__system_metrics = True
-
-        with patch('auklet.stats.SystemMetrics', new=SystemMetrics):
-            self.client.__init__()
-            self.assertTrue(test__init__system_metrics)  # global used here
-
     def test_get_config(self):
-        pass
+        class MockRequest:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def get_type(self):
+                pass
+
+        class res:
+            def read(self):
+                return str(json.dumps({"config": ""})).encode()
+
+        with patch('auklet.utils.urlopen') as _urlopen:
+            with patch('auklet.utils.Request') as _Request:
+
+                    _Request.side_effect = MockRequest
+                    _urlopen.return_value = res()
+                    self.assertIsNotNone(self.client._get_config())
 
     def test_load_limits(self):
-        loaded = True
-        if self.client._load_limits():
-            loaded = False
-        self.assertTrue(loaded)
+        default_data = data_factory.LimitsGenerator()
+        self.write_load_limits_test(default_data)
+        self.build_load_limits_test(1, self.client.data_day)
+
+        self.assertEqual(None, self.client.data_limit)
+        self.assertEqual(None, self.client.offline_limit)
+
+        data = data_factory.LimitsGenerator(cellular_data_limit=10)
+        self.write_load_limits_test(data)
+        self.client._load_limits()
+        self.build_load_limits_test(10000000.0, self.client.data_limit)
+
+        data = data_factory.LimitsGenerator(
+            cellular_data_limit="null", storage_limit=10)
+        self.write_load_limits_test(data)
+        self.client._load_limits()
+        self.build_load_limits_test(10000000.0, self.client.offline_limit)
+
+        with open(self.client.limits_filename, "w") as limits:
+            limits.write(str(default_data))
+
+        self.base_patch_side_effect_with_none(
+            'auklet.monitoring.processing.open',
+            IOError, self.client._load_limits())
 
     def test_build_usage_json(self):
         data = self.client._build_usage_json()
@@ -111,51 +123,89 @@ class TestClient(unittest.TestCase):
         self.client.check_date()
         self.assertEqual(self.client.data_current, 0)
         self.assertEqual(self.client.reset_data, False)
+        self.client.data_day = datetime.today().day+1
+        self.client.check_date()
+        self.assertTrue(self.client.reset_data)
 
     def test_update_limits(self):
-        none = True
-        cellular_data_limit = None
-        storage_limit = None
-        cell_plan_date = 1
-
-        def _get_config(self):
-            if none:
-                return None
-            else:
-                return {"storage":
-                        {"storage_limit": storage_limit},
-                        "emission_period": 60,
-                        "features":
-                        {"performance_metrics": True,
-                         "user_metrics": False},
-                        "data":
-                        {"cellular_data_limit": cellular_data_limit,
-                         "normalized_cell_plan_date": cell_plan_date}}
-
-        with patch('auklet.monitoring.processing.Client._get_config',
-                   new=_get_config):
+        with patch(
+                'auklet.monitoring.processing.Client._get_config',
+                new=self._get_config):
             self.assertEqual(self.client.update_limits(), 60)
-            none = False
+            self.none = False
 
-            cellular_data_limit = 1000
+            self.cellular_data_limit = 1000
             self.client.update_limits()
             self.assertEqual(self.client.data_limit, 1000000000.0)
-            cellular_data_limit = None
+            self.cellular_data_limit = None
 
-            storage_limit = 1000
+            self.storage_limit = 1000
             self.client.update_limits()
             self.assertEqual(self.client.offline_limit, 1000000000.0)
-            storage_limit = None
+            self.storage_limit = None
 
-            cell_plan_date = 10
+            self.cell_plan_date = 10
             self.client.update_limits()
             self.assertEqual(self.client.data_day, 10)
-            cell_plan_date = 1
+            self.cell_plan_date = 1
 
             self.assertEqual(self.client.update_limits(), 60000)
 
+    def test_build_event_data(self):
+        self.assertBuildEventData(self.client.build_event_data)
+
+    def test_build_log_data(self):
+        self.assertBuildLogData(
+            self.client.build_log_data(
+                msg='msg', data_type='data_type', level='level'))
+
+    def test_build_msgpack_event_data(self):
+        self.assertBuildEventData(self.client.build_msgpack_event_data)
+
+    def test_build_msgpack_log_data(self):
+        self.assertBuildLogData(
+            self.client.build_msgpack_log_data(
+                msg='msg', data_type='data_type', level='level'))
+
+    @staticmethod
+    def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
+        return {"stackTrace":
+                [{"functionName": "",
+                  "filePath": "",
+                  "lineNumber": 0,
+                  "locals":
+                    {"key": "value"}}]}
+
+    def traceback(self):
+        class Code:
+            co_code = "file_name"
+            co_name = ""
+        class Frame:
+            f_code = Code()
+            f_lineno = 0
+            f_locals = ""
+        class Traceback:
+            tb_lineno = 0
+            tb_frame = Frame()
+            tb_next = None
+        return Traceback
+
+    def base_patch_side_effect_with_none(self, location, side_effect, actual):
+        with patch(location) as _base:
+            _base.side_effect = side_effect
+            self.assertIsNone(actual)
+
+    def build_load_limits_test(self, expected, actual):
+        self.assertEqual(expected, actual)
+
+    def write_load_limits_test(self, data):
+        filename = self.client.limits_filename
+        with open(filename, "w") as limits:
+            limits.write(str(data))
+
     def assertBuildEventData(self, function):
-        with patch('auklet.stats.Event', new=self.get_mock_event):
+        with patch(
+                'auklet.monitoring.processing.Event', new=self.get_mock_event):
             self.monitoring_tree.cached_filenames["file_name"] = "file_name"
             self.assertNotEqual(
                 function(
@@ -164,24 +214,27 @@ class TestClient(unittest.TestCase):
                     tree=self.monitoring_tree),
                 None)
 
-    def test_build_event_data(self):
-        self.assertBuildEventData(self.client.build_event_data)
-
-    def test_build_msgpack_event_data(self):
-        self.assertBuildEventData(self.client.build_msgpack_event_data)
-
     def assertBuildLogData(self, function):
         self.assertNotEqual(function, None)
 
-    def test_build_log_data(self):
-        self.assertBuildLogData(
-            self.client.build_log_data(
-                msg='msg', data_type='data_type', level='level'))
+    none = True
+    cellular_data_limit = None
+    storage_limit = None
+    cell_plan_date = 1
 
-    def test_build_msgpack_log_data(self):
-        self.assertBuildLogData(
-            self.client.build_msgpack_log_data(
-                msg='msg', data_type='data_type', level='level'))
+    def _get_config(self):
+        if self.none:
+            return None
+        else:
+            return {"storage":
+                        {"storage_limit": self.storage_limit},
+                    "emission_period": 60,
+                    "features":
+                        {"performance_metrics": True,
+                         "user_metrics": False},
+                    "data":
+                        {"cellular_data_limit": self.cellular_data_limit,
+                         "normalized_cell_plan_date": self.cell_plan_date}}
 
 
 if __name__ == '__main__':

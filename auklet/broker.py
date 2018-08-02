@@ -119,10 +119,4 @@ class MQTTClient(Profiler):
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
-        try:
-            data = str.encode(data)
-        except TypeError:
-            # Expected
-            pass
-
         self.producer.publish(self.producer_types[data_type], payload=data)

@@ -14,14 +14,13 @@ class TestMonitoring(unittest.TestCase):
         self.monitoring.monitor = True
 
     def test_start(self):
-        self.assertTrue(self.monitoring.monitor)
-        self.monitoring.monitor = False
-        self.assertFalse(self.monitoring.monitor)
-        self.monitoring.monitor = True
-        self.monitoring.start()
-        self.assertTrue(self.monitoring.monitor)
+        self.assertIsNone(self.monitoring.start())
         self.monitoring.stop()
-        self.monitoring.monitor = False
+
+    def test_stop(self):
+        self.monitoring.start()
+        self.monitoring.stop()
+        self.assertTrue(self.monitoring.stopping)
 
     def test_sample(self):
         class CoCode:
@@ -45,20 +44,64 @@ class TestMonitoring(unittest.TestCase):
             self.monitoring.sample(None, current_frame=Frame())
             self.assertTrue(test_sample_stack)
 
-    def test_run(self):
-        self.monitoring.run()
-        self.assertEqual(self.monitoring.sampler.start(self.monitoring), None)
-        self.monitoring.sampler.stop()
-        self.monitoring.sampler.start(self.monitoring)
-        self.assertEqual(self.monitoring.sampler.stop(), None)
+    def test_process_periodic(self):
+        def produce(self, data):
+            global test_process_periodic_produce_data
+            test_process_periodic_produce_data = True
+
+        def update_network_metrics(self, interval):
+            global test_process_periodic_update_network_metrics_interval
+            test_process_periodic_update_network_metrics_interval = True
+
+        def check_date(self):
+            global test_process_periodic_check_date
+            test_process_periodic_check_date = True
+
+        with patch('auklet.broker.MQTTClient.produce', new=produce):
+            with patch(
+                    'auklet.monitoring.processing.'
+                    'Client.update_network_metrics',
+                    new=update_network_metrics):
+                with patch('auklet.monitoring.processing.Client.check_date',
+                           new=check_date):
+                    self.monitoring.process_periodic()
+                    self.assertTrue(test_process_periodic_produce_data)
+                    self.assertTrue(
+                        test_process_periodic_update_network_metrics_interval)
+                    self.assertTrue(test_process_periodic_check_date)
+                    self.assertEqual(60, self.monitoring.emission_rate)
+
+    def test_handle_exc(self):
+        with patch('auklet.broker.MQTTClient.produce') as _produce:
+            with patch(
+                    'auklet.monitoring.processing.'
+                    'Client.build_msgpack_event_data') \
+                    as _build_msgpack_event_data:
+                with patch('sys.__excepthook__') as ___excepthook__:
+                    ___excepthook__.side_effect = self.__excepthook__
+                    _build_msgpack_event_data.return_value = True
+                    _produce.side_effect = self.produce
+                    self.monitoring.handle_exc(None, None, None)
+                    self.assertTrue(test_handle_exc___excepthook___)
 
     def test_log(self):
-        def new_publish():
-            return True
+        with patch('auklet.broker.MQTTClient.produce') as _produce:
+            _produce.side_effect = self.produce
+            self.monitoring.log("", "")
+            self.assertIsNotNone(test_log_data)
 
-        with patch('auklet.broker.MQTTClient.producer.publish', new=new_publish):
-            self.assertEqual(
-                self.monitoring.log(msg="msg", data_type="str"), None)
+    def build_msgpack_tree(self, app_id):
+        print(app_id)
+
+    @staticmethod
+    def produce(data, data_type):
+        global test_log_data
+        test_log_data = data
+
+    @staticmethod
+    def __excepthook__(type, value, traceback):
+        global test_handle_exc___excepthook___
+        test_handle_exc___excepthook___ = True
 
 
 if __name__ == '__main__':

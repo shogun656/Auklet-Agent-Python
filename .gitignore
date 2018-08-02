@@ -213,7 +213,9 @@ tests/.auklet
 tests/monitoring/.auklet
 .tox/
 .pyenv/
-
+key.pem
+key.pem.zip
 tests/key.pem
 tests/key.pem.zip
+run_unit_tests.sh
 
