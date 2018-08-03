@@ -22,6 +22,7 @@ fi
 
 pip install coverage
 
+
 python setup.py install
 
 # This outputs the complete current python version to `pyver`
