@@ -7,22 +7,13 @@ mkdir -p .auklet
 filelist="local.txt version communication usage limits"
 for file in $filelist
 do
-    if [ ! -f .auklet/$file ]; then
-        touch .auklet/$file
-    fi
+    touch .auklet/$file
 done
 
-if [ ! -f key.pem ]; then
-    touch key.pem
-fi
-
-if [ ! -f key.pem.zip ]; then
-    zip key.pem.zip key.pem
-fi
+touch key.pem
+zip key.pem.zip key.pem
 
 pip install coverage
-
-
 python setup.py install
 
 # This outputs the complete current python version to `pyver`
@@ -31,14 +22,6 @@ echo Python $pyver
 
 COVERAGE_FILE=.coverage.python$pyver coverage run --rcfile=".coveragerc" setup.py test
 
-if [ -d .auklet ]; then
-    rm -R .auklet
-fi
-
-if [ -f key.pem ]; then
-    rm key.pem
-fi
-
-if [ -f key.pem.zip ]; then
-    rm key.pem.zip
-fi
+rm -Rf .auklet
+rm -f key.pem
+rm -f key.pem.zip

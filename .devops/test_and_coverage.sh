@@ -14,12 +14,10 @@ CIRCLE_LOCAL_BUILD=$1
 pip install tox
 pip install --upgrade setuptools
 
-if [ ! -d /.pyenv ]; then
-    sudo mkdir -p /.pyenv/plugins/pyenv-install-latest/bin
-    sudo chmod 777 /.pyenv/
-    sudo curl https://raw.githubusercontent.com/momo-lab/pyenv-install-latest/master/bin/pyenv-install-latest --create-dirs -o /.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest
-    sudo chmod +x /.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest
-fi
+sudo mkdir -p /.pyenv/plugins/pyenv-install-latest/bin
+sudo chmod 777 /.pyenv/
+sudo curl https://raw.githubusercontent.com/momo-lab/pyenv-install-latest/master/bin/pyenv-install-latest --create-dirs -o /.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest
+sudo chmod +x /.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest
 
 rm -Rf htmlcov
 
