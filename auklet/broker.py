@@ -4,6 +4,7 @@ import abc
 import io
 import ssl
 import json
+
 import zipfile
 import logging
 import paho.mqtt.client as mqtt
@@ -22,7 +23,7 @@ __all__ = ["Profiler", "MQTTClient"]
 
 # compatible with Python 2 *and* 3
 # https://stackoverflow.com/questions/35673474/using-abc-abcmeta-in-a-way-it-is-compatible-both-with-python-2-7-and-python-3-5
-ABC = abc.ABCMeta('ABC', (object,), {'__slots__': ()})
+ABC = abc.ABCMeta(str('ABC'), (object,), {'__slots__': ()})
 
 
 class Profiler(ABC):

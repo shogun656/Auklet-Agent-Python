@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import random
 import string
-import itertools
 from src.benchmark.statprof import statprof
 from pidigits import piGenerator
 
@@ -51,7 +50,8 @@ class WriteToDisk:
     @staticmethod
     def test():
         with open("/tmp/write-read", "w") as file:
-            file.write(''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(50000)))
+            file.write(''.join(random.SystemRandom().choice(
+                string.ascii_letters + string.digits) for _ in range(50000)))
 
 
 class ReadFromDisk:
@@ -82,7 +82,8 @@ def display(state, test_name):
 
 
 def start(state):
-    tests = [Fibonacci, PiDigits, Addition, Multiplication, Division, WriteToDisk, ReadFromDisk]
+    tests = [Fibonacci, PiDigits, Addition,
+             Multiplication, Division, WriteToDisk, ReadFromDisk]
 
     for test in tests:
         runtest(state, test())

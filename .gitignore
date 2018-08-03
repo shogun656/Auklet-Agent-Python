@@ -181,6 +181,7 @@ celerybeat-schedule
 
 # virtualenv
 venv/
+venv2/
 ENV/
 
 # Spyder project settings
@@ -210,4 +211,11 @@ pi_digits.py
 coverage.xml
 tests/.auklet
 tests/monitoring/.auklet
+.tox/
+.pyenv/
+key.pem
+key.pem.zip
+tests/key.pem
+tests/key.pem.zip
+run_unit_tests.sh
 

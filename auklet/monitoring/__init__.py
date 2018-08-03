@@ -5,12 +5,13 @@
 from __future__ import absolute_import
 
 import sys
+import time
 import signal
 from six import iteritems
 from six.moves import _thread
 
 from auklet.broker import MQTTClient
-from auklet.utils import get_mac, setup_thread_excepthook, b
+from auklet.utils import get_mac, setup_thread_excepthook
 from auklet.monitoring.logging import AukletLogging
 from auklet.monitoring.processing import Client
 from auklet.stats import MonitoringTree
@@ -32,6 +33,7 @@ class Monitoring(AukletLogging):
     timer = signal.ITIMER_REAL
     sig = signal.SIGALRM
     stopping = False
+    stopped = False
 
     interval = 1e-3  # 1ms
 
@@ -65,11 +67,17 @@ class Monitoring(AukletLogging):
 
     def stop(self):
         self.stopping = True
+        self.wait_for_stop()
+
+    def wait_for_stop(self):
+        while not self.stopped:
+            time.sleep(.1)
 
     def sample(self, sig, current_frame):
         """Samples the given frame."""
         if self.stopping:
             signal.setitimer(self.timer, 0, 0)
+            self.stopped = True
             return
         current_thread = _thread.get_ident()
         for thread_id, frame in iteritems(sys._current_frames()):
