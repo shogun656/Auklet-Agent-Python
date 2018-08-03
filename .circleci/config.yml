@@ -81,7 +81,7 @@ jobs:
                   fi
                   bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
             - store_artifacts:
-                 path: ~/app/tmp/htmlcov
+                 path: ~/app/htmlcov
             - run:
                 name: Run Whitesource
                 command: |
