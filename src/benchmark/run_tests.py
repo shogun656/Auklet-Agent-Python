@@ -50,7 +50,7 @@ def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
     conf_patcher.start()
     producer_patcher.start()
 
-    auklet_monitoring = Monitoring("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiZTBiOTk4YzctZjczMi00MWY5LTg4NDUtODM3ZWRkMTU0MjM5IiwidXNlcm5hbWUiOiIyNWI2YmRmNy1mOTQ1LTQwMmQtYmNkYy00ODZmZDZkNzY4ODUiLCJleHAiOjE1MzI2MTU3NDksImVtYWlsIjoiIn0.jCZafqZ8-CbCkTLwhLemFWeWjgNDBxKYAgoR2Ced8T4", "K5mccNdvgmPwND7Hx6kaMX", base_url="https://api-staging.auklet.io/")
+    auklet_monitoring = Monitoring("", "")
     auklet_monitoring.start()
     base.start(state="WithAukletMQTT")
     auklet_monitoring.stop()
@@ -67,19 +67,15 @@ def display_complete_results():
     with open('/tmp/benchmark_results') as file:
         my_list = tuple(tuple(map(str, line.split())) for line in file)
 
-    without_auklet_run_time = 0
-    with_auklet_mmqt_run_time = 0
+    without_auklet_run_time = with_auklet_mmqt_run_time = 0
     number_of_tests = int(len(my_list) / 2)
 
     try:
         print("\n\nTests comparison.")
         print(my_list[0][0].split('_')[0],
-              my_list[number_of_tests][0].split('_')[0],
-              sep='\t')  # Prints header
-
+              my_list[number_of_tests][0].split('_')[0], sep='\t')
         print("seconds", "seconds", "name", sep='\t\t')
 
-        # Organizes, calculates, and prints data from file
         for i in range(0, number_of_tests):
             without_auklet = round(float(my_list[i][2]), 6)
             with_auklet_mmqt = round(float(my_list[i+number_of_tests][2]), 6)
@@ -90,8 +86,7 @@ def display_complete_results():
             without_auklet_run_time = \
                 without_auklet_run_time + float(my_list[i][2])
 
-            with_auklet_mmqt_run_time = \
-                with_auklet_mmqt_run_time + \
+            with_auklet_mmqt_run_time = with_auklet_mmqt_run_time + \
                 float(my_list[number_of_tests+i][2])
 
         print("---")
