@@ -36,7 +36,7 @@ pip install coverage
 coverage combine
 coverage report -m
 coverage xml
-coverage html
+coverage htmlcov
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   # Set -e is disabled momentarily to be able to output the error message to log.txt file.
