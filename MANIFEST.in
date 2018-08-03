@@ -1,3 +1,3 @@
 graft auklet/licenses
 include requirements.txt
-include test.txt
+include tests.txt
