@@ -8,7 +8,7 @@ from datetime import datetime
 
 from tests import data_factory
 
-from auklet.base import Client, Runnable
+from auklet.monitoring.processing import Client
 from auklet.stats import MonitoringTree
 
 
@@ -132,7 +132,8 @@ class TestClient(unittest.TestCase):
                         {"cellular_data_limit": cellular_data_limit,
                          "normalized_cell_plan_date": cell_plan_date}}
 
-        with patch('auklet.base.Client._get_config', new=_get_config):
+        with patch('auklet.monitoring.processing.Client._get_config',
+                   new=_get_config):
             self.assertEqual(self.client.update_limits(), 60)
             none = False
 
@@ -154,7 +155,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual(self.client.update_limits(), 60000)
 
     def assertBuildEventData(self, function):
-        with patch('auklet.base.Event', new=self.get_mock_event):
+        with patch('auklet.stats.Event', new=self.get_mock_event):
             self.monitoring_tree.cached_filenames["file_name"] = "file_name"
             self.assertNotEqual(
                 function(
@@ -181,56 +182,6 @@ class TestClient(unittest.TestCase):
         self.assertBuildLogData(
             self.client.build_msgpack_log_data(
                 msg='msg', data_type='data_type', level='level'))
-
-
-class TestRunnable(unittest.TestCase):
-    def setUp(self):
-        self.runnable = Runnable()
-
-    def test_is_running(self):
-        self.assertFalse(self.runnable.is_running())
-        self.runnable._running = True
-        self.assertTrue(self.runnable.is_running())
-        self.runnable._running = None
-
-    def test_start(self):
-        self.runnable._running = True
-        self.assertRaises(RuntimeError, lambda: self.runnable.start())
-        self.runnable._running = None
-
-        def next(self):
-            raise StopIteration
-
-        with patch('auklet.base.next', new=next):
-            self.assertRaises(Exception, lambda: self.runnable.start())
-
-        self.runnable._running = None
-
-    def test_stop(self):
-        self.runnable._running = None
-        self.assertRaises(RuntimeError, lambda: self.runnable.stop())
-
-        def next(self):
-            raise StopIteration
-
-        self.runnable._running = True
-        with patch('auklet.base.next', new=next):
-            self.runnable.stop()
-
-    def test_run(self):
-        self.assertTrue(self.run())
-
-    def test___enter__(self):
-        def start(self):
-            global running  # used to tell if running is true
-            running = True
-
-        with patch('auklet.base.Runnable.start', new=start):
-            self.runnable.__enter__()
-            self.assertTrue(running)  # global variable used here
-
-    def test___exit__(self):
-        pass
 
 
 if __name__ == '__main__':
