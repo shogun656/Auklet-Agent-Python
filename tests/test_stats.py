@@ -1,18 +1,18 @@
+import sys
 import unittest
 from mock import patch
 
-from tests import data_factory
-
 from auklet.stats import Function, Event, MonitoringTree, SystemMetrics
+
+try:
+    import psutil
+except ImportError:
+    # Some platforms that applications could be running on require specific
+    # installation of psutil which we cannot configure currently
+    psutil = None
 
 
 class TestFunction(unittest.TestCase):
-    def get_test_child(self):
-        class TestChild:
-            func_name = "test_child"
-            file_path = "file_path"
-        return TestChild
-
     def setUp(self):
         self.function = Function(line_num=0, func_name="UnitTest")
 
@@ -29,26 +29,14 @@ class TestFunction(unittest.TestCase):
         self.assertNotEqual(
             self.function.has_child(test_child=self.get_test_child()), False)
 
+    def get_test_child(self):
+        class TestChild:
+            func_name = "test_child"
+            file_path = "file_path"
+        return TestChild
+
 
 class TestEvent(unittest.TestCase):
-    def get_filename(self, code="code", frame="frame"):
-        _ = code
-        _ = frame
-        return ""
-
-    def get_traceback(self):
-        class Code:
-            co_name = None
-        class Frame:
-            f_code = Code()
-            f_lineno = 0
-            f_locals = {"key": "value"}
-        class Traceback:
-            tb_lineno = 0
-            tb_frame = Frame()
-            tb_next = None
-        return Traceback
-
     def setUp(self):
         self.tree = MonitoringTree()
         self.patcher = patch(
@@ -56,7 +44,7 @@ class TestEvent(unittest.TestCase):
         self.patcher.start()
         self.event = Event(
             exc_type=str, tb=self.get_traceback(),
-            tree=self.tree, abs_path="abs_path")
+            tree=self.tree, abs_path="/")
 
     def tearDown(self):
         self.patcher.stop()
@@ -78,72 +66,43 @@ class TestEvent(unittest.TestCase):
                 local_vars={"key": True}), None)
 
     def test_build_traceback(self):
-        def _filter_frame(self, file_name):
-            _ = file_name
-            return True
+        self.build_patcher('auklet.stats.Event._filter_frame', True, [])
+        self.build_patcher('auklet.stats.Event._filter_frame', False)
+        self.build_patcher('auklet.stats.MonitoringTree.get_filename', "/")
 
-        with patch('auklet.stats.Event._filter_frame', new=_filter_frame):
+    def get_filename(self, code="code", frame="frame"):
+        _ = code
+        _ = frame
+        return ""
+
+    def get_traceback(self):
+        class Code:
+            co_name = None
+        class Frame:
+            f_code = Code()
+            f_lineno = 0
+            f_locals = {"key": "value"}
+        class Traceback:
+            tb_lineno = 0
+            tb_frame = Frame()
+            tb_next = None
+        return Traceback
+
+    def build_patcher(self, patch_location, return_value,
+                      expected=[{'functionName': None,
+                                 'filePath': '',
+                                 'lineNumber': 0,
+                                 'locals': {'key': 'value'}}]):
+
+        with patch(patch_location) as mock_patcher:
+            mock_patcher.return_value = return_value
             self.event._build_traceback(
                 trace=self.get_traceback(), tree=self.tree)
-            self.assertEqual(self.event.trace, [])
+            self.assertEqual(expected, self.event.trace)
 
-        def _filter_frame(self, file_name):
-            _ = file_name
-            return False
-
-        with patch('auklet.stats.Event._filter_frame', new=_filter_frame):
-            self.event._build_traceback(
-                trace=self.get_traceback(), tree=self.tree)
-            self.assertEqual(self.event.trace,
-                             [{'functionName': None,
-                               'filePath': '',
-                               'lineNumber': 0,
-                               'locals': {'key': 'value'}}])
-
-        def get_filename(self, f_code, frame):
-            _ = f_code
-            _ = frame
-            return "abs_path"
-        with patch('auklet.stats.MonitoringTree.get_filename',
-                   new=get_filename):
-            self.event._build_traceback(
-                trace=self.get_traceback(), tree=self.tree)
-            self.assertEqual(self.event.trace,
-                             [{'functionName': None,
-                               'filePath': '',
-                               'lineNumber': 0,
-                               'locals': {'key': 'value'}}])
 
 
 class TestMonitoringTree(unittest.TestCase):
-    def get_code(self):
-        class Code:
-            co_code = "file_name"
-            co_firstlineno = 0
-            co_name = ""
-        return Code
-
-    def get_frame(self):
-        class Frame:
-            f_code = self.get_code()
-        return Frame()
-
-    def get_root_function(self):
-        return {'callees': [],
-                'filePath': None,
-                'functionName': 'root',
-                'lineNumber': 1,
-                'nCalls': 1,
-                'nSamples': 1}
-
-    def get_parent(self):
-        pass
-
-    def get_new_parent(self):
-        class Parent:
-            children = []
-        return Parent
-
     def setUp(self):
         self.monitoring_tree = MonitoringTree()
         self.function = Function(line_num=0, func_name="UnitTest")
@@ -155,10 +114,35 @@ class TestMonitoringTree(unittest.TestCase):
             self.monitoring_tree.get_filename(
                 code=self.get_code(), frame="frame"), self.get_code().co_code)
 
+        self.monitoring_tree.cached_filenames.clear()
+        self.monitoring_tree.cached_filenames['file_name'] = None
+        self.assertIsNone(self.monitoring_tree.get_filename(
+            code=self.get_code(), frame="frame"))
+
+        with patch('inspect.getsourcefile') as _get_source_file:
+            _get_source_file.return_value = "file_name"
+            self.assertIsNotNone(self.monitoring_tree.get_filename(
+                code=self.get_code(), frame="frame"))
+
     def test_create_frame_function(self):
-        self.assertNotEqual(
-            self.monitoring_tree._create_frame_func(
-                frame=self.get_frame()), None)
+        class Code:
+            co_firstlineno = 0
+            co_name = ""
+
+        class Frame:
+            f_code = Code
+
+        self.assertIsNotNone(
+            self.monitoring_tree._create_frame_func("", root=True))
+        with patch(
+                'auklet.stats.MonitoringTree.get_filename') as _get_filename:
+            _get_filename.return_value = None
+            self.assertIsNotNone(
+                self.monitoring_tree._create_frame_func(Frame))
+            self.monitoring_tree.abs_path = "/tests/"
+            _get_filename.return_value = "/tests/test_stats.py"
+            self.assertIsNotNone(
+                self.monitoring_tree._create_frame_func(Frame))
 
     def test_filter_frame(self):
         self.assertTrue(self.monitoring_tree._filter_frame(file_name=None))
@@ -167,71 +151,42 @@ class TestMonitoringTree(unittest.TestCase):
             self.monitoring_tree._filter_frame(file_name="site-packages"))
 
     def test__build_tree(self):
+        class Code:
+            co_firstlineno = 0
+            co_name = ""
+            co_code = ""
+
         class Frame:
-            class Code:
-                co_code = ""
-                co_firstlineno = 0
-                co_name = ""
-            f_code = Code()
-        frame = Frame()
+            f_code = Code
+            file_path = ""
 
-        result = str(self.monitoring_tree._build_tree(
-            new_stack=[frame, frame]))
+        self.assertIsNotNone(self.monitoring_tree._build_tree([Frame, Frame]))
 
-        self.assertEqual(
-            result, str(data_factory.StackTraceFactory()))
-
-        def _filter_frame(self, file_name):
-            return False
-
-        with patch('auklet.stats.MonitoringTree._filter_frame',
-                   new=_filter_frame):
-            result = str(self.monitoring_tree._build_tree(
-                new_stack=[frame, frame]))
-
-            self.assertIsNotNone(result)
+        with patch(
+                'auklet.stats.MonitoringTree._create_frame_func') as \
+                create_frame_func:
+            create_frame_func.return_value = Frame
+            with patch(
+                    'auklet.stats.MonitoringTree._filter_frame') as \
+                    filter_frame:
+                filter_frame.return_value = True
+                self.monitoring_tree._build_tree([Frame])
+        self.assertIsNotNone(self.monitoring_tree._build_tree([Frame, Frame]))
 
     def test_update_sample_count(self):
-        self.assertTrue(
-            self.monitoring_tree._update_sample_count(
-                parent=None, new_parent=self.get_new_parent()))
+        self.assertTrue(self.monitoring_tree._update_sample_count(
+            parent=None, new_parent=self.get_new_parent()))
 
-        class Parent:
-            calls = 0
-            samples = 0
-            def has_child(self, new_child):
-                class Child:
-                    calls = 0
-                    samples = 0
-
-                child = Child
-                return child
-        parent = Parent()
-
-        class NewParent:
-            class NewChild:
-                calls = 0
-            children = [NewChild]
-        new_parent = NewParent()
-
-        with self.assertRaises(AttributeError) as error:
-            self.monitoring_tree._update_sample_count(
-                parent=parent, new_parent=new_parent)
-        self.assertEqual("type object 'NewChild' has no attribute 'children'",
-                         str(error.exception))
-
-        class Parent:
-            calls = 0
-            samples = 0
-            def has_child(self, new_child):
-                return False
-        parent = Parent()
-
-        with self.assertRaises(AttributeError) as error:
-            self.monitoring_tree._update_sample_count(
-                parent=parent, new_parent=new_parent)
-        self.assertEqual("'Parent' object has no attribute 'children'",
-                         str(error.exception))
+        if sys.version_info < (3,):
+            self.build_assert_raises(
+                "class NewChild has no attribute 'children'", True)
+            self.build_assert_raises(
+                "Parent instance has no attribute 'children'", False)
+        else:
+            self.build_assert_raises(
+                "type object 'NewChild' has no attribute 'children'", True)
+            self.build_assert_raises(
+                "'Parent' object has no attribute 'children'", False)
 
     def test_update_hash(self):
         self.assertNotEqual(
@@ -254,14 +209,75 @@ class TestMonitoringTree(unittest.TestCase):
         self.assertEqual(self.monitoring_tree.root_func, None)
 
     def test_build_tree(self):
+        self.monitoring_tree.root_func = None
+        self.assertEqual({}, self.monitoring_tree.build_tree(app_id="app_id"))
         self.monitoring_tree.root_func = self.get_root_function()
-        self.assertNotEqual(
-            self.monitoring_tree.build_tree(app_id="app_id"), None)
+        self.assertIsNotNone(self.monitoring_tree.build_tree(app_id="app_id"))
 
     def test_build_msgpack_tree(self):
         self.monitoring_tree.root_func = self.get_root_function()
         self.assertNotEqual(
             self.monitoring_tree.build_msgpack_tree(app_id="app_id"), None)
+
+    def get_code(self):
+        class Code:
+            co_code = "file_name"
+            co_firstlineno = 0
+            co_name = ""
+        return Code
+
+    def get_frame(self):
+        class Frame:
+            f_code = self.get_code()
+        frame = [Frame, Frame]
+        return frame
+
+    def get_root_function(self):
+        return {'callees': [],
+                'filePath': None,
+                'functionName': 'root',
+                'lineNumber': 1,
+                'nCalls': 1,
+                'nSamples': 1}
+
+    def get_parent(self):
+        pass
+
+    def get_new_parent(self):
+        class Parent:
+            children = []
+        return Parent
+
+    def build_assert_raises(self, expected, child_state):
+        global child_exists  # For some reason this needs to be done twice
+        child_exists = child_state
+        with self.assertRaises(AttributeError) as error:
+            self.monitoring_tree._update_sample_count(
+                parent=self.Parent(), new_parent=self.NewParent())
+        self.assertEqual(expected, str(error.exception))
+
+    class Parent:
+        calls = 0
+        samples = 0
+
+        def has_child(self, new_child):
+            global child_exists  # Must be used to pass variable in class
+            if child_exists:
+                class Child:
+                    calls = 0
+                    samples = 0
+
+                child = Child
+                child_exists = False
+                return child
+            else:
+                return False
+
+    class NewParent:
+        class NewChild:
+            calls = 0
+
+        children = [NewChild]
 
 
 class TestSystemMetrics(unittest.TestCase):
@@ -269,8 +285,11 @@ class TestSystemMetrics(unittest.TestCase):
         self.system_metrics = SystemMetrics()
 
     def test_update_network(self):
-        self.system_metrics.update_network(interval=1)
-        self.assertNotEqual(self.system_metrics.prev_inbound, 0)
+        if psutil is not None:
+            self.system_metrics.update_network(interval=1)
+            self.assertNotEqual(self.system_metrics.prev_inbound, 0)
+        else:
+            pass
 
 
 if __name__ == '__main__':

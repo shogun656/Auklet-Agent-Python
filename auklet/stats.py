@@ -9,7 +9,7 @@ from time import time
 
 try:
     import psutil
-except ImportError:
+except ImportError:  # pragma: no cover
     # Some platforms that applications could be running on require specific
     # installation of psutil which we cannot configure currently
     psutil = None
