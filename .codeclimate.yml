@@ -1,4 +1,13 @@
 ---
 exclude_paths:
-- .devops/
-- src/benchmark/statprof/
+  - .devops/
+  - src/benchmark/statprof/
+checks:
+  complex-logic:
+    enabled: true
+    config:
+      threshold: 10
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 10
