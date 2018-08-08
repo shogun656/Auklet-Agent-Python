@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
 set -e
 
-if [ ! -d .auklet ]; then
-    mkdir .auklet
-    touch .auklet/local.txt
-    touch .auklet/version
-fi
+echo "Creating files..."
+mkdir -p .auklet
 
-if [ -d htmlcov ]; then
-    rm -R htmlcov
-fi
+filelist="local.txt version communication usage limits"
+for file in $filelist
+do
+    touch .auklet/$file
+done
 
-coverage run --rcfile=".coveragerc" setup.py test
-coverage report -m
-coverage html -d tmp/htmlcov
-coverage xml
+touch key.pem
+zip key.pem.zip key.pem
 
-if [ -d .auklet ]; then
-    rm -R .auklet
-fi
+pip install coverage
+python setup.py install
+
+# This outputs the complete current python version to `pyver`
+pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+echo Python $pyver
+
+COVERAGE_FILE=.coverage.python$pyver coverage run --rcfile=".coveragerc" setup.py test
+
+rm -Rf .auklet
+rm -f key.pem
+rm -f key.pem.zip

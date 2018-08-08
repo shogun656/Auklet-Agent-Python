@@ -62,7 +62,6 @@ def get_commit_hash():
         # TODO Error out app if no commit hash
         return ""
 
-
 def get_abs_path(path):
     try:
         return os.path.abspath(path).split('/.auklet')[0]

@@ -13,12 +13,6 @@ services:
 #      DOCKER_VERNEMQ_LISTENER.ssl.require_certificate: 'on'
       DOCKER_VERNEMQ_ALLOW_ANONYMOUS: 'on'
 
-  kafka:
-    build:
-      context: .
-      dockerfile: ./compose/kafka/Dockerfile
-    command: bash /startKafka.sh
-
   benchmark:
     build:
       context: .
@@ -29,5 +23,4 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - kafka
       - mqtt

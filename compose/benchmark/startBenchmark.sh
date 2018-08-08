@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-while ! nc -z kafka 9092; do
-  sleep 10
-done
 while ! nc -z mqtt 1883; do
-  sleep 10
+  sleep 1
 done
 
 mkdir .auklet
