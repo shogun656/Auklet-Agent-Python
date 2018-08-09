@@ -74,10 +74,8 @@ def get_device_ip():
         request = Request("https://api.ipify.org")
         res = urlopen(request)
         return u(res.read())
-    except (HTTPError, URLError):
+    except (HTTPError, URLError, Exception):
         # TODO log to kafka if the ip service fails for any reason
-        return None
-    except Exception:
         return None
 
 

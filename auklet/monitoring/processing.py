@@ -1,15 +1,9 @@
-import io
-import ssl
 import json
 import msgpack
-import zipfile
 
 from uuid import uuid4
 from datetime import datetime
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
 from auklet.stats import Event, SystemMetrics
-from auklet.errors import AukletConfigurationError
 from auklet.utils import create_file, get_commit_hash, \
     get_abs_path, get_device_ip, open_auklet_url, build_url, u
 
@@ -134,7 +128,7 @@ class Client(object):
     def update_limits(self):
         config = self._get_config()
         if config is None:
-            return 60
+            return 60000
         with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))

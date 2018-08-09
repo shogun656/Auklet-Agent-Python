@@ -51,7 +51,7 @@ class Function(object):
 
 class Event(object):
     __slots__ = ['trace', 'exc_type', 'line_num', 'abs_path']
-    filters = ["auklet"]
+    filters = []
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
