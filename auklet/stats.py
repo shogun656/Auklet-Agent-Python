@@ -51,7 +51,7 @@ class Function(object):
 
 class Event(object):
     __slots__ = ['trace', 'exc_type', 'line_num', 'abs_path']
-    filters = []
+    filters = ["auklet"]
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
@@ -197,6 +197,7 @@ class MonitoringTree(object):
         return {}
 
     def build_msgpack_tree(self, app_id):
+        print(self.build_tree(app_id))
         return msgpack.packb(self.build_tree(app_id), use_bin_type=False)
 
 
