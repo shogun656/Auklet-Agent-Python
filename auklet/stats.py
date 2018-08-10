@@ -6,6 +6,7 @@ import pprint
 import inspect
 from uuid import uuid4
 from time import time
+from auklet.utils import get_agent_version
 
 try:
     import psutil
@@ -192,6 +193,7 @@ class MonitoringTree(object):
                 "timestamp": int(round(time() * 1000)),
                 "macAddressHash": self.mac_hash,
                 "commitHash": self.commit_hash,
+                "agentVersion": get_agent_version(),
                 "tree": dict(self.root_func)
             }
         return {}

@@ -3,6 +3,7 @@ import sys
 import uuid
 import hashlib
 
+from auklet.__about__ import __version__ as auklet_version
 from auklet.errors import AukletConfigurationError
 
 __all__ = ['open_auklet_url', 'create_file', 'clear_file', 'build_url',
@@ -76,6 +77,10 @@ def get_device_ip():
     except (HTTPError, URLError, Exception):
         # TODO log to kafka if the ip service fails for any reason
         return None
+
+
+def get_agent_version():
+    return auklet_version
 
 
 def setup_thread_excepthook():

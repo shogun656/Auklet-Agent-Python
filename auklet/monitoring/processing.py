@@ -5,7 +5,8 @@ from uuid import uuid4
 from datetime import datetime
 from auklet.stats import Event, SystemMetrics
 from auklet.utils import create_file, get_commit_hash, \
-    get_abs_path, get_device_ip, open_auklet_url, build_url, u
+    get_abs_path, get_device_ip, open_auklet_url, build_url, \
+    get_agent_version, u
 
 try:
     # For Python 3.0 and later
@@ -163,6 +164,7 @@ class Client(object):
         event_dict['systemMetrics'] = dict(self.system_metrics)
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
+        event_dict['agentVersion'] = get_agent_version()
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
@@ -176,7 +178,8 @@ class Client(object):
             "timestamp": str(datetime.utcnow()),
             "systemMetrics": dict(SystemMetrics()),
             "macAddressHash": self.mac_hash,
-            "commitHash": self.commit_hash
+            "commitHash": self.commit_hash,
+            "agentVersion": get_agent_version()
         }
         return log_dict
 
