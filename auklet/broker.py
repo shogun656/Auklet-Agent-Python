@@ -24,6 +24,10 @@ class MQTTClient(object):
     client = None
     com_config_filename = ".auklet/communication"
     port = None
+    producer_types = {
+        "monitoring": "python/profiler/monitoring",
+        "event": "python/events/event",
+    }
 
     def __init__(self, client):
         self.client = client
@@ -67,10 +71,6 @@ class MQTTClient(object):
     def _read_from_conf(self, data):
         self.brokers = data['brokers']
         self.port = int(data['port'])
-        self.producer_types = {
-            "monitoring": "python/profiler/monitoring",
-            "event": "python/events/event",
-        }
 
     def on_disconnect(self, userdata, rc):
         if rc != 0:
