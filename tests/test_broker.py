@@ -47,7 +47,7 @@ class TestMQTTBroker(unittest.TestCase):
             self.assertTrue(self.broker._get_certs())
 
     def test_read_from_conf(self):
-        self.broker._read_from_conf({"brokers": "mq-staging.feeds.auklet.io",
+        self.broker._read_from_conf({"brokers": "",
                                      "port": "8333",
                                      "prof_topic": "",
                                      "event_topic": "",
@@ -81,11 +81,13 @@ class TestMQTTBroker(unittest.TestCase):
     def test_produce(self):
         with patch('paho.mqtt.client.Client.publish') as _publish:
             with patch('auklet.broker.MQTTClient._get_certs') as get_certs:
-                get_certs.return_value = True
-                _publish.side_effect = self.publish
-                self.broker.create_producer()
-                self.broker.produce(str(self.data))
-                self.assertIsNotNone(test_produce_payload)
+                with patch('paho.mqtt.client.Client') as _MQTT_Client:
+                    _MQTT_Client.side_effect = self.MockClient
+                    get_certs.return_value = True
+                    _publish.side_effect = self.publish
+                    self.broker.create_producer()
+                    self.broker.produce(str(self.data))
+                    self.assertIsNotNone(test_produce_payload)
 
     class MockClient:
         def __init__(self):
