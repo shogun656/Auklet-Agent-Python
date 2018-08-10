@@ -6,12 +6,14 @@ from auklet.monitoring import Monitoring
 
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
-        self.monitoring = Monitoring(
-            apikey="",
-            app_id="",
-            base_url="https://api-staging.io",
-            monitoring=True)
-        self.monitoring.monitor = True
+        with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
+            _get_conf.side_effect = self.get_conf
+            self.monitoring = Monitoring(
+                apikey="",
+                app_id="",
+                base_url="https://api-staging.io",
+                monitoring=True)
+            self.monitoring.monitor = True
 
     def test_start(self):
         self.assertIsNone(self.monitoring.start())
@@ -83,7 +85,7 @@ class TestMonitoring(unittest.TestCase):
                     self.assertTrue(
                         test_process_periodic_update_network_metrics_interval)
                     self.assertTrue(test_process_periodic_check_date)
-                    self.assertEqual(60, self.monitoring.emission_rate)
+                    self.assertEqual(60000, self.monitoring.emission_rate)
 
     def test_handle_exc(self):
         with patch('auklet.broker.MQTTClient.produce') as _produce:
@@ -111,6 +113,10 @@ class TestMonitoring(unittest.TestCase):
     def produce(data, data_type):
         global test_log_data
         test_log_data = data
+
+    @staticmethod
+    def get_conf():
+        return True
 
     @staticmethod
     def __excepthook__(type, value, traceback):

@@ -129,7 +129,7 @@ class Client(object):
     def update_limits(self):
         config = self._get_config()
         if config is None:
-            return 60
+            return 60000
         with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))

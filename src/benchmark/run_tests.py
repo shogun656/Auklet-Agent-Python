@@ -25,30 +25,31 @@ def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
     print("\n\nStarting benchmark tests with the Auklet Agent and MQTT...")
 
     def _load_conf(self):
-        self.brokers = ["mqtt"]
+        self.brokers = "mqtt"
         self.port = 1883
-        self.producer_types = {
-            "monitoring": "python/agent/profiling",
-            "event": "python/agent/events",
-            "log": "python/agent/logging"
-        }
 
     def create_producer(self):
         # Make non SSL producer for testing
         self.producer = mqtt.Client()
         self.producer.on_disconnect = self.on_disconnect
-        self.producer.connect_async(["mqtt"], 1883)
+        self.producer.connect_async("mqtt", 1883)
         self.producer.loop_start()
+
+    def _get_conf(self):
+        return True
 
     update_limits_mock.return_value = 10000
     get_certs_mock.return_value = True
 
-    conf_patcher = patch('auklet.broker.MQTTClient._load_conf',
+    conf_patcher = patch('auklet.broker.MQTTClient._read_from_conf',
                          new=_load_conf)
     producer_patcher = patch('auklet.broker.MQTTClient.create_producer',
                              new=create_producer)
+    get_conf_patcher = patch('auklet.broker.MQTTClient._get_conf',
+                             new=_get_conf)
     conf_patcher.start()
     producer_patcher.start()
+    get_conf_patcher.start()
 
     auklet_monitoring = Monitoring("", "")
     auklet_monitoring.start()

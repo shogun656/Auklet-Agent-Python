@@ -11,7 +11,7 @@ from six import iteritems
 from six.moves import _thread
 
 from auklet.broker import MQTTClient
-from auklet.utils import get_mac, setup_thread_excepthook
+from auklet.utils import get_mac, setup_thread_excepthook, b
 from auklet.monitoring.logging import AukletLogging
 from auklet.monitoring.processing import Client
 from auklet.stats import MonitoringTree
@@ -39,9 +39,9 @@ class Monitoring(AukletLogging):
 
     total_samples = 0
 
-    emission_rate = 60  # 10 seconds
-    network_rate = 10  # 10 seconds
-    hour = 3600  # 1 hour
+    emission_rate = 60000  # 60 seconds
+    network_rate = 10000  # 10 seconds
+    hour = 3600000  # 1 hour
 
     def __init__(self, apikey=None, app_id=None,
                  base_url="https://api.auklet.io/", monitoring=True):
@@ -54,6 +54,7 @@ class Monitoring(AukletLogging):
         self.app_id = app_id
         self.mac_hash = get_mac()
         self.client = Client(apikey, app_id, base_url, self.mac_hash)
+        self.emission_rate = self.client.update_limits()
         self.tree = MonitoringTree(self.mac_hash)
         self.broker = MQTTClient(self.client)
         self.monitor = monitoring
@@ -62,7 +63,7 @@ class Monitoring(AukletLogging):
         super(Monitoring, self).__init__()
 
     def start(self):
-        # Set a timer which fires a SIGALRM every .01s
+        # Set a timer which fires a SIGALRM every interval seconds
         signal.setitimer(self.timer, self.interval, self.interval)
 
     def stop(self):
@@ -93,24 +94,21 @@ class Monitoring(AukletLogging):
         self.process_periodic()
 
     def process_periodic(self):
-        sample_timer = self.total_samples * self.interval
-        if sample_timer % self.emission_rate == 0:
+        if self.total_samples % self.emission_rate == 0:
             self.broker.produce(
                 self.tree.build_msgpack_tree(self.client.app_id))
             self.tree.clear_root()
             self.samples_taken = 0
-        if sample_timer % self.network_rate == 0:
+        if self.total_samples % self.network_rate == 0:
             self.client.update_network_metrics(self.network_rate)
-        if sample_timer % self.hour == 0:
+        if self.total_samples % self.hour == 0:
             self.emission_rate = self.client.update_limits()
             self.client.check_date()
 
     def handle_exc(self, type, value, traceback):
         self.broker.produce(
             self.client.build_msgpack_event_data(
-                type, traceback, self.tree),
-            "event"
-        )
+                type, traceback, self.tree), "event")
         sys.__excepthook__(type, value, traceback)
 
     def log(self, msg, data_type, level="INFO"):
