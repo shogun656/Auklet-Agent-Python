@@ -47,7 +47,7 @@ class TestMQTTBroker(unittest.TestCase):
             self.assertTrue(self.broker._get_certs())
 
     def test_read_from_conf(self):
-        self.broker._read_from_conf({"brokers": "test.mqtt.host",
+        self.broker._read_from_conf({"brokers": "mq-staging.feeds.auklet.io",
                                      "port": "8333",
                                      "prof_topic": "",
                                      "event_topic": "",
