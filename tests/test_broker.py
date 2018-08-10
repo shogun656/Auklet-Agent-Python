@@ -25,7 +25,9 @@ class TestMQTTBroker(unittest.TestCase):
     def setUp(self):
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-        self.broker = MQTTClient(self.client)
+        with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
+            _get_conf.side_effect = self.get_conf
+            self.broker = MQTTClient(self.client)
 
     def test_write_conf(self):
         self.broker._write_conf(self.config)
@@ -128,6 +130,10 @@ class TestMQTTBroker(unittest.TestCase):
     def publish(data_type, payload):
         global test_produce_payload
         test_produce_payload = payload
+
+    @staticmethod
+    def get_conf():
+        return True
 
 
 if __name__ == '__main__':

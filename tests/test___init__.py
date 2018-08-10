@@ -85,7 +85,7 @@ class TestMonitoring(unittest.TestCase):
                     self.assertTrue(
                         test_process_periodic_update_network_metrics_interval)
                     self.assertTrue(test_process_periodic_check_date)
-                    self.assertEqual(60, self.monitoring.emission_rate)
+                    self.assertEqual(60000, self.monitoring.emission_rate)
 
     def test_handle_exc(self):
         with patch('auklet.broker.MQTTClient.produce') as _produce:
