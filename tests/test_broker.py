@@ -34,20 +34,6 @@ class TestMQTTBroker(unittest.TestCase):
         self.assertGreater(os.path.getsize(self.client.com_config_filename), 0)
         open(self.client.com_config_filename, "w").close()
 
-    def test_load_conf(self):
-        filename = self.client.com_config_filename
-        with open(filename, "w") as config:
-            config.write(json.dumps(self.config))
-        self.assertTrue(self.broker._load_conf())
-        open(filename, "w").close()
-
-        if sys.version_info < (3,):
-            self.build_test_load_conf("__builtin__.open")
-        else:
-            self.build_test_load_conf("builtins.open")
-
-        self.assertFalse(self.broker._load_conf())
-
     def test_get_certs(self):
         class urlopen:
             @staticmethod
@@ -61,7 +47,7 @@ class TestMQTTBroker(unittest.TestCase):
             self.assertTrue(self.broker._get_certs())
 
     def test_read_from_conf(self):
-        self.broker._read_from_conf({"brokers": [],
+        self.broker._read_from_conf({"brokers": "test.mqtt.host",
                                      "port": "8333",
                                      "prof_topic": "",
                                      "event_topic": "",
