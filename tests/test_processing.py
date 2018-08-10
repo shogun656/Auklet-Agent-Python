@@ -131,7 +131,7 @@ class TestClient(unittest.TestCase):
         with patch(
                 'auklet.monitoring.processing.Client._get_config',
                 new=self._get_config):
-            self.assertEqual(self.client.update_limits(), 60)
+            self.assertEqual(self.client.update_limits(), 60000)
             self.none = False
 
             self.cellular_data_limit = 1000
