@@ -90,7 +90,7 @@ class TestMQTTBroker(unittest.TestCase):
     def test_get_conf(self):
         with patch('auklet.utils.open_auklet_url') as _open_auklet_url:
             with patch('json.loads') as _loads:
-                _open_auklet_url.return_value = True
+                _open_auklet_url.side_effect = self._open_auklet_url
                 _loads.return_value = {
                     "brokers": "mqtt",
                     "port": "8883"
@@ -128,6 +128,10 @@ class TestMQTTBroker(unittest.TestCase):
 
     @staticmethod
     def get_conf():
+        return True
+
+    @staticmethod
+    def _open_auklet_url():
         return True
 
 
