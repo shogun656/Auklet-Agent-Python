@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import abc
 import ssl
 import json
 import logging
@@ -16,18 +15,15 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, Request, HTTPError, URLError
 
-__all__ = ["Profiler", "MQTTClient"]
-
-# compatible with Python 2 *and* 3
-# https://stackoverflow.com/questions/35673474/using-abc-abcmeta-in-a-way-it-is-compatible-both-with-python-2-7-and-python-3-5
-ABC = abc.ABCMeta('ABC', (object,), {'__slots__': ()})
+__all__ = ["MQTTClient"]
 
 
-class Profiler(ABC):
+class MQTTClient(object):
     producer = None
     brokers = None
     client = None
     com_config_filename = ".auklet/communication"
+    port = None
 
     def __init__(self, client):
         self.client = client
@@ -67,22 +63,6 @@ class Profiler(ABC):
         f = open(filename, "wb")
         f.write(res.read())
         return True
-
-    @abc.abstractmethod
-    def _read_from_conf(self, data):
-        pass
-
-    @abc.abstractmethod
-    def create_producer(self):
-        pass
-
-    @abc.abstractmethod
-    def produce(self, data, data_type="monitoring"):
-        pass
-
-
-class MQTTClient(Profiler):
-    port = None
 
     def _read_from_conf(self, data):
         self.brokers = data['brokers']
