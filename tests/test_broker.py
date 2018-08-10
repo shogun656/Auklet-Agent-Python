@@ -8,7 +8,7 @@ from mock import patch
 from tests import data_factory
 
 from auklet.monitoring.processing import Client
-from auklet.broker import Profiler, MQTTClient
+from auklet.broker import MQTTClient
 
 
 def recreate_files():
@@ -16,63 +16,6 @@ def recreate_files():
     os.system("touch .auklet/communication")
     os.system("touch .auklet/usage")
     os.system("touch .auklet/limits")
-
-
-class TestProfiler(unittest.TestCase):
-    data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
-    config = ast.literal_eval(str(data_factory.ConfigFactory()))
-
-    def setUp(self):
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-
-        Profiler.__abstractmethods__ = frozenset()
-        self.profiler = Profiler(self.client)
-
-    def test_write_conf(self):
-        self.profiler._write_conf(self.config)
-        self.assertGreater(os.path.getsize(self.client.com_config_filename), 0)
-        open(self.client.com_config_filename, "w").close()
-
-    def test_load_conf(self):
-        filename = self.client.com_config_filename
-        with open(filename, "w") as config:
-            config.write(json.dumps(self.config))
-        self.assertTrue(self.profiler._load_conf())
-        open(filename, "w").close()
-
-        if sys.version_info < (3,):
-            self.build_test_load_conf("__builtin__.open")
-        else:
-            self.build_test_load_conf("builtins.open")
-
-        self.assertFalse(self.profiler._load_conf())
-
-    def test_get_certs(self):
-        class urlopen:
-            @staticmethod
-            def read():
-                with open("key.pem.zip", "rb") as file:
-                    return file.read()
-
-        self.assertFalse(self.profiler._get_certs())
-        with patch('auklet.broker.urlopen') as _urlopen:
-            _urlopen.return_value = urlopen
-            self.assertTrue(self.profiler._get_certs())
-
-    def test_read_from_conf(self):
-        self.assertIsNone(self.profiler._read_from_conf(self.data))
-
-    def test_create_producer(self):
-        self.assertIsNone(self.profiler.create_producer())
-
-    def test_produce(self):
-        self.assertIsNone(self.profiler.produce(self.data))
-
-    def build_test_load_conf(self, file):
-        with patch(file) as _file:
-            _file.side_effect = OSError
-            self.assertFalse(self.profiler._load_conf())
 
 
 class TestMQTTBroker(unittest.TestCase):
@@ -83,6 +26,42 @@ class TestMQTTBroker(unittest.TestCase):
         self.client = Client(
             apikey="", app_id="", base_url="https://api-staging.auklet.io/")
         self.broker = MQTTClient(self.client)
+
+    def test_write_conf(self):
+        self.broker._write_conf(self.config)
+        self.assertGreater(os.path.getsize(self.client.com_config_filename), 0)
+        open(self.client.com_config_filename, "w").close()
+
+    def test_load_conf(self):
+        filename = self.client.com_config_filename
+        with open(filename, "w") as config:
+            config.write(json.dumps(self.config))
+        self.assertTrue(self.broker._load_conf())
+        open(filename, "w").close()
+
+        if sys.version_info < (3,):
+            self.build_test_load_conf("__builtin__.open")
+        else:
+            self.build_test_load_conf("builtins.open")
+
+        self.assertFalse(self.broker._load_conf())
+
+    def test_get_certs(self):
+        class urlopen:
+            @staticmethod
+            def read():
+                with open("key.pem.zip", "rb") as file:
+                    return file.read()
+
+        self.assertFalse(self.broker._get_certs())
+        with patch('auklet.broker.urlopen') as _urlopen:
+            _urlopen.return_value = urlopen
+            self.assertTrue(self.broker._get_certs())
+
+    def build_test_load_conf(self, file):
+        with patch(file) as _file:
+            _file.side_effect = OSError
+            self.assertFalse(self.broker._load_conf())
 
     def test_read_from_conf(self):
         self.broker._read_from_conf({"brokers": [],
