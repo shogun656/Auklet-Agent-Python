@@ -60,14 +60,9 @@ class TestMQTTBroker(unittest.TestCase):
             _urlopen.return_value = urlopen
             self.assertTrue(self.broker._get_certs())
 
-    def build_test_load_conf(self, file):
-        with patch(file) as _file:
-            _file.side_effect = OSError
-            self.assertFalse(self.broker._load_conf())
-
     def test_read_from_conf(self):
         self.broker._read_from_conf({"brokers": [],
-                                     "port": "",
+                                     "port": "8333",
                                      "prof_topic": "",
                                      "event_topic": "",
                                      "log_topic": ""})
@@ -99,7 +94,7 @@ class TestMQTTBroker(unittest.TestCase):
 
     def test_produce(self):
         with patch('paho.mqtt.client.Client.publish') as _publish:
-            with patch('auklet.broker.Profiler._get_certs') as get_certs:
+            with patch('auklet.broker.MQTTClient._get_certs') as get_certs:
                 get_certs.return_value = True
                 _publish.side_effect = self.publish
                 self.broker.create_producer()
