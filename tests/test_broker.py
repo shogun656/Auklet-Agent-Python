@@ -106,7 +106,8 @@ class TestMQTTBroker(unittest.TestCase):
             pass
 
         def publish(self, topic, payload):
-            pass
+            global test_produce_payload
+            test_produce_payload = payload
 
         def loop_start(self):
             global create_producer_pass
