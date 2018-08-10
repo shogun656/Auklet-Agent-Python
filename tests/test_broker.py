@@ -88,12 +88,8 @@ class TestMQTTBroker(unittest.TestCase):
                     self.assertIsNotNone(test_produce_payload)
 
     def test_get_conf(self):
-        with patch('auklet.utils.open_auklet_url', new=self._open_auklet_url):
-            with patch('json.loads') as _loads:
-                _loads.return_value = {
-                    "brokers": "mqtt",
-                    "port": "8883"
-                }
+        with patch('auklet.broker.open_auklet_url', new=self._open_auklet_url):
+            with patch('auklet.broker.json.loads', new=self._loads):
                 self.broker._get_conf()
 
     class MockClient:
@@ -130,8 +126,18 @@ class TestMQTTBroker(unittest.TestCase):
         return True
 
     @staticmethod
-    def _open_auklet_url():
-        return True
+    def _open_auklet_url(url, apikey):
+        class MyObject:
+            def read(self):
+                return b"test_str"
+        return MyObject()
+
+    @staticmethod
+    def _loads(data):
+        return {
+            "brokers": "mqtt",
+            "port": "8883"
+        }
 
 
 if __name__ == '__main__':
