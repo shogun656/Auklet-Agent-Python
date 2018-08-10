@@ -1,7 +1,5 @@
 import os
-import sys
 import ast
-import json
 import unittest
 
 from mock import patch
@@ -47,7 +45,7 @@ class TestMQTTBroker(unittest.TestCase):
             self.assertTrue(self.broker._get_certs())
 
     def test_read_from_conf(self):
-        self.broker._read_from_conf({"brokers": "",
+        self.broker._read_from_conf({"brokers": "mqtt",
                                      "port": "8333",
                                      "prof_topic": "",
                                      "event_topic": "",
@@ -88,6 +86,16 @@ class TestMQTTBroker(unittest.TestCase):
                     self.broker.create_producer()
                     self.broker.produce(str(self.data))
                     self.assertIsNotNone(test_produce_payload)
+
+    def test_get_conf(self):
+        with patch('auklet.utils.open_auklet_url') as _open_auklet_url:
+            with patch('json.loads') as _loads:
+                _open_auklet_url.return_value = True
+                _loads.return_value = {
+                    "brokers": "mqtt",
+                    "port": "8883"
+                }
+                self.broker._get_conf()
 
     class MockClient:
         def __init__(self):
