@@ -88,9 +88,8 @@ class TestMQTTBroker(unittest.TestCase):
                     self.assertIsNotNone(test_produce_payload)
 
     def test_get_conf(self):
-        with patch('auklet.utils.open_auklet_url') as _open_auklet_url:
+        with patch('auklet.utils.open_auklet_url', new=self._open_auklet_url):
             with patch('json.loads') as _loads:
-                _open_auklet_url.side_effect = self._open_auklet_url
                 _loads.return_value = {
                     "brokers": "mqtt",
                     "port": "8883"
