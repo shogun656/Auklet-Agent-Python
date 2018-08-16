@@ -46,7 +46,6 @@ class TestClient(unittest.TestCase):
 
         with patch('auklet.utils.urlopen') as _urlopen:
             with patch('auklet.utils.Request') as _Request:
-
                     _Request.side_effect = MockRequest
                     _urlopen.return_value = res()
                     self.assertIsNotNone(self.client._get_config())

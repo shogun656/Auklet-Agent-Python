@@ -52,7 +52,6 @@ class Function(object):
 
 class Event(object):
     __slots__ = ['trace', 'exc_type', 'line_num', 'abs_path']
-    filters = ["auklet"]
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
@@ -63,12 +62,6 @@ class Event(object):
     def __iter__(self):
         yield "stackTrace", self.trace
         yield "excType", self.exc_type
-
-    def _filter_frame(self, file_name):
-        if any(filter_str in file_name for filter_str in self.filters) or \
-                file_name is None:
-            return True
-        return False
 
     def _convert_locals_to_string(self, local_vars):
         for key in local_vars:
@@ -81,10 +74,6 @@ class Event(object):
         while trace:
             frame = trace.tb_frame
             path = tree.get_filename(frame.f_code, frame)
-            if self._filter_frame(path):
-                trace = trace.tb_next
-                continue
-            print(path)
             tb.append({"functionName": frame.f_code.co_name,
                        "filePath": path,
                        "lineNumber": frame.f_lineno,
@@ -98,7 +87,6 @@ class MonitoringTree(object):
     __slots__ = ['commit_hash', 'public_ip', 'mac_hash',
                  'abs_path', 'root_func']
     cached_filenames = {}
-    filters = ["auklet"]
 
     def __init__(self, mac_hash=None):
         from auklet.utils import get_device_ip, get_commit_hash, get_abs_path
@@ -140,20 +128,12 @@ class MonitoringTree(object):
             file_path=file_path
         )
 
-    def _filter_frame(self, file_name):
-        if file_name is None or \
-                any(filter_str in file_name for filter_str in self.filters):
-            return True
-        return False
-
     def _build_tree(self, new_stack):
         root_func = self._create_frame_func(None, True)
         parent_func = root_func
         for frame in reversed(new_stack):
             current_func = self._create_frame_func(
                 frame, parent=parent_func)
-            if self._filter_frame(current_func.file_path):
-                continue
             parent_func.children.append(current_func)
             parent_func = current_func
         return root_func

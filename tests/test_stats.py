@@ -53,10 +53,6 @@ class TestEvent(unittest.TestCase):
         for t in self.event.__iter__():
             self.assertNotEqual(t, None)
 
-    def test_filter_frame(self):
-        self.assertTrue(self.event._filter_frame(file_name="auklet"))
-        self.assertFalse(self.event._filter_frame(file_name=""))
-
     def test_convert_locals_to_string(self):
         self.assertNotEqual(
             self.event._convert_locals_to_string(
@@ -66,8 +62,6 @@ class TestEvent(unittest.TestCase):
                 local_vars={"key": True}), None)
 
     def test_build_traceback(self):
-        self.build_patcher('auklet.stats.Event._filter_frame', True, [])
-        self.build_patcher('auklet.stats.Event._filter_frame', False)
         self.build_patcher('auklet.stats.MonitoringTree.get_filename', "")
 
     def get_filename(self, code="code", frame="frame"):
@@ -144,12 +138,6 @@ class TestMonitoringTree(unittest.TestCase):
             self.assertIsNotNone(
                 self.monitoring_tree._create_frame_func(Frame))
 
-    def test_filter_frame(self):
-        self.assertTrue(self.monitoring_tree._filter_frame(file_name=None))
-        self.assertFalse(self.monitoring_tree._filter_frame(file_name=""))
-        self.assertTrue(
-            self.monitoring_tree._filter_frame(file_name="auklet"))
-
     def test__build_tree(self):
         class Code:
             co_firstlineno = 0
@@ -166,11 +154,7 @@ class TestMonitoringTree(unittest.TestCase):
                 'auklet.stats.MonitoringTree._create_frame_func') as \
                 create_frame_func:
             create_frame_func.return_value = Frame
-            with patch(
-                    'auklet.stats.MonitoringTree._filter_frame') as \
-                    filter_frame:
-                filter_frame.return_value = True
-                self.monitoring_tree._build_tree([Frame])
+            self.monitoring_tree._build_tree([Frame])
         self.assertIsNotNone(self.monitoring_tree._build_tree([Frame, Frame]))
 
     def test_update_sample_count(self):
