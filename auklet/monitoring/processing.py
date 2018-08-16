@@ -72,11 +72,11 @@ class Client(object):
                 open(self.identification_filename, "r").read())
             if not read_id:
                 raise IOError
-            res, created = self._check_device(read_id['id'])
+            res, created = self.check_device(read_id['id'])
             if created:
                 read_id = res
         except (IOError, ValueError):
-            read_id = self._create_device()
+            read_id = self.create_device()
         self.broker_password = read_id['client_password']
         self.broker_username = read_id['id']
         self.org_id = read_id['organization']
@@ -85,7 +85,7 @@ class Client(object):
                                     "organization": self.org_id})
         return True
 
-    def _check_device(self, device_id):
+    def check_device(self, device_id):
         try:
             opened = open_auklet_url(
                 build_url(
@@ -97,11 +97,11 @@ class Client(object):
             res = json.loads(u(opened.read()))
             created = False
         except HTTPError:
-            res = self._create_device()
+            res = self.create_device()
             created = True
         return res, created
 
-    def _create_device(self):
+    def create_device(self):
         return post_auklet_url(
             build_url(
                 self.base_url,

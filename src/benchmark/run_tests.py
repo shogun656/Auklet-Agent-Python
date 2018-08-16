@@ -38,6 +38,9 @@ def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
     def _get_conf(self):
         return True
 
+    def register_device(self):
+        return True
+
     update_limits_mock.return_value = 10000
     get_certs_mock.return_value = True
 
@@ -47,9 +50,13 @@ def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
                              new=create_producer)
     get_conf_patcher = patch('auklet.broker.MQTTClient._get_conf',
                              new=_get_conf)
+    register_device_patcher = patch(
+        'auklet.monitoring.processing.Client._register_device',
+        new=register_device)
     conf_patcher.start()
     producer_patcher.start()
     get_conf_patcher.start()
+    register_device_patcher.start()
 
     auklet_monitoring = Monitoring("", "")
     auklet_monitoring.start()
