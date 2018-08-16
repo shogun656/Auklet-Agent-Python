@@ -51,6 +51,30 @@ class TestClient(unittest.TestCase):
                     _urlopen.return_value = res()
                     self.assertIsNotNone(self.client._get_config())
 
+    def test_register_device(self):
+        with patch("auklet.monitoring.processing.Client."
+                   "_register_device.json.loads", return_value=False):
+            with patch("auklet.monitoring.processing.Clinet."
+                       "create_device") as create_mock:
+                create_mock.return_value = {
+                    "client_password": "test-pass",
+                    "id": "12345",
+                    "organization": "12345"
+                }
+                self.assertTrue(self.client._register_device())
+
+        with patch("auklet.monitoring.processing.Client."
+                   "_register_device.json.loads") as loads_mock:
+                with patch("auklet.monitoring.processing.Clinet."
+                           "create_device") as create_mock:
+                    loads_mock.return_value = {"id": "12345"}
+                    create_mock.return_value = ({
+                        "client_password": "test-pass",
+                        "id": "12345",
+                        "organization": "12345"
+                    }, True)
+                    self.assertTrue(self.client._register_device())
+
     def test_load_limits(self):
         default_data = data_factory.LimitsGenerator()
         self.write_load_limits_test(default_data)
