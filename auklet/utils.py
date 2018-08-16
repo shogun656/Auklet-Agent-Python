@@ -2,13 +2,15 @@ import os
 import sys
 import uuid
 import hashlib
+import requests
 
 from auklet.__about__ import __version__ as auklet_version
 from auklet.errors import AukletConfigurationError
 
-__all__ = ['open_auklet_url', 'create_file', 'clear_file', 'build_url',
-           'get_commit_hash', 'get_mac', 'get_device_ip',
-           'setup_thread_excepthook', 'get_abs_path', 'b', 'u']
+__all__ = ['open_auklet_url', 'post_auklet_url', 'create_file', 'clear_file',
+           'build_url', 'get_commit_hash', 'get_mac', 'get_device_ip',
+           'setup_thread_excepthook', 'get_abs_path', 'get_agent_version',
+           'b', 'u']
 
 try:
     # For Python 3.0 and later
@@ -36,6 +38,18 @@ def open_auklet_url(url, apikey):
     return res
 
 
+def post_auklet_url(url, apikey, data):
+    try:
+        res = requests.post(
+            url,
+            json=data,
+            headers={"Authorization": "JWT %s" % apikey,
+                     "Content-Type": "application/json"})
+    except requests.HTTPError:
+        return None
+    return res.json()
+
+
 def create_file(filename):
     open(filename, "a").close()
 
@@ -61,6 +75,7 @@ def get_commit_hash():
     except IOError:
         # TODO Error out app if no commit hash
         return ""
+
 
 def get_abs_path(path):
     try:

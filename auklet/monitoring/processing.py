@@ -1,12 +1,13 @@
 import json
 import msgpack
 
+from time import time
 from uuid import uuid4
 from datetime import datetime
 from auklet.stats import Event, SystemMetrics
 from auklet.utils import create_file, get_commit_hash, \
     get_abs_path, get_device_ip, open_auklet_url, build_url, \
-    get_agent_version, u
+    get_agent_version, post_auklet_url, u
 
 try:
     # For Python 3.0 and later
@@ -30,6 +31,7 @@ class Client(object):
     limits_filename = ".auklet/limits"
     usage_filename = ".auklet/usage"
     com_config_filename = ".auklet/communication"
+    identification_filename = ".auklet/identification"
     abs_path = None
 
     reset_data = False
@@ -54,9 +56,60 @@ class Client(object):
         create_file(self.limits_filename)
         create_file(self.usage_filename)
         create_file(self.com_config_filename)
+        create_file(self.identification_filename)
         self.commit_hash = get_commit_hash()
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
+        self._register_device()
+
+    def _register_device(self):
+        try:
+            read_id = json.loads(
+                open(self.identification_filename, "r").read())
+            if not read_id:
+                raise IOError
+            res, created = self._check_device(read_id['id'])
+            if created:
+                read_id = res
+        except (IOError, ValueError):
+            read_id = self._create_device()
+        self.broker_password = read_id['client_password']
+        self.broker_username = read_id['id']
+        self.org_id = read_id['organization']
+        self._write_identification({"id": self.broker_username,
+                                    "client_password": self.broker_password,
+                                    "organization": self.org_id})
+        return True
+
+    def _check_device(self, device_id):
+        try:
+            opened = open_auklet_url(
+                build_url(
+                    self.base_url,
+                    "private/devices/{}/".format(device_id)
+                ),
+                self.apikey
+            )
+            res = json.loads(u(opened.read()))
+            created = False
+        except HTTPError:
+            res = self._create_device()
+            created = True
+        return res, created
+
+    def _create_device(self):
+        return post_auklet_url(
+            build_url(
+                self.base_url,
+                "private/devices/"
+            ),
+            self.apikey,
+            {"mac_address_hash": self.mac_hash, "application": self.app_id}
+        )
+
+    def _write_identification(self, data):
+        with open(self.identification_filename, "w") as id_file:
+            id_file.write(json.dumps(data))
 
     def _get_config(self):
         res = open_auklet_url(
@@ -160,11 +213,13 @@ class Client(object):
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
-        event_dict['timestamp'] = str(datetime.utcnow())
+        event_dict['timestamp'] = int(round(time() * 1000))
         event_dict['systemMetrics'] = dict(self.system_metrics)
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
         event_dict['agentVersion'] = get_agent_version()
+        event_dict['device'] = self.broker_username
+        event_dict['absPath'] = self.abs_path
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
@@ -175,16 +230,18 @@ class Client(object):
             "application": self.app_id,
             "publicIP": get_device_ip(),
             "id": str(uuid4()),
-            "timestamp": str(datetime.utcnow()),
-            "systemMetrics": dict(SystemMetrics()),
+            "timestamp": int(round(time() * 1000)),
+            "systemMetrics": dict(self.system_metrics),
             "macAddressHash": self.mac_hash,
             "commitHash": self.commit_hash,
-            "agentVersion": get_agent_version()
+            "agentVersion": get_agent_version(),
+            "device": self.broker_username
         }
         return log_dict
 
     def build_msgpack_event_data(self, type, traceback, tree):
         event_data = self.build_event_data(type, traceback, tree)
+        print(event_data)
         return msgpack.packb(event_data, use_bin_type=False)
 
     def build_msgpack_log_data(self, msg, data_type, level):

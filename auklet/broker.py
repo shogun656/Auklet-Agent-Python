@@ -22,17 +22,25 @@ class MQTTClient(object):
     producer = None
     brokers = None
     client = None
+    username = None
+    password = None
     com_config_filename = ".auklet/communication"
     port = None
     producer_types = {
-        "monitoring": "python/profiler/monitoring",
-        "event": "python/events/event",
+        "monitoring": "python/profiler/{}/{}",
+        "event": "python/events/{}/{}",
     }
 
     def __init__(self, client):
         self.client = client
         self._get_conf()
         self.create_producer()
+        topic_suffix = "{}/{}".format(
+            self.client.org_id, self.client.broker_username)
+        self.producer_types = {
+            "monitoring": "python/profiler/{}".format(topic_suffix),
+            "event": "python/events/{}".format(topic_suffix),
+        }
 
     def _write_conf(self, info):
         with open(self.com_config_filename, "w") as conf:
@@ -72,22 +80,26 @@ class MQTTClient(object):
         self.brokers = data['brokers']
         self.port = int(data['port'])
 
-    def on_disconnect(self, userdata, rc):
+    def on_disconnect(self, client, userdata, rc):
         if rc != 0:
             logging.debug("Unexpected disconnection from MQTT")
 
     def create_producer(self):
         if self._get_certs():
-            self.producer = mqtt.Client()
+            self.producer = mqtt.Client(client_id=self.client.broker_username,
+                                        protocol=mqtt.MQTTv311,
+                                        transport="ssl")
+            self.producer.username_pw_set(
+                username=self.client.broker_username,
+                password=self.client.broker_password)
             self.producer.enable_logger()
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.verify_mode = ssl.CERT_REQUIRED
             context.load_verify_locations(capath=".auklet/")
             context.options &= ~ssl.OP_NO_SSLv3
             self.producer.tls_set_context()
-
             self.producer.on_disconnect = self.on_disconnect
-            self.producer.connect_async(self.brokers, self.port)
+            self.producer.connect(self.brokers, self.port)
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
