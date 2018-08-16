@@ -24,9 +24,13 @@ class TestClient(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
 
     def setUp(self):
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-        self.monitoring_tree = MonitoringTree()
+        with patch("auklet.monitoring.processing.Client._register_device",
+                   new=self.__register_device):
+            self.broker_username = "test-username"
+            self.broker_password = "test-password"
+            self.client = Client(
+                apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+            self.monitoring_tree = MonitoringTree()
 
     def test_get_config(self):
         class MockRequest:
@@ -237,6 +241,10 @@ class TestClient(unittest.TestCase):
                     "data":
                         {"cellular_data_limit": self.cellular_data_limit,
                          "normalized_cell_plan_date": self.cell_plan_date}}
+
+    @staticmethod
+    def __register_device(self):
+        return True
 
 
 if __name__ == '__main__':

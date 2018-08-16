@@ -18,8 +18,11 @@ except ImportError:
 
 class TestUtils(unittest.TestCase):
     def setUp(self):
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        with patch("auklet.monitoring.processing.Client._register_device",
+                   new=self.__register_device):
+            self.client = Client(
+                apikey="", app_id="",
+                base_url="https://api-staging.auklet.io/")
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
@@ -117,6 +120,10 @@ class TestUtils(unittest.TestCase):
 
     def throw_keyboard_interrupt(self):
         raise KeyboardInterrupt
+
+    @staticmethod
+    def __register_device(self):
+        return True
 
 
 if __name__ == '__main__':

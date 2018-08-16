@@ -21,11 +21,13 @@ class TestMQTTBroker(unittest.TestCase):
     config = ast.literal_eval(str(data_factory.ConfigFactory()))
 
     def setUp(self):
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-        with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
-            _get_conf.side_effect = self.get_conf
-            self.broker = MQTTClient(self.client)
+        with patch("auklet.monitoring.processing.Client._register_device",
+                   new=self.__register_device):
+            self.client = Client(
+                apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+            with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
+                _get_conf.side_effect = self.get_conf
+                self.broker = MQTTClient(self.client)
 
     def test_write_conf(self):
         self.broker._write_conf(self.config)
@@ -61,7 +63,7 @@ class TestMQTTBroker(unittest.TestCase):
 
         with patch('logging.debug') as _debug:
             _debug.side_effect = debug
-            self.broker.on_disconnect("", 1)
+            self.broker.on_disconnect(None, "", 1)
             self.assertIsNotNone(debug_msg)
 
     def test_create_producer(self):
@@ -93,7 +95,7 @@ class TestMQTTBroker(unittest.TestCase):
                 self.broker._get_conf()
 
     class MockClient:
-        def __init__(self):
+        def __init__(self, client_id, protocol, transport):
             pass
 
         def tls_set(self, ca_certs):
@@ -106,6 +108,9 @@ class TestMQTTBroker(unittest.TestCase):
             pass
 
         def enable_logger(self):
+            pass
+
+        def username_pw_set(self, username, password):
             pass
 
         def publish(self, topic, payload):
@@ -138,6 +143,10 @@ class TestMQTTBroker(unittest.TestCase):
             "brokers": "mqtt",
             "port": "8883"
         }
+
+    @staticmethod
+    def __register_device(self):
+        return True
 
 
 if __name__ == '__main__':

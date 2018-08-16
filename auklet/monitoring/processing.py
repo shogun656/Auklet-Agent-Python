@@ -34,6 +34,10 @@ class Client(object):
     identification_filename = ".auklet/identification"
     abs_path = None
 
+    org_id = None
+    broker_username = None
+    broker_password = None
+
     reset_data = False
     data_day = 1
     data_limit = None
@@ -241,7 +245,6 @@ class Client(object):
 
     def build_msgpack_event_data(self, type, traceback, tree):
         event_data = self.build_event_data(type, traceback, tree)
-        print(event_data)
         return msgpack.packb(event_data, use_bin_type=False)
 
     def build_msgpack_log_data(self, msg, data_type, level):

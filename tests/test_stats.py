@@ -68,7 +68,7 @@ class TestEvent(unittest.TestCase):
     def test_build_traceback(self):
         self.build_patcher('auklet.stats.Event._filter_frame', True, [])
         self.build_patcher('auklet.stats.Event._filter_frame', False)
-        self.build_patcher('auklet.stats.MonitoringTree.get_filename', "/")
+        self.build_patcher('auklet.stats.MonitoringTree.get_filename', "")
 
     def get_filename(self, code="code", frame="frame"):
         _ = code
@@ -148,7 +148,7 @@ class TestMonitoringTree(unittest.TestCase):
         self.assertTrue(self.monitoring_tree._filter_frame(file_name=None))
         self.assertFalse(self.monitoring_tree._filter_frame(file_name=""))
         self.assertTrue(
-            self.monitoring_tree._filter_frame(file_name="site-packages"))
+            self.monitoring_tree._filter_frame(file_name="auklet"))
 
     def test__build_tree(self):
         class Code:
@@ -210,14 +210,15 @@ class TestMonitoringTree(unittest.TestCase):
 
     def test_build_tree(self):
         self.monitoring_tree.root_func = None
-        self.assertEqual({}, self.monitoring_tree.build_tree(app_id="app_id"))
+        self.assertEqual({}, self.monitoring_tree.build_tree(self.Client()))
         self.monitoring_tree.root_func = self.get_root_function()
-        self.assertIsNotNone(self.monitoring_tree.build_tree(app_id="app_id"))
+        self.assertIsNotNone(self.monitoring_tree.build_tree(self.Client()))
 
     def test_build_msgpack_tree(self):
         self.monitoring_tree.root_func = self.get_root_function()
         self.assertNotEqual(
-            self.monitoring_tree.build_msgpack_tree(app_id="app_id"), None)
+            self.monitoring_tree.build_msgpack_tree(self.Client()),
+            None)
 
     def get_code(self):
         class Code:
@@ -255,6 +256,11 @@ class TestMonitoringTree(unittest.TestCase):
             self.monitoring_tree._update_sample_count(
                 parent=self.Parent(), new_parent=self.NewParent())
         self.assertEqual(expected, str(error.exception))
+
+    class Client:
+        broker_username = "None"
+        abs_path = "/Test/abs/path/"
+        app_id = "12345"
 
     class Parent:
         calls = 0

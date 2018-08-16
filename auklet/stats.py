@@ -84,6 +84,7 @@ class Event(object):
             if self._filter_frame(path):
                 trace = trace.tb_next
                 continue
+            print(path)
             tb.append({"functionName": frame.f_code.co_name,
                        "filePath": path,
                        "lineNumber": frame.f_lineno,

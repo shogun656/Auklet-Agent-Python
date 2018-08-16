@@ -7,13 +7,15 @@ from auklet.monitoring import Monitoring
 class TestMonitoring(unittest.TestCase):
     def setUp(self):
         with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
-            _get_conf.side_effect = self.get_conf
-            self.monitoring = Monitoring(
-                apikey="",
-                app_id="",
-                base_url="https://api-staging.io",
-                monitoring=True)
-            self.monitoring.monitor = True
+            with patch("auklet.monitoring.processing.Client._register_device",
+                       new=self.__register_device):
+                _get_conf.side_effect = self.get_conf
+                self.monitoring = Monitoring(
+                    apikey="",
+                    app_id="",
+                    base_url="https://api-staging.io",
+                    monitoring=True)
+                self.monitoring.monitor = True
 
     def test_start(self):
         self.assertIsNone(self.monitoring.start())
@@ -108,6 +110,9 @@ class TestMonitoring(unittest.TestCase):
 
     def build_msgpack_tree(self, app_id):
         print(app_id)
+
+    def __register_device(self):
+        return True
 
     @staticmethod
     def produce(data, data_type):
