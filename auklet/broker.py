@@ -99,7 +99,7 @@ class MQTTClient(object):
             context.options &= ~ssl.OP_NO_SSLv3
             self.producer.tls_set_context()
             self.producer.on_disconnect = self.on_disconnect
-            self.producer.connect(self.brokers, self.port)
+            self.producer.connect_async(self.brokers, self.port)
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
