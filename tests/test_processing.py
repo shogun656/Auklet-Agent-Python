@@ -77,7 +77,18 @@ class TestClient(unittest.TestCase):
         with patch("auklet.monitoring.processing.open_auklet_url",
                    return_value=self.MockResult()):
             res = self.client.check_device("123")
-            print(res)
+            self.assertFalse(res[1])
+        with patch("auklet.monitoring.processing.open_auklet_url",
+                   side_effect=HTTPError("url", 404, "failed post",
+                                         {"test": "header"}, "")):
+            res = self.client.check_device("123")
+            self.assertTrue(res[1])
+
+    def test_create_device(self):
+        with patch("auklet.monitoring.processing.post_auklet_url",
+                   return_value=self.MockResult()):
+            res = self.client.create_device()
+            self.assertEqual(res.read(), b(json.dumps({"test": "object"})))
 
     def test_load_limits(self):
         default_data = data_factory.LimitsGenerator()
