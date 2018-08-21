@@ -147,6 +147,7 @@ class TestMonitoringTree(unittest.TestCase):
         class Frame:
             f_code = Code
             file_path = ""
+            children = []
 
         self.assertIsNotNone(self.monitoring_tree._build_tree([Frame, Frame]))
 

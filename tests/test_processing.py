@@ -8,6 +8,7 @@ from datetime import datetime
 
 from tests import data_factory
 
+from auklet.utils import b
 from auklet.stats import MonitoringTree
 from auklet.monitoring.processing import Client
 
@@ -51,9 +52,8 @@ class TestClient(unittest.TestCase):
                     self.assertIsNotNone(self.client._get_config())
 
     def test_register_device(self):
-        with patch("auklet.monitoring.processing.Client."
-                   "_register_device.json.loads", return_value=False):
-            with patch("auklet.monitoring.processing.Clinet."
+        with patch("json.loads", return_value=False):
+            with patch("auklet.monitoring.processing.Client."
                        "create_device") as create_mock:
                 create_mock.return_value = {
                     "client_password": "test-pass",
@@ -62,17 +62,22 @@ class TestClient(unittest.TestCase):
                 }
                 self.assertTrue(self.client._register_device())
 
-        with patch("auklet.monitoring.processing.Client."
-                   "_register_device.json.loads") as loads_mock:
-                with patch("auklet.monitoring.processing.Clinet."
-                           "create_device") as create_mock:
+        with patch("json.loads") as loads_mock:
+                with patch("auklet.monitoring.processing.Client."
+                           "check_device") as check_mock:
                     loads_mock.return_value = {"id": "12345"}
-                    create_mock.return_value = ({
+                    check_mock.return_value = ({
                         "client_password": "test-pass",
                         "id": "12345",
                         "organization": "12345"
                     }, True)
                     self.assertTrue(self.client._register_device())
+
+    def test_check_device(self):
+        with patch("auklet.monitoring.processing.open_auklet_url",
+                   return_value=self.MockResult()):
+            res = self.client.check_device("123")
+            print(res)
 
     def test_load_limits(self):
         default_data = data_factory.LimitsGenerator()
@@ -268,6 +273,11 @@ class TestClient(unittest.TestCase):
     @staticmethod
     def __register_device(self):
         return True
+
+    class MockResult(object):
+        def read(self):
+            return b(json.dumps({"test": "object"}))
+
 
 
 if __name__ == '__main__':
