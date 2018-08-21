@@ -1,7 +1,9 @@
 import os
 import unittest
+import requests
 
 from mock import patch
+from requests import HTTPError
 
 from auklet.utils import *
 from auklet.monitoring.processing import Client
@@ -42,6 +44,12 @@ class TestUtils(unittest.TestCase):
 
             url_open.side_effect = URLError("")
             self.assertIsNone(open_auklet_url(url, self.client.apikey))
+
+    def test_post_auklet_url(self):
+        with patch("auklet.utils.requests.post") as request_mock:
+            request_mock.side_effect = requests.HTTPError(None)
+            res = post_auklet_url("example.com", "apikey", {})
+            self.assertIsNone(res)
 
     def test_create_file(self):
         files = ['.auklet/local.txt', '.auklet/limits',
