@@ -96,7 +96,7 @@ class Monitoring(AukletLogging):
     def process_periodic(self):
         if self.total_samples % self.emission_rate == 0:
             self.broker.produce(
-                self.tree.build_msgpack_tree(self.client.app_id))
+                self.tree.build_msgpack_tree(self.client))
             self.tree.clear_root()
             self.samples_taken = 0
         if self.total_samples % self.network_rate == 0:

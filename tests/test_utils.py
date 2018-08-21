@@ -1,7 +1,9 @@
 import os
 import unittest
+import requests
 
 from mock import patch
+from requests import HTTPError
 
 from auklet.utils import *
 from auklet.monitoring.processing import Client
@@ -18,8 +20,11 @@ except ImportError:
 
 class TestUtils(unittest.TestCase):
     def setUp(self):
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+        with patch("auklet.monitoring.processing.Client._register_device",
+                   new=self.__register_device):
+            self.client = Client(
+                apikey="", app_id="",
+                base_url="https://api-staging.auklet.io/")
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
@@ -39,6 +44,12 @@ class TestUtils(unittest.TestCase):
 
             url_open.side_effect = URLError("")
             self.assertIsNone(open_auklet_url(url, self.client.apikey))
+
+    def test_post_auklet_url(self):
+        with patch("auklet.utils.requests.post") as request_mock:
+            request_mock.side_effect = requests.HTTPError(None)
+            res = post_auklet_url("example.com", "apikey", {})
+            self.assertIsNone(res)
 
     def test_create_file(self):
         files = ['.auklet/local.txt', '.auklet/limits',
@@ -117,6 +128,10 @@ class TestUtils(unittest.TestCase):
 
     def throw_keyboard_interrupt(self):
         raise KeyboardInterrupt
+
+    @staticmethod
+    def __register_device(self):
+        return True
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ from datetime import datetime
 
 from tests import data_factory
 
+from auklet.utils import b
 from auklet.stats import MonitoringTree
 from auklet.monitoring.processing import Client
 
@@ -24,9 +25,13 @@ class TestClient(unittest.TestCase):
     data = ast.literal_eval(str(data_factory.MonitoringDataFactory()))
 
     def setUp(self):
-        self.client = Client(
-            apikey="", app_id="", base_url="https://api-staging.auklet.io/")
-        self.monitoring_tree = MonitoringTree()
+        with patch("auklet.monitoring.processing.Client._register_device",
+                   new=self.__register_device):
+            self.broker_username = "test-username"
+            self.broker_password = "test-password"
+            self.client = Client(
+                apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+            self.monitoring_tree = MonitoringTree()
 
     def test_get_config(self):
         class MockRequest:
@@ -42,10 +47,48 @@ class TestClient(unittest.TestCase):
 
         with patch('auklet.utils.urlopen') as _urlopen:
             with patch('auklet.utils.Request') as _Request:
-
                     _Request.side_effect = MockRequest
                     _urlopen.return_value = res()
                     self.assertIsNotNone(self.client._get_config())
+
+    def test_register_device(self):
+        with patch("json.loads", return_value=False):
+            with patch("auklet.monitoring.processing.Client."
+                       "create_device") as create_mock:
+                create_mock.return_value = {
+                    "client_password": "test-pass",
+                    "id": "12345",
+                    "organization": "12345"
+                }
+                self.assertTrue(self.client._register_device())
+
+        with patch("json.loads") as loads_mock:
+                with patch("auklet.monitoring.processing.Client."
+                           "check_device") as check_mock:
+                    loads_mock.return_value = {"id": "12345"}
+                    check_mock.return_value = ({
+                        "client_password": "test-pass",
+                        "id": "12345",
+                        "organization": "12345"
+                    }, True)
+                    self.assertTrue(self.client._register_device())
+
+    def test_check_device(self):
+        with patch("auklet.monitoring.processing.open_auklet_url",
+                   return_value=self.MockResult()):
+            res = self.client.check_device("123")
+            self.assertFalse(res[1])
+        with patch("auklet.monitoring.processing.open_auklet_url",
+                   side_effect=HTTPError("url", 404, "failed post",
+                                         {"test": "header"}, None)):
+            res = self.client.check_device("123")
+            self.assertTrue(res[1])
+
+    def test_create_device(self):
+        with patch("auklet.monitoring.processing.post_auklet_url",
+                   return_value=self.MockResult()):
+            res = self.client.create_device()
+            self.assertEqual(res.read(), b(json.dumps({"test": "object"})))
 
     def test_load_limits(self):
         default_data = data_factory.LimitsGenerator()
@@ -237,6 +280,15 @@ class TestClient(unittest.TestCase):
                     "data":
                         {"cellular_data_limit": self.cellular_data_limit,
                          "normalized_cell_plan_date": self.cell_plan_date}}
+
+    @staticmethod
+    def __register_device(self):
+        return True
+
+    class MockResult(object):
+        def read(self):
+            return b(json.dumps({"test": "object"}))
+
 
 
 if __name__ == '__main__':
