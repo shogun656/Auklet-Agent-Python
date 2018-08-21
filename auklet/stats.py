@@ -22,7 +22,7 @@ class Function(object):
     __slots__ = ['samples', 'line_num', 'func_name', 'file_path',
                  'children', 'parent']
 
-    def __init__(self, line_num, func_name, file_path=None,
+    def __init__(self, line_num, func_name, file_path="",
                  parent=None, samples=1):
         self.line_num = line_num
         self.func_name = func_name
@@ -116,7 +116,7 @@ class MonitoringTree(object):
                 line_num=1,
                 func_name="root",
                 parent=None,
-                file_path=None,
+                file_path="",
                 samples=1
             )
 
@@ -176,6 +176,7 @@ class MonitoringTree(object):
         return {}
 
     def build_msgpack_tree(self, client):
+        print(self.build_tree(client))
         return msgpack.packb(self.build_tree(client), use_bin_type=False)
 
 
