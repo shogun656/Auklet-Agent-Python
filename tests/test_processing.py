@@ -80,7 +80,7 @@ class TestClient(unittest.TestCase):
             self.assertFalse(res[1])
         with patch("auklet.monitoring.processing.open_auklet_url",
                    side_effect=HTTPError("url", 404, "failed post",
-                                         {"test": "header"}, "")):
+                                         {"test": "header"}, None)):
             res = self.client.check_device("123")
             self.assertTrue(res[1])
 
