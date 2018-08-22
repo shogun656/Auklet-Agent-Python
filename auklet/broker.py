@@ -86,7 +86,7 @@ class MQTTClient(object):
 
     def create_producer(self):
         if self._get_certs():
-            self.producer = mqtt.Client(client_id=self.client.broker_username,
+            self.producer = mqtt.Client(client_id=self.client.client_id,
                                         protocol=mqtt.MQTTv311,
                                         transport="ssl")
             self.producer.username_pw_set(
