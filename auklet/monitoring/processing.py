@@ -35,6 +35,7 @@ class Client(object):
     abs_path = None
 
     org_id = None
+    client_id = None
     broker_username = None
     broker_password = None
 
@@ -79,10 +80,12 @@ class Client(object):
             read_id = self.create_device()
         self.broker_password = read_id['client_password']
         self.broker_username = read_id['id']
+        self.client_id = read_id['client_id']
         self.org_id = read_id['organization']
         self._write_identification({"id": self.broker_username,
                                     "client_password": self.broker_password,
-                                    "organization": self.org_id})
+                                    "organization": self.org_id,
+                                    "client_id": self.client_id})
         return True
 
     def check_device(self, device_id):

@@ -57,6 +57,7 @@ class TestClient(unittest.TestCase):
                        "create_device") as create_mock:
                 create_mock.return_value = {
                     "client_password": "test-pass",
+                    "client_id": "12345",
                     "id": "12345",
                     "organization": "12345"
                 }
@@ -68,6 +69,7 @@ class TestClient(unittest.TestCase):
                     loads_mock.return_value = {"id": "12345"}
                     check_mock.return_value = ({
                         "client_password": "test-pass",
+                        "client_id": "12345",
                         "id": "12345",
                         "organization": "12345"
                     }, True)
