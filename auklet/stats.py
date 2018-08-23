@@ -1,38 +1,35 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from time import time
+import msgpack
+
 import pprint
 import inspect
 from uuid import uuid4
+from time import time
+from auklet.utils import get_agent_version
 
 try:
     import psutil
-except ImportError:
+except ImportError:  # pragma: no cover
     # Some platforms that applications could be running on require specific
     # installation of psutil which we cannot configure currently
     psutil = None
 
-__all__ = ['MonitoringTree', 'Event', 'SystemMetrics']
+__all__ = ['MonitoringTree', 'Event', 'SystemMetrics', 'Function']
 
 
 class Function(object):
-    samples = 1
-    calls = 0
-    line_num = ''
-    func_name = ''
-    file_path = ''
+    __slots__ = ['samples', 'line_num', 'func_name', 'file_path',
+                 'children', 'parent']
 
-    children = []
-    parent = None
-
-    def __init__(self, line_num, func_name, file_path=None,
-                 parent=None, calls=0):
+    def __init__(self, line_num, func_name, file_path="",
+                 parent=None, samples=1):
         self.line_num = line_num
         self.func_name = func_name
         self.parent = parent
         self.children = []
         self.file_path = file_path
-        self.calls = calls
+        self.samples = samples
 
     def __str__(self):
         pp = pprint.PrettyPrinter()
@@ -42,7 +39,6 @@ class Function(object):
         yield "functionName", self.func_name
         yield "nSamples", self.samples
         yield "lineNumber", self.line_num
-        yield "nCalls", self.calls
         yield "filePath", self.file_path
         yield "callees", [dict(item) for item in self.children]
 
@@ -55,11 +51,7 @@ class Function(object):
 
 
 class Event(object):
-    trace = []
-    exc_type = None
-    line_num = 0
-    abs_path = None
-    filters = ["auklet"]
+    __slots__ = ['trace', 'exc_type', 'line_num', 'abs_path']
 
     def __init__(self, exc_type, tb, tree, abs_path):
         self.exc_type = exc_type.__name__
@@ -70,12 +62,6 @@ class Event(object):
     def __iter__(self):
         yield "stackTrace", self.trace
         yield "excType", self.exc_type
-
-    def _filter_frame(self, file_name):
-        if any(filter_str in file_name for filter_str in self.filters) or \
-                file_name is None:
-            return True
-        return False
 
     def _convert_locals_to_string(self, local_vars):
         for key in local_vars:
@@ -88,11 +74,6 @@ class Event(object):
         while trace:
             frame = trace.tb_frame
             path = tree.get_filename(frame.f_code, frame)
-            if self._filter_frame(path):
-                trace = trace.tb_next
-                continue
-            if self.abs_path in path:
-                path = path.replace(self.abs_path, '')
             tb.append({"functionName": frame.f_code.co_name,
                        "filePath": path,
                        "lineNumber": frame.f_lineno,
@@ -103,21 +84,17 @@ class Event(object):
 
 
 class MonitoringTree(object):
-    commit_hash = None
-    root_func = None
-    public_ip = None
-    mac_hash = None
-    abs_path = None
+    __slots__ = ['commit_hash', 'public_ip', 'mac_hash',
+                 'abs_path', 'root_func']
     cached_filenames = {}
-    filters = ["site-packages", "Python.framework", "auklet", "lib/python",
-               "importlib"]
 
     def __init__(self, mac_hash=None):
-        from auklet.base import get_device_ip, get_commit_hash, get_abs_path
+        from auklet.utils import get_device_ip, get_commit_hash, get_abs_path
         self.commit_hash = get_commit_hash()
         self.public_ip = get_device_ip()
         self.abs_path = get_abs_path('.auklet/version')
         self.mac_hash = mac_hash
+        self.root_func = None
 
     def get_filename(self, code, frame):
         key = code.co_code
@@ -139,32 +116,17 @@ class MonitoringTree(object):
                 line_num=1,
                 func_name="root",
                 parent=None,
-                file_path=None,
-                calls=1
+                file_path="",
+                samples=1
             )
 
-        calls = 0
-        if frame[1]:
-            calls = 1
-        frame = frame[0]
-
         file_path = self.get_filename(frame.f_code, frame)
-        if file_path is not None:
-            if self.abs_path in file_path:
-                file_path = file_path.replace(self.abs_path, '')
         return Function(
             line_num=frame.f_code.co_firstlineno,
             func_name=frame.f_code.co_name,
             parent=parent,
-            file_path=file_path,
-            calls=calls
+            file_path=file_path
         )
-
-    def _filter_frame(self, file_name):
-        if file_name is None or \
-                any(filter_str in file_name for filter_str in self.filters):
-            return True
-        return False
 
     def _build_tree(self, new_stack):
         root_func = self._create_frame_func(None, True)
@@ -172,8 +134,6 @@ class MonitoringTree(object):
         for frame in reversed(new_stack):
             current_func = self._create_frame_func(
                 frame, parent=parent_func)
-            if self._filter_frame(current_func.file_path):
-                continue
             parent_func.children.append(current_func)
             parent_func = current_func
         return root_func
@@ -184,7 +144,6 @@ class MonitoringTree(object):
         new_child = new_parent.children[0]
         has_child = parent.has_child(new_child)
         if has_child:
-            has_child.calls += new_child.calls
             has_child.samples += 1
             return self._update_sample_count(has_child, new_child)
         parent.children.append(new_child)
@@ -194,23 +153,30 @@ class MonitoringTree(object):
         if self.root_func is None:
             self.root_func = new_tree_root
             return self.root_func
-        self.root_func.samples += 1
         self._update_sample_count(self.root_func, new_tree_root)
 
     def clear_root(self):
         self.root_func = None
         return True
 
-    def build_tree(self, app_id):
-        return {
-            "application": app_id,
-            "publicIP": self.public_ip,
-            "id": str(uuid4()),
-            "timestamp": int(round(time() * 1000)),
-            "macAddressHash": self.mac_hash,
-            "commitHash": self.commit_hash,
-            "tree": dict(self.root_func)
-        }
+    def build_tree(self, client):
+        if self.root_func is not None:
+            return {
+                "application": client.app_id,
+                "publicIP": self.public_ip,
+                "id": str(uuid4()),
+                "timestamp": int(round(time() * 1000)),
+                "macAddressHash": self.mac_hash,
+                "commitHash": self.commit_hash,
+                "agentVersion": get_agent_version(),
+                "tree": dict(self.root_func),
+                "device": client.broker_username,
+                "absPath": client.abs_path
+            }
+        return {}
+
+    def build_msgpack_tree(self, client):
+        return msgpack.packb(self.build_tree(client), use_bin_type=False)
 
 
 class SystemMetrics(object):

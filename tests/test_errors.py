@@ -1,12 +1,20 @@
+import sys
 import unittest
 
-from auklet.errors import AukletException, AukletConnectionError, AukletConfigurationError
+from auklet.errors \
+    import AukletException, AukletConnectionError, AukletConfigurationError
 
 
 class TestAukletException(unittest.TestCase):
     def test_auklet_exception(self):
-        self.assertEqual(
-            str(AukletException(Exception)), "<class 'Exception'>")
+        if sys.version_info < (3,):
+            self.assertEqual(
+                str(AukletException(Exception)),
+                "<type 'exceptions.Exception'>")
+        else:
+            self.assertEqual(
+                str(AukletException(Exception)),
+                "<class 'Exception'>")
 
 
 class TestAukletConnectionError(unittest.TestCase):
