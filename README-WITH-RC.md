@@ -1,5 +1,26 @@
 # Changelog
 
+### [0.6.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.6.0-rc.1)
+
+**Implemented enhancements:**
+
+- APM-1482 Device Registration [#86](https://github.com/ESG-USA/Auklet-Agent-Python/pull/86) ([tylerwiersing](https://github.com/tylerwiersing))
+- Remove Kafka Broker and Read MQTT Certs [#85](https://github.com/ESG-USA/Auklet-Agent-Python/pull/85) ([tylerwiersing](https://github.com/tylerwiersing))
+- APM-1431 Include Python Package Version Info [#83](https://github.com/ESG-USA/Auklet-Agent-Python/pull/83) ([tylerwiersing](https://github.com/tylerwiersing))
+- APM-1377 Agent Refactor [#80](https://github.com/ESG-USA/Auklet-Agent-Python/pull/80) ([tylerwiersing](https://github.com/tylerwiersing))
+- APM-1413: Python Agent ASIL B Compliance [#76](https://github.com/ESG-USA/Auklet-Agent-Python/pull/76) ([joshuahufford](https://github.com/joshuahufford))
+- APM-1358: Send MessagePack to the backend instead of JSON and Protobuf using the Python Agent [#75](https://github.com/ESG-USA/Auklet-Agent-Python/pull/75) ([joshuahufford](https://github.com/joshuahufford))
+- APM-1356: Add MQTT support [#62](https://github.com/ESG-USA/Auklet-Agent-Python/pull/62) ([shogun656](https://github.com/shogun656))
+
+**Fixed bugs:**
+
+- API Provided Client ID [#87](https://github.com/ESG-USA/Auklet-Agent-Python/pull/87) ([tylerwiersing](https://github.com/tylerwiersing))
+- Fix Message Pack Issue [#82](https://github.com/ESG-USA/Auklet-Agent-Python/pull/82) ([joshuahufford](https://github.com/joshuahufford))
+
+**DevOps changes:**
+
+- Increase the complexity level for codeclimate [#84](https://github.com/ESG-USA/Auklet-Agent-Python/pull/84) ([shogun656](https://github.com/shogun656))
+
 ## [0.5.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.5.1)
 
 ### [0.5.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.5.1-rc.1)
