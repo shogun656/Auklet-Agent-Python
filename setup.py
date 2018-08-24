@@ -30,13 +30,13 @@ setup(
     platforms='linux',
     packages=find_packages(),
     include_package_data=True,
-    description = 'Auklet performance monitoring agent for Python IoT apps',
+    description='Auklet performance monitoring agent for Python IoT apps',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    author = 'Auklet',
-    author_email = 'hello@auklet.io',
-    url = 'https://github.com/aukletio/Auklet-Agent-Python',
-    keywords = ['iot', 'performance', 'monitoring'],
+    author='Auklet',
+    author_email='hello@auklet.io',
+    url='https://github.com/aukletio/Auklet-Agent-Python',
+    keywords=['iot', 'performance', 'monitoring'],
     entry_points={
     },
     classifiers=[
@@ -58,6 +58,6 @@ setup(
         'Topic :: Software Development :: Debuggers',
     ],
     install_requires=requirements('requirements.txt'),
-    tests_require=requirements('tests/requirements.txt'),
+    tests_require=requirements('tests.txt'),
     test_suite='tests',
 )

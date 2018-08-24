@@ -181,6 +181,7 @@ celerybeat-schedule
 
 # virtualenv
 venv/
+venv2/
 ENV/
 
 # Spyder project settings
@@ -195,10 +196,12 @@ ENV/
 # Built Python Package/Profiler files
 dist/*
 build/*
+certs/*
 auklet.egg-info/*
 tmp/*
 .auklet/*
 auklet/example_app.py
+.env
 
 # Testing Scripts
 pi_digits.py
@@ -206,3 +209,13 @@ pi_digits.py
 # Unit Testing Environment
 .coverage
 coverage.xml
+tests/.auklet
+tests/monitoring/.auklet
+.tox/
+.pyenv/
+key.pem
+key.pem.zip
+tests/key.pem
+tests/key.pem.zip
+run_unit_tests.sh
+

@@ -2,19 +2,18 @@ import factory
 
 
 class MonitoringDataGenerator(object):
-    def __init__(self, commitHash, id, publicIP, timestamp, application,
-                 macAddressHash, lineNumber, nSamples, functionName, nCalls):
-        self.commitHash = commitHash
-        self.id = id
-        self.publicIP = publicIP
-        self.timestamp = timestamp
-        self.application = application
-        self.macAddressHash = macAddressHash
+    def __init__(self, data):
+        self.commitHash = data[0]
+        self.id = data[1]
+        self.publicIP = data[2]
+        self.timestamp = data[3]
+        self.application = data[4]
+        self.macAddressHash = data[5]
 
-        self.lineNumber = lineNumber
-        self.nSamples = nSamples
-        self.functionName = functionName
-        self.nCalls = nCalls
+        self.lineNumber = data[6]
+        self.nSamples = data[7]
+        self.functionName = data[8]
+        self.nCalls = data[9]
 
     def __str__(self):
         return '{"commitHash": "%s", ' \
@@ -35,56 +34,57 @@ class MonitoringDataGenerator(object):
 
 
 class MonitoringDataFactory(factory.Factory):
-
     class Meta:
         model = MonitoringDataGenerator
 
-    commitHash = "d0eb7082f4dd5dfce4c543e21299fb2e5774f70b"
-    id = "30d376d2-fc7e-10d5-d51fe33373fd"
-    publicIP = "187.2.167.60"
-    timestamp = int(1531490785464)
-    application = "nugvjtNBxHbjBnqbcFZvjn"
-    macAddressHash = "d1dd34825af8599b78bd5f4a1d7d186e"
-    lineNumber = int(836)
-    nSamples = int(5745)
-    functionName = "root"
-    nCalls = 0
+    data = list()
+
+    data.append("d0eb7082f4dd5dfce4c543e21299fb2e5774f70b")
+    data.append("30d376d2-fc7e-10d5-d51fe33373fd")
+    data.append("187.2.167.60")
+    data.append(int(1531490785464))
+    data.append("nugvjtNBxHbjBnqbcFZvjn")
+    data.append("d1dd34825af8599b78bd5f4a1d7d186e")
+    data.append(int(836))
+    data.append(int(5745))
+    data.append("root")
+    data.append(0)
 
 
 class ConfigGenerator(object):
-    def __init__(self, brokers, prof_topic,
-                 event_topic, log_topic, user_metrics_topic):
-        self.brokers = brokers
-        self.prof_topic = prof_topic
-        self.event_topic = event_topic
-        self.log_topic = log_topic
-        self.user_metrics_topic = user_metrics_topic
+    def __init__(self, data):
+        self.brokers = data[0]
+        self.prof_topic = data[1]
+        self.event_topic = data[2]
+        self.log_topic = data[3]
+        self.user_metrics_topic = data[4]
 
     def __str__(self):
         return '{"brokers": ["%s"], "prof_topic": "%s", "event_topic": ' \
                '"%s", "log_topic": "%s", "user_metrics_topic": "%s"}' \
-                % (self.brokers, self.prof_topic, self.event_topic,
-                   self.log_topic, self.user_metrics_topic)
+               % (self.brokers, self.prof_topic, self.event_topic,
+                  self.log_topic, self.user_metrics_topic)
 
 
 class ConfigFactory(factory.Factory):
-
     class Meta:
         model = ConfigGenerator
 
-    brokers = "brokers-staging.feeds.auklet.io:9093"
-    prof_topic = "profiler"
-    event_topic = "events"
-    log_topic = "logs"
-    user_metrics_topic = "user_metrics"
+    data = list()
+
+    data.append("http://api-staging.auklet.io:9093")
+    data.append("profiling")
+    data.append("events")
+    data.append("logging")
+    data.append("user_metrics")
 
 
 class StackTraceGenerator(object):
-    def __init__(self, functionName, lineNumber, nCalls, nSamples):
-        self.functionName = functionName
-        self.lineNumber = lineNumber
-        self.nCalls = nCalls
-        self.nSamples = nSamples
+    def __init__(self, data):
+        self.functionName = data[0]
+        self.lineNumber = data[1]
+        self.nCalls = data[2]
+        self.nSamples = data[3]
 
     def __str__(self):
         return '''{'callees': [],\n 'filePath': None,\n ''' \
@@ -95,27 +95,27 @@ class StackTraceGenerator(object):
 
 
 class StackTraceFactory(factory.Factory):
-
     class Meta:
         model = StackTraceGenerator
 
-    functionName = "root"
-    lineNumber = 1
-    nCalls = 1
-    nSamples = 1
+    data = list()
+
+    data.append("root")
+    data.append(1)
+    data.append(1)
+    data.append(1)
+
 
 class SingleNestedStackGenerator(object):
-    def __init__(self, callees_functionName, callees_lineNumber,
-                 callees_nCalls, callees_nSamples, functionName,
-                 lineNumber, nCalls, nSamples):
-        self.callees_functionName = callees_functionName
-        self.callees_lineNumber = callees_lineNumber
-        self.callees_nCalls = callees_nCalls
-        self.callees_nSamples = callees_nSamples
-        self.functionName = functionName
-        self.lineNumber = lineNumber
-        self.nCalls = nCalls
-        self.nSamples = nSamples
+    def __init__(self, data):
+        self.callees_functionName = data[0]
+        self.callees_lineNumber = data[1]
+        self.callees_nCalls = data[2]
+        self.callees_nSamples = data[3]
+        self.functionName = data[4]
+        self.lineNumber = data[5]
+        self.nCalls = data[6]
+        self.nSamples = data[7]
 
     def __str__(self):
         return '''{'callees': [{'callees': [],\n''' \
@@ -133,16 +133,44 @@ class SingleNestedStackGenerator(object):
 
 
 class SingleNestedStackTraceFactory(factory.Factory):
-
     class Meta:
         model = SingleNestedStackGenerator
 
-    callees_functionName = ""
-    callees_lineNumber = 0
-    callees_nCalls = 1
-    callees_nSamples = 1
+    data = list()
 
-    functionName = "root"
-    lineNumber = 1
-    nCalls = 1
-    nSamples = 1
+    data.append("")
+    data.append(0)
+    data.append(1)
+    data.append(1)
+
+    data.append("root")
+    data.append(1)
+    data.append(1)
+    data.append(1)
+
+
+class LimitsGenerator(object):
+    def __init__(self, storage_limit="null", emission_period=60,
+                 performance_metrics="true", user_metrics="false",
+                 cellular_data_limit="null", normalized_cell_plan_date=1):
+        self.storage_limit = str(storage_limit)
+        self.emission_period = str(emission_period)
+        self.performance_metrics = str(performance_metrics)
+        self.user_metrics = str(user_metrics)
+        self.cellular_data_limit = str(cellular_data_limit)
+        self.normalized_cell_plan_data = str(normalized_cell_plan_date)
+
+    def __str__(self):
+        return """{"storage": {"storage_limit": """ + \
+               self.storage_limit + \
+               """}, "emission_period": """ + \
+               self.emission_period + \
+               """, "features": {"performance_metrics": """ + \
+               self.performance_metrics + \
+               """, "user_metrics": """ + \
+               self.user_metrics + \
+               """}, "data": {"cellular_data_limit": """ + \
+               self.cellular_data_limit + \
+               """, "normalized_cell_plan_date": """ + \
+               self.normalized_cell_plan_data + \
+               """}}"""

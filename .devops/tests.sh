@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
 set -e
 
-if [ ! -d .auklet ]; then
-    mkdir .auklet
-    touch .auklet/local.txt
-    touch .auklet/version
-fi
+echo "Creating files..."
+mkdir -p .auklet
 
-coverage run --rcfile=".coveragerc" setup.py test
-coverage html -d htmlcov
-coverage xml
+filelist="local.txt version communication usage limits"
+for file in $filelist
+do
+    touch .auklet/$file
+done
 
-rm -R .auklet
+touch key.pem
+zip key.pem.zip key.pem
+
+pip install coverage
+python setup.py install
+
+# This outputs the complete current python version to `pyver`
+pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+echo Python $pyver
+
+COVERAGE_FILE=.coverage.python$pyver coverage run --rcfile=".coveragerc" setup.py test
+
+rm -Rf .auklet
+rm -f key.pem
+rm -f key.pem.zip
