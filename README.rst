@@ -33,7 +33,7 @@ Auklet for Python
    :alt: Test Coverage
 
 
-This is the official Python agent for `Auklet`_, official supports 2.7.9+ and 3.3-3.7, and
+This is the official Python agent for `Auklet`_, official supports 2.7.9+ and 3.4-3.7, and
 runs on most posix based operating systems (Debian, Ubuntu Core, Raspbian, QNX, etc).
 
 Compliance
