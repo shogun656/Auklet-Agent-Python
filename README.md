@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- APM-1490: Updating readme [#89](https://github.com/ESG-USA/Auklet-Agent-Python/pull/89) ([bleib1dj](https://github.com/bleib1dj))
+
 ## [0.6.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.6.0)
 
 **Implemented enhancements:**
