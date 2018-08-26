@@ -1,10 +1,10 @@
 .. raw:: html
     <p align="center">
 
-.. image:: https://s3.amazonaws.com/auklet/static/auklet_python_small.png
+.. image:: https://s3.amazonaws.com/auklet/static/auklet_python_medium.png
     :target: https://auklet.io
     :align: center
-    :width: 200
+    :width: 600
     :alt: Auklet - Problem Solving Software for Python
 .. raw:: html
 
