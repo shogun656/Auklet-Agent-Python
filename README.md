@@ -4,6 +4,7 @@
 
 **Implemented enhancements:**
 
+- APM-1490: Fixing pip install line [#93](https://github.com/ESG-USA/Auklet-Agent-Python/pull/93) ([bleib1dj](https://github.com/bleib1dj))
 - APM-1490: Updating readme [#89](https://github.com/ESG-USA/Auklet-Agent-Python/pull/89) ([bleib1dj](https://github.com/bleib1dj))
 
 ## [0.6.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.6.0)

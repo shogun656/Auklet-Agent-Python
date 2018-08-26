@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.7.0-rc.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.7.0-rc.2)
+
+**Implemented enhancements:**
+
+- APM-1490: Fixing pip install line [#93](https://github.com/ESG-USA/Auklet-Agent-Python/pull/93) ([bleib1dj](https://github.com/bleib1dj))
+
 ### [0.7.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.7.0-rc.1)
 
 **Implemented enhancements:**
