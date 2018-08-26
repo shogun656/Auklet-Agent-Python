@@ -1,11 +1,11 @@
 .. raw:: html
     <p align="center">
 
-.. image:: <insert url>
+.. image:: https://s3.amazonaws.com/auklet/static/auklet_python_small.png
     :target: https://auklet.io
     :align: center
     :width: 200
-    :alt: Auklet - Problem Solving Software
+    :alt: Auklet - Problem Solving Software for Python
 .. raw:: html
 
     </p>
@@ -44,7 +44,7 @@ after 1.0 releases of our packages we maintain the following compliance levels:
 - Automotive Safety Integrity Level B (ASIL B)
 
 If there are additional compliances that your industry requires please contact
-the team at hello@auklet.io.
+the team at `hello@auklet.io`_.
 
 
 Features
@@ -75,24 +75,15 @@ To setup Auklet monitoring for you application:
     auklet_monitoring.stop()
 
 
-Contributing
------------
-Auklet's python agent is under active development and contributions are always
-welcome. We are in the process of moving our primary repos totally under the
-Auklet organization from our loving parent `ESG-USA`_. In the mean time any PRs
-must be made against the repositories housed under the `ESG Organization`_.
-
-* Report bugs in our `Issue Tracker`_
-* Submit a pull request
-
-
 Resources
 ---------
-* Auklet
-* Python Documentation
-* Issue Tracker
+* `Auklet`_
+* `Python Documentation`_
+* `Issue Tracker`_
 
 .. _Auklet: https://auklet.io
+.. _hello@auklet.io: mailto:hello@auklet.io
 .. _ESG-USA: https://github.com/ESG-USA
 .. _ESG Organization: https://github.com/ESG-USA
+.. _Python Documentation: https://docs.auklet.io/docs/python-integration
 .. _Issue Tracker: https://github.com/aukletio/Auklet-Agent-Python/issues
