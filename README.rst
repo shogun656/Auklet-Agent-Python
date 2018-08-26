@@ -20,8 +20,8 @@ Auklet for Python
     :target: https://pypi.python.org/pypi/auklet
     :alt: PyPi page link -- Apache 2.0 License
 
-.. image:: https://img.shields.io/pypi/l/auklet.svg
-    :target: https://img.shields.io/pypi/pyversions/auklet.svg
+.. image:: https://img.shields.io/pypi/pyversions/auklet.svg
+    :target: https://pypi.python.org/pypi/auklet
     :alt: PyPi page link -- Python Versions
 
 .. image:: https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/maintainability
