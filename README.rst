@@ -58,7 +58,7 @@ Features
 Quickstart
 ----------
 
-To install the agent with *pip*:
+To install the agent with *pip*::
 
     pip install auklet
 

@@ -36,7 +36,7 @@ setup(
     author='Auklet',
     author_email='hello@auklet.io',
     url='https://github.com/aukletio/Auklet-Agent-Python',
-    keywords=['iot', 'performance', 'monitoring'],
+    keywords=['iot', 'performance', 'monitoring', 'problem solving'],
     entry_points={
     },
     classifiers=[
