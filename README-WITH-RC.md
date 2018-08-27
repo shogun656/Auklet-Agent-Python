@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.7.0-rc.3](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.7.0-rc.3)
+
+**Fixed bugs:**
+
+- APM-1525: Python License Does Not Show In Badge [#95](https://github.com/ESG-USA/Auklet-Agent-Python/pull/95) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ### [0.7.0-rc.2](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.7.0-rc.2)
 
 **Implemented enhancements:**
