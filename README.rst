@@ -4,7 +4,7 @@
 .. image:: https://s3.amazonaws.com/auklet/static/logo_xs.png
     :target: https://auklet.io
     :align: center
-    :width: 300
+    :width: 150
     :alt: Auklet - Problem Solving Software for Python
 
 .. raw:: html
