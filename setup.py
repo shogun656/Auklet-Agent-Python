@@ -31,12 +31,13 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     description='Auklet performance monitoring agent for Python IoT apps',
-    long_description=open('README.md').read(),
+    license='Apache',
+    long_description=open('README.rst').read(),
     long_description_content_type='text/markdown',
     author='Auklet',
     author_email='hello@auklet.io',
     url='https://github.com/aukletio/Auklet-Agent-Python',
-    keywords=['iot', 'performance', 'monitoring'],
+    keywords=['iot', 'performance', 'monitoring', 'problem solving'],
     entry_points={
     },
     classifiers=[
