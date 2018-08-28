@@ -1,11 +1,12 @@
 .. raw:: html
     <p align="center">
 
-.. image:: https://s3.amazonaws.com/auklet/static/auklet_python_large.png
+.. image:: https://s3.amazonaws.com/auklet/static/auklet_python.png
     :target: https://auklet.io
     :align: center
     :width: 1000
     :alt: Auklet - Problem Solving Software for Python
+
 .. raw:: html
 
     </p>
@@ -36,6 +37,14 @@ Auklet for Python
 This is the official Python agent for `Auklet`_, official supports 2.7.9+ and 3.4-3.7, and
 runs on most posix based operating systems (Debian, Ubuntu Core, Raspbian, QNX, etc).
 
+Features
+--------
+- Automatic report of unhandled exceptions
+- Automatic Function performance issue reporting
+- Location, system architecture, and system metrics identification for all issues
+- Ability to define data usage restriction
+
+
 Compliance
 ----------
 Auklet is an edge first application performance monitor and as such
@@ -45,14 +54,6 @@ after 1.0 releases of our packages we maintain the following compliance levels:
 
 If there are additional compliances that your industry requires please contact
 the team at `hello@auklet.io`_.
-
-
-Features
---------
-- Automatic report of unhandled exceptions
-- Automatic Function performance issue reporting
-- Location, system architecture, and system metrics identification for all issues
-- Ability to define data usage restriction
 
 
 Quickstart
