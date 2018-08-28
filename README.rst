@@ -1,7 +1,7 @@
 .. raw:: html
     <p align="center">
 
-.. image:: https://s3.amazonaws.com/auklet/static/logo_xs.png
+.. image:: https://s3.amazonaws.com/auklet/static/auklet_python.png
     :target: https://auklet.io
     :align: center
     :width: 150
