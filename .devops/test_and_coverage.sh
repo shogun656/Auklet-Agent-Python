@@ -11,13 +11,14 @@ CIRCLE_LOCAL_BUILD=$1
 # a test report was already posted for that commit. On line 19-30 we have
 # implemented a check to see if the test reporter throws this message.
 
-pip install tox
-pip install --upgrade setuptools
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 
-sudo mkdir -p /.pyenv/plugins/pyenv-install-latest/bin
-sudo chmod 777 /.pyenv/
-sudo curl https://raw.githubusercontent.com/momo-lab/pyenv-install-latest/master/bin/pyenv-install-latest --create-dirs -o /.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest
-sudo chmod +x /.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest
+sudo pip install tox
+sudo pip install --upgrade setuptools
+
+PIL_BIN="$HOME/.pyenv/plugins/pyenv-install-latest/bin/pyenv-install-latest"
+curl https://raw.githubusercontent.com/momo-lab/pyenv-install-latest/master/bin/pyenv-install-latest --create-dirs -o $PIL_BIN
+chmod +x $PIL_BIN
 
 rm -Rf htmlcov
 
@@ -29,7 +30,7 @@ fi
 
 tox
 
-pip install coverage
+sudo pip install coverage
 
 coverage combine
 coverage report -m
