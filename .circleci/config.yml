@@ -16,6 +16,11 @@ jobs:
             # for details regarding "libssl-dev" vs "libssl1.0-dev".)
             # - It has Node, for our DevOps integrations.
             - image: circleci/python:3.6.6-jessie-node-browsers
+            # This is used for benchmark tests.
+            - image: erlio/docker-vernemq:1.3.1
+              name: mqtt
+              environment:
+                DOCKER_VERNEMQ_ALLOW_ANONYMOUS: 'on'
 
         steps:
             ##
@@ -49,20 +54,6 @@ jobs:
                   sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__about__.py
                   VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
                   sed -i -e "s/__semver__ = .*/__semver__ = '$VERSION_SIMPLE'/" auklet/__about__.py
-            - run:
-                name: Upgrade Docker Compose
-                command: |
-                  set -x
-                  curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > ./docker-compose
-                  chmod +x ./docker-compose
-                  sudo mv ./docker-compose /usr/local/bin
-            - setup_remote_docker
-            - run:
-                name: Show Docker Versions
-                command: |
-                  set -x
-                  docker --version
-                  docker-compose --version
 
             ##
             # RESTORE CACHES
@@ -117,26 +108,16 @@ jobs:
             - store_artifacts:
                  path: ~/app/htmlcov
             - run:
+                name: Run benchmark tests
+                command: |
+                  PYTHONUNBUFFERED=0 bash compose/benchmark/startBenchmark.sh
+            - run:
                 name: Run Whitesource
                 command: |
                   set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     bash .devops/whitesource.sh
                   fi
-
-            ##
-            # DOCKER
-            ##
-            - run:
-                name: Build Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose build
-            - run:
-                name: Run Docker Benchmark Tests
-                command: |
-                  set -x
-                  docker-compose run benchmark bash /startBenchmark.sh
 
             ##
             # SAVE CACHES

@@ -5,5 +5,9 @@ while ! nc -z mqtt 1883; do
 done
 
 mkdir .auklet
-python3 /setup.py install
+if [[ "$CIRCLECI" == "true" ]]; then
+  sudo python3 setup.py install
+else
+  python3 /setup.py install
+fi
 python3 src/benchmark/run_tests.py
