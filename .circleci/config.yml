@@ -110,7 +110,10 @@ jobs:
             - run:
                 name: Run benchmark tests
                 command: |
-                  PYTHONUNBUFFERED=0 bash compose/benchmark/startBenchmark.sh
+                  export PYTHONUNBUFFERED=0
+                  mkdir .auklet
+                  sudo python3 setup.py install
+                  python3 src/benchmark/run_tests.py
             - run:
                 name: Run Whitesource
                 command: |
