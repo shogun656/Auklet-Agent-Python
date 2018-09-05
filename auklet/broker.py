@@ -88,7 +88,8 @@ class MQTTClient(object):
         if self._get_certs():
             self.producer = mqtt.Client(client_id=self.client.client_id,
                                         protocol=mqtt.MQTTv311,
-                                        transport="ssl")
+                                        transport="ssl",
+                                        clean_session=False)
             self.producer.username_pw_set(
                 username=self.client.broker_username,
                 password=self.client.broker_password)
@@ -103,4 +104,5 @@ class MQTTClient(object):
             self.producer.loop_start()
 
     def produce(self, data, data_type="monitoring"):
-        self.producer.publish(self.producer_types[data_type], payload=data)
+        self.producer.publish(
+            self.producer_types[data_type], payload=data, qos=1)

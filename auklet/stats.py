@@ -88,9 +88,9 @@ class MonitoringTree(object):
                  'abs_path', 'root_func']
     cached_filenames = {}
 
-    def __init__(self, mac_hash=None):
-        from auklet.utils import get_device_ip, get_commit_hash, get_abs_path
-        self.commit_hash = get_commit_hash()
+    def __init__(self, mac_hash=None, release=None):
+        from auklet.utils import get_device_ip, get_abs_path
+        self.commit_hash = release
         self.public_ip = get_device_ip()
         self.abs_path = get_abs_path('.auklet/version')
         self.mac_hash = mac_hash

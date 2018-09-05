@@ -5,7 +5,7 @@ from time import time
 from uuid import uuid4
 from datetime import datetime
 from auklet.stats import Event, SystemMetrics
-from auklet.utils import create_file, get_commit_hash, \
+from auklet.utils import create_file, \
     get_abs_path, get_device_ip, open_auklet_url, build_url, \
     get_agent_version, post_auklet_url, u
 
@@ -48,7 +48,7 @@ class Client(object):
 
     system_metrics = None
 
-    def __init__(self, apikey=None, app_id=None,
+    def __init__(self, apikey=None, app_id=None, release=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
         self.apikey = apikey
         self.app_id = app_id
@@ -62,7 +62,7 @@ class Client(object):
         create_file(self.usage_filename)
         create_file(self.com_config_filename)
         create_file(self.identification_filename)
-        self.commit_hash = get_commit_hash()
+        self.commit_hash = release
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
         self._register_device()
@@ -227,6 +227,7 @@ class Client(object):
         event_dict['agentVersion'] = get_agent_version()
         event_dict['device'] = self.broker_username
         event_dict['absPath'] = self.abs_path
+        event_dict['rawStackTrace'] = traceback.format_exc()
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
