@@ -68,7 +68,7 @@ To setup Auklet monitoring for you application:
 .. sourcecode:: python
 
     from auklet.monitoring import Monitoring
-    auklet_monitoring = Monitoring("api_key", "app_id")
+    auklet_monitoring = Monitoring("api_key", "app_id", "release_checksum")
 
     auklet_monitoring.start()
     # Call your main function
