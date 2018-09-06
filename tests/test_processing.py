@@ -197,7 +197,9 @@ class TestClient(unittest.TestCase):
             self.assertEqual(self.client.update_limits(), 60000)
 
     def test_build_event_data(self):
-        self.assertBuildEventData(self.client.build_event_data)
+        with patch("auklet.monitoring.processing.traceback.format_exc",
+                   new=self.mock_format_exc):
+            self.assertBuildEventData(self.client.build_event_data)
 
     def test_build_log_data(self):
         self.assertBuildLogData(
@@ -205,12 +207,17 @@ class TestClient(unittest.TestCase):
                 msg='msg', data_type='data_type', level='level'))
 
     def test_build_msgpack_event_data(self):
-        self.assertBuildEventData(self.client.build_msgpack_event_data)
+        with patch("auklet.monitoring.processing.traceback.format_exc",
+                   new=self.mock_format_exc):
+            self.assertBuildEventData(self.client.build_msgpack_event_data)
 
     def test_build_msgpack_log_data(self):
         self.assertBuildLogData(
             self.client.build_msgpack_log_data(
                 msg='msg', data_type='data_type', level='level'))
+
+    def mock_format_exc(self):
+        return ""
 
     @staticmethod
     def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
