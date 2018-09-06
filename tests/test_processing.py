@@ -257,7 +257,7 @@ class TestClient(unittest.TestCase):
             self.assertNotEqual(
                 function(
                     type=Exception,
-                    traceback=traceback(),
+                    tb=traceback(),
                     tree=self.monitoring_tree),
                 None)
 

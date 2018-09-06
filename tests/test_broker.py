@@ -95,7 +95,7 @@ class TestMQTTBroker(unittest.TestCase):
                 self.broker._get_conf()
 
     class MockClient:
-        def __init__(self, client_id, protocol, transport):
+        def __init__(self, client_id, protocol, transport, clean_session):
             pass
 
         def tls_set(self, ca_certs):
@@ -113,7 +113,7 @@ class TestMQTTBroker(unittest.TestCase):
         def username_pw_set(self, username, password):
             pass
 
-        def publish(self, topic, payload):
+        def publish(self, topic, payload, qos=1):
             global test_produce_payload
             test_produce_payload = payload
 

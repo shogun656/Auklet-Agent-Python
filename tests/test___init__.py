@@ -13,6 +13,7 @@ class TestMonitoring(unittest.TestCase):
                 self.monitoring = Monitoring(
                     apikey="",
                     app_id="",
+                    release="",
                     base_url="https://api-staging.io",
                     monitoring=True)
                 self.monitoring.monitor = True
