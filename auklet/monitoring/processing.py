@@ -1,5 +1,6 @@
 import json
 import msgpack
+import traceback
 
 from time import time
 from uuid import uuid4
@@ -214,8 +215,8 @@ class Client(object):
         # return emission period in ms
         return config['emission_period'] * S_TO_MS
 
-    def build_event_data(self, type, traceback, tree):
-        event = Event(type, traceback, tree, self.abs_path)
+    def build_event_data(self, type, tb, tree):
+        event = Event(type, tb, tree, self.abs_path)
         event_dict = dict(event)
         event_dict['application'] = self.app_id
         event_dict['publicIP'] = get_device_ip()
@@ -228,6 +229,7 @@ class Client(object):
         event_dict['device'] = self.broker_username
         event_dict['absPath'] = self.abs_path
         event_dict['rawStackTrace'] = traceback.format_exc()
+        print(event_dict)
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
