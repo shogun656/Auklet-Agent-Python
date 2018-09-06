@@ -229,7 +229,6 @@ class Client(object):
         event_dict['device'] = self.broker_username
         event_dict['absPath'] = self.abs_path
         event_dict['rawStackTrace'] = traceback.format_exc()
-        print(event_dict)
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
@@ -249,8 +248,8 @@ class Client(object):
         }
         return log_dict
 
-    def build_msgpack_event_data(self, type, traceback, tree):
-        event_data = self.build_event_data(type, traceback, tree)
+    def build_msgpack_event_data(self, type, tb, tree):
+        event_data = self.build_event_data(type, tb, tree)
         return msgpack.packb(event_data, use_bin_type=False)
 
     def build_msgpack_log_data(self, msg, data_type, level):
