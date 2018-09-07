@@ -2,6 +2,7 @@ import unittest
 from mock import patch
 
 from auklet.monitoring import Monitoring
+from auklet.errors import AukletConfigurationError
 
 
 class TestMonitoring(unittest.TestCase):
@@ -21,6 +22,11 @@ class TestMonitoring(unittest.TestCase):
     def test_start(self):
         self.assertIsNone(self.monitoring.start())
         self.monitoring.stop()
+
+    def test_initialize_without_release(self):
+        self.assertRaises(
+            AukletConfigurationError, Monitoring,
+            apikey="", app_id="", base_url="https://api.auklet.io/")
 
     def test_stop(self):
         def _wait_for_stop(self):

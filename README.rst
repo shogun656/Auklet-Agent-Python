@@ -99,7 +99,15 @@ commit history you can include it via environment variable:
 Lastly if it is difficult or impossible to set an environment variable
 via your deployment platform you can include a new file in your packaged
 deployment which holds the release which you can read from and supply to
-the constructor:
+the constructor.
+
+To get and write the commit hash to a file:
+
+.. sourcecode:: shell
+
+    COMMIT_HASH="$(git rev-parse HEAD)"
+    echo $COMMIT_HASH > "path/to/git_commit_hash.txt"
+
 
 .. sourcecode:: python
 
