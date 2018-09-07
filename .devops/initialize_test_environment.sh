@@ -1,22 +1,12 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 set -e
-
 VERSION=$1
 
-INSTALL_LATEST='true'
-
-if [ "${#VERSION}" -gt 4 ]; then  # This checks if a complete version is passed
-    INSTALL_LATEST='false'      # and if so, it will install that exact version
-fi
-
+export PYENV_ROOT="/home/circleci/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
-if [[ "$INSTALL_LATEST" == 'false' ]]; then
-    pyenv install $VERSION
-else
-    pyenv install-latest $VERSION
-fi
+pyenv install-latest $VERSION
 
 LATEST_VERSION=$(pyenv versions | grep $VERSION | grep -vE "(2.7.12|3.5.2|system)")
 pyenv global $LATEST_VERSION
