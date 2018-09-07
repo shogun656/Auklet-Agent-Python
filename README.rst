@@ -101,12 +101,13 @@ via your deployment platform you can include a new file in your packaged
 deployment which holds the release which you can read from and supply to
 the constructor.
 
-To get and write the commit hash to a file:
+To write the commit hash to a file:
 
 .. sourcecode:: shell
 
     git rev-parse HEAD > path/to/git_commit_hash.txt
 
+This can then be read by adding the following to your python code.
 
 .. sourcecode:: python
 
