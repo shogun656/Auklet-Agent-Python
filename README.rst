@@ -68,13 +68,50 @@ To setup Auklet monitoring for you application:
 .. sourcecode:: python
 
     from auklet.monitoring import Monitoring
-    auklet_monitoring = Monitoring("api_key", "app_id")
+    auklet_monitoring = Monitoring("api_key", "app_id", "git_commit_hash")
 
     auklet_monitoring.start()
     # Call your main function
     main()
     auklet_monitoring.stop()
 
+
+`git_commit_hash` is the commit hash of the commit which represents this
+deployed version of your application. There are a couple ways for which to set
+this based upon the style of deployment of your application.
+
+In the case that you deploy your entire packaged github repository and have
+git installed on the device you can get it via a subprocess:
+
+.. sourcecode:: python
+
+    git_commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+
+
+If you package your app and deploy it without access to git and the repo's
+commit history you can include it via environment variable:
+
+.. sourcecode:: python
+
+    git_commit_hash = os.environ.get("APPLICATION_GIT_COMMIT_HASH")
+
+
+Lastly if it is difficult or impossible to set an environment variable
+via your deployment platform you can include a new file in your packaged
+deployment which holds the release which you can read from and supply to
+the constructor.
+
+To get and write the commit hash to a file:
+
+.. sourcecode:: shell
+
+    git rev-parse HEAD > path/to/git_commit_hash.txt
+
+
+.. sourcecode:: python
+
+    my_file = open("git_commit_hash.txt", "r")
+    git_commit_hash = my_file.read()
 
 Resources
 ---------
