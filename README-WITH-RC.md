@@ -1,5 +1,24 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- Updating readme [#108](https://github.com/ESG-USA/Auklet-Agent-Python/pull/108) ([bleib1dj](https://github.com/bleib1dj))
+- APM-1558 Misc Bugfixes and Improvements [#102](https://github.com/ESG-USA/Auklet-Agent-Python/pull/102) ([tylerwiersing](https://github.com/tylerwiersing))
+
+### [0.8.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.8.1-rc.1)
+
+**Fixed bugs:**
+
+- Reverting dumps call [#105](https://github.com/ESG-USA/Auklet-Agent-Python/pull/105) ([bleib1dj](https://github.com/bleib1dj))
+- Proposed Fix for No System Metrics on Python Agent [#103](https://github.com/ESG-USA/Auklet-Agent-Python/pull/103) ([bleib1dj](https://github.com/bleib1dj))
+
+**DevOps changes:**
+
+- Remove all Docker Compose stuff [#101](https://github.com/ESG-USA/Auklet-Agent-Python/pull/101) ([rjenkinsjr](https://github.com/rjenkinsjr))
+- APM-1522: Python 3.7 Support & Validation [#100](https://github.com/ESG-USA/Auklet-Agent-Python/pull/100) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ## [0.8.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.8.0)
 
 ### [0.8.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.8.0-rc.1)
