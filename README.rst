@@ -85,7 +85,8 @@ git installed on the device you can get it via a subprocess:
 
 .. sourcecode:: python
 
-    git_commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+    git_commit_hash = subprocess.check_output(
+        ['git', 'rev-parse', 'HEAD']).strip("\n")
 
 
 If you package your app and deploy it without access to git and the repo's
