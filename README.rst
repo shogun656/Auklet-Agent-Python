@@ -68,7 +68,9 @@ To setup Auklet monitoring for you application:
 .. sourcecode:: python
 
     from auklet.monitoring import Monitoring
-    auklet_monitoring = Monitoring("api_key", "app_id", "git_commit_hash")
+    auklet_monitoring = Monitoring(
+        api_key="<API_KEY>", app_id="<APP_ID>", release="<CURRENT_COMMIT_HASH>"
+    )
 
     auklet_monitoring.start()
     # Call your main function
@@ -76,10 +78,25 @@ To setup Auklet monitoring for you application:
     auklet_monitoring.stop()
 
 
-`git_commit_hash` is the commit hash of the commit which represents this
+Authorization
+^^^^^^^^^^^^^
+To authorize your application you need to provide both an API key and app id.
+These values are available in the connection settings of your application as
+well as during initial setup.
+
+
+Release Tracking
+^^^^^^^^^^^^^^^^
+To track releases and identify which devices are running what version of code
+we currently require that you provide the commit hash of your deployed code.
+This value needs to be passed into the constructor through `release`.
+The value needs to be the commit hash that represents the
 deployed version of your application. There are a couple ways for which to set
 this based upon the style of deployment of your application.
 
+
+Get Release via Python Code
+"""""""""""""""""""""""""""
 In the case that you deploy your entire packaged github repository and have
 git installed on the device you can get it via a subprocess:
 
@@ -89,6 +106,8 @@ git installed on the device you can get it via a subprocess:
         ['git', 'rev-parse', 'HEAD']).strip("\n")
 
 
+Get Release via Environment Variable
+""""""""""""""""""""""""""""""""""""
 If you package your app and deploy it without access to git and the repo's
 commit history you can include it via environment variable:
 
@@ -97,12 +116,14 @@ commit history you can include it via environment variable:
     git_commit_hash = os.environ.get("APPLICATION_GIT_COMMIT_HASH")
 
 
+Get Release via File
+""""""""""""""""""""
 Lastly if it is difficult or impossible to set an environment variable
 via your deployment platform you can include a new file in your packaged
 deployment which holds the release which you can read from and supply to
 the constructor.
 
-To write the commit hash to a file:
+Write the commit hash to a file and then package it into your deployment:
 
 .. sourcecode:: shell
 
@@ -114,6 +135,7 @@ This can then be read by adding the following to your python code.
 
     my_file = open("git_commit_hash.txt", "r")
     git_commit_hash = my_file.read()
+
 
 Resources
 ---------

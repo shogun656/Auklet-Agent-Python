@@ -49,9 +49,9 @@ class Client(object):
 
     system_metrics = None
 
-    def __init__(self, apikey=None, app_id=None, release=None,
+    def __init__(self, api_key=None, app_id=None, release=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
-        self.apikey = apikey
+        self.apikey = api_key
         self.app_id = app_id
         self.base_url = base_url
         self.send_enabled = True
