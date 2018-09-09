@@ -95,8 +95,8 @@ deployed version of your application. There are a couple ways for which to set
 this based upon the style of deployment of your application.
 
 
-Get Release via Python Code
-"""""""""""""""""""""""""""
+Get Release via Subprocess
+""""""""""""""""""""""""""
 In the case that you deploy your entire packaged github repository and have
 git installed on the device you can get it via a subprocess:
 
