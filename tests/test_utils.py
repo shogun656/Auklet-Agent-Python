@@ -23,32 +23,32 @@ class TestUtils(unittest.TestCase):
         with patch("auklet.monitoring.processing.Client._register_device",
                    new=self.__register_device):
             self.client = Client(
-                apikey="", app_id="",
+                api_key="", app_id="",
                 base_url="https://api-staging.auklet.io/")
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
 
         with patch('auklet.utils.urlopen') as url_open:
-            self.assertIsNotNone(open_auklet_url(url, self.client.apikey))
+            self.assertIsNotNone(open_auklet_url(url, self.client.api_key))
 
             url_open.side_effect = HTTPError(
                 url=None, code=401, msg=None, hdrs=None, fp=None)
             self.assertRaises(AukletConfigurationError,
-                              lambda: open_auklet_url(url, self.client.apikey))
+                              lambda: open_auklet_url(url, self.client.api_key))
 
             url_open.side_effect = HTTPError(
                 url=None, code=None, msg=None, hdrs=None, fp=None)
             self.assertRaises(HTTPError,
-                              lambda: open_auklet_url(url, self.client.apikey))
+                              lambda: open_auklet_url(url, self.client.api_key))
 
             url_open.side_effect = URLError("")
-            self.assertIsNone(open_auklet_url(url, self.client.apikey))
+            self.assertIsNone(open_auklet_url(url, self.client.api_key))
 
     def test_post_auklet_url(self):
         with patch("auklet.utils.requests.post") as request_mock:
             request_mock.side_effect = requests.HTTPError(None)
-            res = post_auklet_url("example.com", "apikey", {})
+            res = post_auklet_url("example.com", "api_key", {})
             self.assertIsNone(res)
 
     def test_create_file(self):
