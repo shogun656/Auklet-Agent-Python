@@ -30,7 +30,9 @@ class TestClient(unittest.TestCase):
             self.broker_username = "test-username"
             self.broker_password = "test-password"
             self.client = Client(
-                apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+                api_key="", app_id="",
+                base_url="https://api-staging.auklet.io/"
+            )
             self.monitoring_tree = MonitoringTree()
 
     def test_get_config(self):
@@ -116,7 +118,7 @@ class TestClient(unittest.TestCase):
 
         self.base_patch_side_effect_with_none(
             'auklet.monitoring.processing.open',
-            IOError, self.client._load_limits())
+            IOError, self.client._load_limits)
 
     def test_build_usage_json(self):
         data = self.client._build_usage_json()
@@ -197,7 +199,9 @@ class TestClient(unittest.TestCase):
             self.assertEqual(self.client.update_limits(), 60000)
 
     def test_build_event_data(self):
-        self.assertBuildEventData(self.client.build_event_data)
+        with patch("auklet.monitoring.processing.traceback.format_exc",
+                   new=self.mock_format_exc):
+            self.assertBuildEventData(self.client.build_event_data)
 
     def test_build_log_data(self):
         self.assertBuildLogData(
@@ -205,12 +209,17 @@ class TestClient(unittest.TestCase):
                 msg='msg', data_type='data_type', level='level'))
 
     def test_build_msgpack_event_data(self):
-        self.assertBuildEventData(self.client.build_msgpack_event_data)
+        with patch("auklet.monitoring.processing.traceback.format_exc",
+                   new=self.mock_format_exc):
+            self.assertBuildEventData(self.client.build_msgpack_event_data)
 
     def test_build_msgpack_log_data(self):
         self.assertBuildLogData(
             self.client.build_msgpack_log_data(
                 msg='msg', data_type='data_type', level='level'))
+
+    def mock_format_exc(self):
+        return ""
 
     @staticmethod
     def get_mock_event(exc_type=None, tb=None, tree=None, abs_path=None):
@@ -224,7 +233,7 @@ class TestClient(unittest.TestCase):
     def base_patch_side_effect_with_none(self, location, side_effect, actual):
         with patch(location) as _base:
             _base.side_effect = side_effect
-            self.assertIsNone(actual)
+            self.assertIsNone(actual())
 
     def build_load_limits_test(self, expected, actual):
         self.assertEqual(expected, actual)
@@ -257,7 +266,7 @@ class TestClient(unittest.TestCase):
             self.assertNotEqual(
                 function(
                     type=Exception,
-                    traceback=traceback(),
+                    tb=traceback(),
                     tree=self.monitoring_tree),
                 None)
 

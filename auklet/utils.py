@@ -8,7 +8,7 @@ from auklet.__about__ import __version__ as auklet_version
 from auklet.errors import AukletConfigurationError
 
 __all__ = ['open_auklet_url', 'post_auklet_url', 'create_file', 'clear_file',
-           'build_url', 'get_commit_hash', 'get_mac', 'get_device_ip',
+           'build_url', 'get_mac', 'get_device_ip',
            'setup_thread_excepthook', 'get_abs_path', 'get_agent_version',
            'b', 'u']
 
@@ -66,15 +66,6 @@ def get_mac():
     mac_num = hex(uuid.getnode()).replace('0x', '').upper()
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
     return hashlib.md5(b(mac)).hexdigest()
-
-
-def get_commit_hash():
-    try:
-        with open(".auklet/version", "r") as auklet_file:
-            return auklet_file.read().rstrip()
-    except IOError:
-        # TODO Error out app if no commit hash
-        return ""
 
 
 def get_abs_path(path):
