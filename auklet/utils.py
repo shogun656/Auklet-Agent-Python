@@ -57,7 +57,7 @@ def create_file(filename):
 def create_dir(dir_name=".auklet"):
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
-        return True
+    return True
 
 
 def clear_file(filename):
