@@ -1,11 +1,22 @@
 # Changelog
 
-## Merged But Unreleased
+### [0.9.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.9.0-rc.1)
+
+**Implemented enhancements:**
+
+- Updating readme [#111](https://github.com/ESG-USA/Auklet-Agent-Python/pull/111) ([bleib1dj](https://github.com/bleib1dj))
 
 **Fixed bugs:**
 
+- Remove Raw Stack Trace [#113](https://github.com/ESG-USA/Auklet-Agent-Python/pull/113) ([tylerwiersing](https://github.com/tylerwiersing))
+- Fix Coverage [#112](https://github.com/ESG-USA/Auklet-Agent-Python/pull/112) ([tylerwiersing](https://github.com/tylerwiersing))
+- Updating readme to reflect the need to strip \n [#109](https://github.com/ESG-USA/Auklet-Agent-Python/pull/109) ([bleib1dj](https://github.com/bleib1dj))
 - Updating readme [#108](https://github.com/ESG-USA/Auklet-Agent-Python/pull/108) ([bleib1dj](https://github.com/bleib1dj))
 - APM-1558 Misc Bugfixes and Improvements [#102](https://github.com/ESG-USA/Auklet-Agent-Python/pull/102) ([tylerwiersing](https://github.com/tylerwiersing))
+
+**DevOps changes:**
+
+- DevOps fixes [#110](https://github.com/ESG-USA/Auklet-Agent-Python/pull/110) ([rjenkinsjr](https://github.com/rjenkinsjr))
 
 ## [0.8.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.8.1)
 
