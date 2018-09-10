@@ -12,7 +12,7 @@ class TestMonitoring(unittest.TestCase):
                        new=self.__register_device):
                 _get_conf.side_effect = self.get_conf
                 self.monitoring = Monitoring(
-                    apikey="",
+                    api_key="",
                     app_id="",
                     release="",
                     base_url="https://api-staging.io",
@@ -26,7 +26,7 @@ class TestMonitoring(unittest.TestCase):
     def test_initialize_without_release(self):
         self.assertRaises(
             AukletConfigurationError, Monitoring,
-            apikey="", app_id="", base_url="https://api.auklet.io/")
+            api_key="", app_id="", base_url="https://api.auklet.io/")
 
     def test_stop(self):
         def _wait_for_stop(self):

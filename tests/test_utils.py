@@ -23,7 +23,7 @@ class TestUtils(unittest.TestCase):
         with patch("auklet.monitoring.processing.Client._register_device",
                    new=self.__register_device):
             self.client = Client(
-                apikey="", app_id="",
+                api_key="", app_id="",
                 base_url="https://api-staging.auklet.io/")
 
     def test_open_auklet_url(self):
