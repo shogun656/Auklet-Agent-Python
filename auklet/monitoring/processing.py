@@ -49,9 +49,9 @@ class Client(object):
 
     system_metrics = None
 
-    def __init__(self, apikey=None, app_id=None, release=None,
+    def __init__(self, api_key=None, app_id=None, release=None,
                  base_url="https://api.auklet.io/", mac_hash=None):
-        self.apikey = apikey
+        self.apikey = api_key
         self.app_id = app_id
         self.base_url = base_url
         self.send_enabled = True
@@ -222,7 +222,7 @@ class Client(object):
         event_dict['publicIP'] = get_device_ip()
         event_dict['id'] = str(uuid4())
         event_dict['timestamp'] = int(round(time() * 1000))
-        event_dict['systemMetrics'] = json.dumps(dict(self.system_metrics))
+        event_dict['systemMetrics'] = dict(self.system_metrics)
         event_dict['macAddressHash'] = self.mac_hash
         event_dict['commitHash'] = self.commit_hash
         event_dict['agentVersion'] = get_agent_version()
@@ -240,7 +240,7 @@ class Client(object):
             "publicIP": get_device_ip(),
             "id": str(uuid4()),
             "timestamp": int(round(time() * 1000)),
-            "systemMetrics": json.dumps(dict(self.system_metrics)),
+            "systemMetrics": dict(self.system_metrics),
             "macAddressHash": self.mac_hash,
             "commitHash": self.commit_hash,
             "agentVersion": get_agent_version(),
