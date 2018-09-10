@@ -23,7 +23,7 @@ class TestUtils(unittest.TestCase):
         with patch("auklet.monitoring.processing.Client._register_device",
                    new=self.__register_device):
             self.client = Client(
-                apikey="", app_id="",
+                api_key="", app_id="",
                 base_url="https://api-staging.auklet.io/")
 
     def test_open_auklet_url(self):
@@ -76,17 +76,6 @@ class TestUtils(unittest.TestCase):
 
     def test_get_mac(self):
         self.assertNotEqual(get_mac(), None)
-
-    def test_get_commit_hash(self):
-        with open(".auklet/version", "w") as my_file:
-            my_file.write("commit_hash")
-        self.assertNotEqual(get_commit_hash(), "")
-
-        os.system("rm -R .auklet")
-        self.assertEqual(get_commit_hash(), "")
-        os.system("mkdir .auklet")
-        os.system("touch .auklet/local.txt")
-        os.system("touch .auklet/version")
 
     def test_get_abs_path(self):
         path = os.path.abspath(__file__)
