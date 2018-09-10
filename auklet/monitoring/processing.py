@@ -228,7 +228,6 @@ class Client(object):
         event_dict['agentVersion'] = get_agent_version()
         event_dict['device'] = self.broker_username
         event_dict['absPath'] = self.abs_path
-        event_dict['rawStackTrace'] = traceback.format_exc()
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
