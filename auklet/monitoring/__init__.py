@@ -44,7 +44,7 @@ class Monitoring(AukletLogging):
     network_rate = 10000  # 10 seconds
     hour = 3600000  # 1 hour
 
-    def __init__(self, apikey=None, app_id=None, release=None,
+    def __init__(self, api_key=None, app_id=None, release=None,
                  base_url="https://api.auklet.io/", monitoring=True):
         if release is None:
             raise AukletConfigurationError(
@@ -57,7 +57,7 @@ class Monitoring(AukletLogging):
             except_hook_set = True
         self.app_id = app_id
         self.mac_hash = get_mac()
-        self.client = Client(apikey, app_id, release, base_url, self.mac_hash)
+        self.client = Client(api_key, app_id, release, base_url, self.mac_hash)
         self.emission_rate = self.client.update_limits()
         self.tree = MonitoringTree(self.mac_hash)
         self.broker = MQTTClient(self.client)

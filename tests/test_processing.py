@@ -30,7 +30,9 @@ class TestClient(unittest.TestCase):
             self.broker_username = "test-username"
             self.broker_password = "test-password"
             self.client = Client(
-                apikey="", app_id="", base_url="https://api-staging.auklet.io/")
+                api_key="", app_id="",
+                base_url="https://api-staging.auklet.io/"
+            )
             self.monitoring_tree = MonitoringTree()
 
     def test_get_config(self):
