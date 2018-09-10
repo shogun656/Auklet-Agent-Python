@@ -105,8 +105,7 @@ To get and write the commit hash to a file:
 
 .. sourcecode:: shell
 
-    COMMIT_HASH="$(git rev-parse HEAD)"
-    echo $COMMIT_HASH > "path/to/git_commit_hash.txt"
+    git rev-parse HEAD > path/to/git_commit_hash.txt
 
 
 .. sourcecode:: python
