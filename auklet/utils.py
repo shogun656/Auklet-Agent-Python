@@ -8,7 +8,7 @@ from auklet.__about__ import __version__ as auklet_version
 from auklet.errors import AukletConfigurationError
 
 __all__ = ['open_auklet_url', 'post_auklet_url', 'create_file', 'clear_file',
-           'build_url', 'get_mac', 'get_device_ip',
+           'build_url', 'get_mac', 'get_device_ip', 'create_dir',
            'setup_thread_excepthook', 'get_abs_path', 'get_agent_version',
            'b', 'u']
 
@@ -52,6 +52,12 @@ def post_auklet_url(url, apikey, data):
 
 def create_file(filename):
     open(filename, "a").close()
+
+
+def create_dir(dir_name=".auklet"):
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
+        return True
 
 
 def clear_file(filename):
