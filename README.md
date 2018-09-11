@@ -1,5 +1,11 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Fixed bugs:**
+
+- Create .auklet [#116](https://github.com/ESG-USA/Auklet-Agent-Python/pull/116) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.9.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.9.0)
 
 **Implemented enhancements:**

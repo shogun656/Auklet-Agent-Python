@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.9.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.9.1-rc.1)
+
+**Fixed bugs:**
+
+- Create .auklet [#116](https://github.com/ESG-USA/Auklet-Agent-Python/pull/116) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [0.9.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.9.0)
 
 ### [0.9.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.9.0-rc.1)
