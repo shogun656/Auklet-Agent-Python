@@ -11,7 +11,7 @@ from six import iteritems
 from six.moves import _thread
 
 from auklet.broker import MQTTClient
-from auklet.utils import get_mac, setup_thread_excepthook
+from auklet.utils import get_mac, setup_thread_excepthook, create_dir
 from auklet.monitoring.logging import AukletLogging
 from auklet.monitoring.processing import Client
 from auklet.stats import MonitoringTree
@@ -55,6 +55,7 @@ class Monitoring(AukletLogging):
             # ensure not attempting to set threading excepthook more than once
             setup_thread_excepthook()
             except_hook_set = True
+        create_dir()
         self.app_id = app_id
         self.mac_hash = get_mac()
         self.client = Client(api_key, app_id, release, base_url, self.mac_hash)
