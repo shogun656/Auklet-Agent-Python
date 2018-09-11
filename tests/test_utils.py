@@ -77,6 +77,9 @@ class TestUtils(unittest.TestCase):
     def test_get_mac(self):
         self.assertNotEqual(get_mac(), None)
 
+    def test_create_auklet_dir(self):
+        self.assertTrue(create_dir(".test_auklet"))
+
     def test_get_abs_path(self):
         path = os.path.abspath(__file__)
         self.assertEqual(get_abs_path(path + "/.auklet"), path)
