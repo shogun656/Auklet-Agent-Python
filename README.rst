@@ -102,8 +102,8 @@ git installed on the device you can get it via a subprocess:
 
 .. sourcecode:: python
 
-    git_commit_hash = subprocess.check_output(
-        ['git', 'rev-parse', 'HEAD']).strip("\n")
+    git_commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'])\
+                          .decode('utf8').strip('\n')
 
 
 Get Release via Environment Variable
@@ -133,8 +133,8 @@ This can then be read by adding the following to your python code.
 
 .. sourcecode:: python
 
-    my_file = open("git_commit_hash.txt", "r")
-    git_commit_hash = my_file.read()
+    release_file = open("git_commit_hash.txt", "r")
+    git_commit_hash = release_file.read().decode('utf8').strip('\n')
 
 
 Resources
