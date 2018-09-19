@@ -31,8 +31,8 @@ class Monitoring(AukletLogging):
     broker = None
     monitor = True
     samples_taken = 0
-    timer = signal.ITIMER_REAL
-    sig = signal.SIGALRM
+    timer = signal.ITIMER_VIRTUAL
+    sig = signal.SIGVTALRM
     stopping = False
     stopped = False
 
@@ -69,7 +69,8 @@ class Monitoring(AukletLogging):
 
     def start(self):
         # Set a timer which fires a SIGALRM every interval seconds
-        signal.setitimer(self.timer, self.interval, self.interval)
+        if self.monitor:
+            signal.setitimer(self.timer, self.interval, self.interval)
 
     def stop(self):
         self.stopping = True
