@@ -78,7 +78,7 @@ class Monitoring(AukletLogging):
 
     def wait_for_stop(self):
         while not self.stopped:
-            time.sleep(.1)
+            pass
 
     def sample(self, sig, current_frame):
         """Samples the given frame."""
