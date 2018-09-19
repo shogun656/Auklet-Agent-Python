@@ -31,8 +31,8 @@ class Monitoring(AukletLogging):
     broker = None
     monitor = True
     samples_taken = 0
-    timer = signal.ITIMER_VIRTUAL
-    sig = signal.SIGVTALRM
+    timer = signal.ITIMER_PROF
+    sig = signal.SIGPROF
     stopping = False
     stopped = False
 
