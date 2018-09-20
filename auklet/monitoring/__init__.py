@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 
 import sys
-import time
 import signal
 from six import iteritems
 from six.moves import _thread

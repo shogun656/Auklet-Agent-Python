@@ -167,11 +167,12 @@ class MonitoringTree(object):
                 "id": str(uuid4()),
                 "timestamp": int(round(time() * 1000)),
                 "macAddressHash": self.mac_hash,
-                "commitHash": self.commit_hash,
+                "release": self.commit_hash,
                 "agentVersion": get_agent_version(),
                 "tree": dict(self.root_func),
                 "device": client.broker_username,
-                "absPath": client.abs_path
+                "absPath": client.abs_path,
+                "version": client.version
             }
         return {}
 
