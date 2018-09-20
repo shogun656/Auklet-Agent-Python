@@ -1,5 +1,6 @@
 import json
 import msgpack
+import traceback
 
 from time import time
 from uuid import uuid4
