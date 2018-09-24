@@ -28,7 +28,7 @@ class Monitoring(AukletLogging):
     tree = None
     client = None
     broker = None
-    version = None
+    version = ""
     monitor = True
     samples_taken = 0
     timer = signal.ITIMER_PROF
@@ -44,7 +44,7 @@ class Monitoring(AukletLogging):
     network_rate = 10000  # 10 seconds
     hour = 3600000  # 1 hour
 
-    def __init__(self, api_key=None, app_id=None, release=None, version=None,
+    def __init__(self, api_key=None, app_id=None, release=None, version="",
                  base_url="https://api.auklet.io/", monitoring=True):
         if release is None:
             raise AukletConfigurationError(
