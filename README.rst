@@ -93,15 +93,6 @@ This value needs to be passed into the constructor through `release`.
 The value needs to be the commit hash that represents the
 deployed version of your application. There are a couple ways for which to set
 this based upon the style of deployment of your application.
-You can also provide your own version string in the constructor:
-
-.. sourcecode:: python
-
-    from auklet.monitoring import Monitoring
-    auklet_monitoring = Monitoring(
-        api_key="<API_KEY>", app_id="<APP_ID>", release="<CURRENT_COMMIT_HASH>",
-        version="<DEFINED_VERSION>"
-    )
 
 Get Release via Subprocess
 """"""""""""""""""""""""""
@@ -143,6 +134,18 @@ This can then be read by adding the following to your python code.
 
     release_file = open("git_commit_hash.txt", "r")
     git_commit_hash = release_file.read().decode('utf8').strip('\n')
+
+
+Define Your Own Version
+"""""""""""""""""""""""
+You can also provide your own version string in the constructor:
+
+.. sourcecode:: python
+     from auklet.monitoring import Monitoring
+    auklet_monitoring = Monitoring(
+        api_key="<API_KEY>", app_id="<APP_ID>", release="<CURRENT_COMMIT_HASH>",
+        version="<DEFINED_VERSION>"
+    )
 
 
 Resources
