@@ -141,6 +141,7 @@ Define Your Own Version
 You can also provide your own version string in the constructor:
 
 .. sourcecode:: python
+
     from auklet.monitoring import Monitoring
     auklet_monitoring = Monitoring(
         api_key="<API_KEY>", app_id="<APP_ID>", release="<CURRENT_COMMIT_HASH>",
