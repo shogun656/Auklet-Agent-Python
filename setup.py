@@ -32,7 +32,7 @@ setup(
     include_package_data=True,
     description='Auklet performance monitoring agent for Python IoT apps',
     license='Apache',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='Auklet',
     author_email='hello@auklet.io',
