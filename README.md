@@ -7,7 +7,7 @@
 <a href="https://codeclimate.com/repos/5a54e10be3d6cb4d7d0007a8/maintainability" alt="Code Climate Maintainability"><img src="https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/maintainability" /></a>
 <a href="https://codeclimate.com/repos/5a54e10be3d6cb4d7d0007a8/test_coverage" alt="Test Coverage"><img src="https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/test_coverage" /></a>
 
-This is the official Python agent for [Auklet][brochure_site]. It officialy supports Python 2.7.9+ and 3.4-3.7, and runs on most POSIX-based operating systems (Debian, Ubuntu Core, Raspbian, QNX, etc).
+This is the official Python agent for [Auklet][brochure_site]. It officially supports Python 2.7.9+ and 3.4-3.7, and runs on most POSIX-based operating systems (Debian, Ubuntu Core, Raspbian, QNX, etc).
 
 ## Features
 - Automatic report of unhandled exceptions
