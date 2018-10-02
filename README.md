@@ -1,5 +1,17 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- APM-1594 Custom defined version [#121](https://github.com/ESG-USA/Auklet-Agent-Python/pull/121) ([tylerwiersing](https://github.com/tylerwiersing))
+- APM-1613, APM-1594, APM-1563: Don't break time.sleep, user defined versions, and usage of release over commithash [#119](https://github.com/ESG-USA/Auklet-Agent-Python/pull/119) ([tylerwiersing](https://github.com/tylerwiersing))
+
+**DevOps changes:**
+
+- Fix README typo [#124](https://github.com/ESG-USA/Auklet-Agent-Python/pull/124) ([rjenkinsjr](https://github.com/rjenkinsjr))
+- Switch README from rST to Markdown [#123](https://github.com/ESG-USA/Auklet-Agent-Python/pull/123) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ## [0.9.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.9.1)
 
 **Fixed bugs:**
