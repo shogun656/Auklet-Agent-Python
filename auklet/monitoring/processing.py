@@ -50,13 +50,15 @@ class Client(object):
     system_metrics = None
 
     def __init__(self, api_key=None, app_id=None, release=None,
-                 base_url="https://api.auklet.io/", mac_hash=None):
+                 base_url="https://api.auklet.io/", mac_hash=None,
+                 version=""):
         self.apikey = api_key
         self.app_id = app_id
         self.base_url = base_url
         self.send_enabled = True
         self.producer = None
         self.mac_hash = mac_hash
+        self.version = version
         self._load_limits()
         create_file(self.offline_filename)
         create_file(self.limits_filename)
@@ -224,10 +226,11 @@ class Client(object):
         event_dict['timestamp'] = int(round(time() * 1000))
         event_dict['systemMetrics'] = dict(self.system_metrics)
         event_dict['macAddressHash'] = self.mac_hash
-        event_dict['commitHash'] = self.commit_hash
+        event_dict['release'] = self.commit_hash
         event_dict['agentVersion'] = get_agent_version()
         event_dict['device'] = self.broker_username
         event_dict['absPath'] = self.abs_path
+        event_dict['version'] = self.version
         return event_dict
 
     def build_log_data(self, msg, data_type, level):
@@ -241,9 +244,10 @@ class Client(object):
             "timestamp": int(round(time() * 1000)),
             "systemMetrics": dict(self.system_metrics),
             "macAddressHash": self.mac_hash,
-            "commitHash": self.commit_hash,
+            "release": self.commit_hash,
             "agentVersion": get_agent_version(),
-            "device": self.broker_username
+            "device": self.broker_username,
+            "version": self.version
         }
         return log_dict
 

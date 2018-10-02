@@ -246,6 +246,7 @@ class TestMonitoringTree(unittest.TestCase):
         broker_username = "None"
         abs_path = "/Test/abs/path/"
         app_id = "12345"
+        version = None
 
     class Parent:
         calls = 0

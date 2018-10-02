@@ -29,23 +29,9 @@ class TestMonitoring(unittest.TestCase):
             api_key="", app_id="", base_url="https://api.auklet.io/")
 
     def test_stop(self):
-        def _wait_for_stop(self):
-            global test_stop_wait_for_stop
-            test_stop_wait_for_stop = True
-
         self.monitoring.start()
-        with patch('auklet.monitoring.Monitoring.wait_for_stop', new=_wait_for_stop):
-            self.monitoring.stop()
+        self.monitoring.stop()
         self.assertTrue(self.monitoring.stopping)
-        self.assertTrue(test_stop_wait_for_stop)
-
-    def test_wait_for_stop(self):
-        def _sleep(interval):
-            raise(KeyboardInterrupt)
-
-        with patch('time.sleep', new=_sleep):
-            self.assertRaises(
-                KeyboardInterrupt, lambda: self.monitoring.wait_for_stop())
 
     def test_sample(self):
         class CoCode:

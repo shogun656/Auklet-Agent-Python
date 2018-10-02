@@ -61,7 +61,6 @@ def with_auklet_and_mqtt(get_certs_mock, update_limits_mock):
     auklet_monitoring = Monitoring("", "", "")
     auklet_monitoring.start()
     base.start(state="WithAukletMQTT")
-    auklet_monitoring.stop()
 
     conf_patcher.stop()
     producer_patcher.stop()
