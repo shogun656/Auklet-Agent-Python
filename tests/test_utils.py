@@ -24,7 +24,9 @@ class TestUtils(unittest.TestCase):
                    new=self.__register_device):
             self.client = Client(
                 api_key="", app_id="",
-                base_url="https://api-staging.auklet.io/")
+                base_url="https://api-staging.auklet.io/",
+                auklet_dir=".auklet",
+            )
 
     def test_open_auklet_url(self):
         url = self.client.base_url + "private/devices/config/"
