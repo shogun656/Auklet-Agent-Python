@@ -28,11 +28,11 @@ class Client(object):
     brokers = None
     commit_hash = None
     mac_hash = None
-    offline_filename = ".auklet/local.txt"
-    limits_filename = ".auklet/limits"
-    usage_filename = ".auklet/usage"
-    com_config_filename = ".auklet/communication"
-    identification_filename = ".auklet/identification"
+    offline_filename = "{}/local.txt"
+    limits_filename = "{}/limits"
+    usage_filename = "{}/usage"
+    com_config_filename = "{}/communication"
+    identification_filename = "{}/identification"
     abs_path = None
 
     org_id = None
@@ -51,7 +51,7 @@ class Client(object):
 
     def __init__(self, api_key=None, app_id=None, release=None,
                  base_url="https://api.auklet.io/", mac_hash=None,
-                 version=""):
+                 version="", auklet_dir=""):
         self.apikey = api_key
         self.app_id = app_id
         self.base_url = base_url
@@ -59,16 +59,27 @@ class Client(object):
         self.producer = None
         self.mac_hash = mac_hash
         self.version = version
+        self.auklet_dir = auklet_dir
+        self._set_filenames()
         self._load_limits()
         create_file(self.offline_filename)
-        create_file(self.limits_filename)
-        create_file(self.usage_filename)
-        create_file(self.com_config_filename)
-        create_file(self.identification_filename)
+        create_file(self.limits_filename.format(self.auklet_dir))
+        create_file(self.usage_filename.format(self.auklet_dir))
+        create_file(self.com_config_filename.format(self.auklet_dir))
+        create_file(self.identification_filename.format(self.auklet_dir))
         self.commit_hash = release
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
         self._register_device()
+
+    def _set_filenames(self):
+        self.offline_filename = self.offline_filename.format(self.auklet_dir)
+        self.limits_filename = self.limits_filename.format(self.auklet_dir)
+        self.usage_filename = self.usage_filename.format(self.auklet_dir)
+        self.com_config_filename = self.com_config_filename.format(
+            self.auklet_dir)
+        self.identification_filename = self.identification_filename.format(
+            self.auklet_dir)
 
     def _register_device(self):
         try:
