@@ -25,7 +25,8 @@ class TestMQTTBroker(unittest.TestCase):
                    new=self.__register_device):
             self.client = Client(
                 api_key="", app_id="",
-                base_url="https://api-staging.auklet.io/"
+                base_url="https://api-staging.auklet.io/",
+                auklet_dir=".auklet"
             )
             with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
                 _get_conf.side_effect = self.get_conf

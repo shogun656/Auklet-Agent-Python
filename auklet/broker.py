@@ -70,7 +70,7 @@ class MQTTClient(object):
                 res = urlopen(e.geturl())
         except URLError:
             return False
-        filename = ".auklet/ca.pem"
+        filename = "{}/ca.pem".format(self.client.auklet_dir)
         create_file(filename)
         f = open(filename, "wb")
         f.write(res.read())
@@ -96,7 +96,8 @@ class MQTTClient(object):
             self.producer.enable_logger()
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.verify_mode = ssl.CERT_REQUIRED
-            context.load_verify_locations(capath=".auklet/")
+            context.load_verify_locations(
+                capath="{}/".format(self.client.auklet_dir))
             context.options &= ~ssl.OP_NO_SSLv3
             self.producer.tls_set_context()
             self.producer.on_disconnect = self.on_disconnect
