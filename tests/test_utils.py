@@ -82,6 +82,11 @@ class TestUtils(unittest.TestCase):
     def test_create_auklet_dir(self):
         self.assertTrue(create_dir(".test_auklet"))
 
+    def test_create_dir_temp(self):
+        with patch("os.access") as os_access_mock:
+            os_access_mock.return_value = False
+            self.assertTrue(create_dir(".temp_auklet"))
+
     def test_get_abs_path(self):
         path = os.path.abspath(__file__)
         self.assertEqual(get_abs_path(path + "/.auklet"), path)
