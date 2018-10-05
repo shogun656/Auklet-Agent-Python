@@ -48,17 +48,15 @@ auklet_monitoring.stop()
 ### Authorization
 To authorize your application you need to provide both an API key and app ID. These values are available in the connection settings of your application as well as during initial setup.
 
-### Release Tracking
-To track releases and identify which devices are running which version of code, we currently require that you provide the Git commit hash of your deployed code. This value needs to be passed into the constructor through `release`. The value needs to be the commit hash that represents the deployed version of your application. There are a few different ways you can do this, based upon how you choose to deploy your application.
-To create a release in the auklet api and to get your git commit hash:
+### Optional: Release Tracking
+You can track releases and identify which devices are running what variant of code. To do this, you may provide the git commit hash of your deployed code and a version string you can modify. This release value should be passed into the constructor through the release argument, and your custom version should be passed via the version argument. The release value must be the git commit hash that represents the deployed version of your application. The version value is a string that you may set to whatever value you wish to define your versions. Please note that you can provide either a release value, version value, or both.
 
 ```bash
 curl -X POST https://api.auklet.io/v1/releases/ \
             -H "Content-Type: application/json" \
             -H "Authorization: JWT <API_KEY>" \
-            -d '{"application": "<APP_ID>", "commit_hash": "'$(git rev-parse HEAD)'"}'
+            -d '{"application": "<APP_ID>", "release": "'$(git rev-parse HEAD)'", "version": "<YOUR_DEFINED_VERSION>"}'
 ```
-You can get a pre constructed curl request from the setup directions at [Auklet][https://app.auklet.io/]
 
 #### Get Release via Subprocess
 If you package and deploy your entire Git repository (including the `.git` directory), and if you have `git` installed on your devices, you can get the commit hash via a subprocess:
