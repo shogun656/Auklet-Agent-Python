@@ -50,6 +50,15 @@ To authorize your application you need to provide both an API key and app ID. Th
 
 ### Release Tracking
 To track releases and identify which devices are running which version of code, we currently require that you provide the Git commit hash of your deployed code. This value needs to be passed into the constructor through `release`. The value needs to be the commit hash that represents the deployed version of your application. There are a few different ways you can do this, based upon how you choose to deploy your application.
+To create a release in the auklet api and to get your git commit hash:
+
+```bash
+curl -X POST https://api.auklet.io/v1/releases/ \
+            -H "Content-Type: application/json" \
+            -H "Authorization: JWT <API_KEY>" \
+            -d '{"application": "<APP_ID>", "commit_hash": "'$(git rev-parse HEAD)'"}'
+```
+You can get a pre constructed curl request from the setup directions at [Auklet][https://app.auklet.io/]
 
 #### Get Release via Subprocess
 If you package and deploy your entire Git repository (including the `.git` directory), and if you have `git` installed on your devices, you can get the commit hash via a subprocess:
