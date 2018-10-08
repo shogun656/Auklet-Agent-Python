@@ -29,8 +29,10 @@ class TestMQTTBroker(unittest.TestCase):
                 auklet_dir=".auklet"
             )
             with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
-                _get_conf.side_effect = self.get_conf
-                self.broker = MQTTClient(self.client)
+                with patch("os.path.isfile") as is_file_mock:
+                    is_file_mock.return_value = False
+                    _get_conf.side_effect = self.get_conf
+                    self.broker = MQTTClient(self.client)
 
     def test_write_conf(self):
         self.broker._write_conf(self.config)

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import os
 import ssl
 import json
 import logging
@@ -58,22 +59,23 @@ class MQTTClient(object):
         self._read_from_conf(loaded)
 
     def _get_certs(self):
-        url = Request(
-            build_url(self.client.base_url, "private/devices/certificates/"),
-            headers={"Authorization": "JWT %s" % self.client.apikey})
-        try:
+        if not os.path.isfile("{}/ca.pem".format(self.client.auklet_dir)):
+            url = Request(
+                build_url(self.client.base_url, "private/devices/certificates/"),
+                headers={"Authorization": "JWT %s" % self.client.apikey})
             try:
-                res = urlopen(url)
-            except HTTPError as e:
-                # Allow for accessing redirect w/o including the
-                # Authorization token.
-                res = urlopen(e.geturl())
-        except URLError:
-            return False
-        filename = "{}/ca.pem".format(self.client.auklet_dir)
-        create_file(filename)
-        f = open(filename, "wb")
-        f.write(res.read())
+                try:
+                    res = urlopen(url)
+                except HTTPError as e:
+                    # Allow for accessing redirect w/o including the
+                    # Authorization token.
+                    res = urlopen(e.geturl())
+            except URLError:
+                return False
+            filename = "{}/ca.pem".format(self.client.auklet_dir)
+            create_file(filename)
+            f = open(filename, "wb")
+            f.write(res.read())
         return True
 
     def _read_from_conf(self, data):
