@@ -50,6 +50,8 @@ To authorize your application you need to provide both an API key and app ID. Th
 
 ### Optional: Release Tracking
 You can track releases and identify which devices are running what variant of code. To do this, you may provide the git commit hash of your deployed code and a version string you can modify. This release value should be passed into the constructor through the release argument, and your custom version should be passed via the version argument. The release value must be the git commit hash that represents the deployed version of your application. The version value is a string that you may set to whatever value you wish to define your versions. Please note that you can provide either a release value, version value, or both.
+* Providing <strong>release</strong> enables code snippets to be shown for identified errors if you’ve linked your GitHub.
+* Including <strong>version</strong> allows you to track what version of code had the issue.
 
 ```bash
 curl -X POST https://api.auklet.io/v1/releases/ \
