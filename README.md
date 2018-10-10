@@ -2,10 +2,20 @@
 
 ## Merged But Unreleased
 
+**Breaking changes:**
+
+- 1.0.0 Release [#122](https://github.com/ESG-USA/Auklet-Agent-Python/pull/122) ([tylerwiersing](https://github.com/tylerwiersing))
+
 **Implemented enhancements:**
 
 - APM-1594 Custom defined version [#121](https://github.com/ESG-USA/Auklet-Agent-Python/pull/121) ([tylerwiersing](https://github.com/tylerwiersing))
 - APM-1613, APM-1594, APM-1563: Don't break time.sleep, user defined versions, and usage of release over commithash [#119](https://github.com/ESG-USA/Auklet-Agent-Python/pull/119) ([tylerwiersing](https://github.com/tylerwiersing))
+
+**Fixed bugs:**
+
+- Add release instructions to readme [#128](https://github.com/ESG-USA/Auklet-Agent-Python/pull/128) ([tylerwiersing](https://github.com/tylerwiersing))
+- Remove format calls [#127](https://github.com/ESG-USA/Auklet-Agent-Python/pull/127) ([tylerwiersing](https://github.com/tylerwiersing))
+- Utilize runtime user's root or tmp for certs [#125](https://github.com/ESG-USA/Auklet-Agent-Python/pull/125) ([tylerwiersing](https://github.com/tylerwiersing))
 
 **DevOps changes:**
 

@@ -1,5 +1,17 @@
 # Changelog
 
+### [1.0.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/1.0.0-rc.1)
+
+**Breaking changes:**
+
+- 1.0.0 Release [#122](https://github.com/ESG-USA/Auklet-Agent-Python/pull/122) ([tylerwiersing](https://github.com/tylerwiersing))
+
+**Fixed bugs:**
+
+- Add release instructions to readme [#128](https://github.com/ESG-USA/Auklet-Agent-Python/pull/128) ([tylerwiersing](https://github.com/tylerwiersing))
+- Remove format calls [#127](https://github.com/ESG-USA/Auklet-Agent-Python/pull/127) ([tylerwiersing](https://github.com/tylerwiersing))
+- Utilize runtime user's root or tmp for certs [#125](https://github.com/ESG-USA/Auklet-Agent-Python/pull/125) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ### [0.10.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/0.10.0-rc.1)
 
 **Implemented enhancements:**
