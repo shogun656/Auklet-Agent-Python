@@ -10,14 +10,16 @@ class TestMonitoring(unittest.TestCase):
         with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
             with patch("auklet.monitoring.processing.Client._register_device",
                        new=self.__register_device):
-                _get_conf.side_effect = self.get_conf
-                self.monitoring = Monitoring(
-                    api_key="",
-                    app_id="",
-                    release="",
-                    base_url="https://api-staging.io",
-                    monitoring=True)
-                self.monitoring.monitor = True
+                with patch("os.path.isfile") as is_file_mock:
+                    is_file_mock.return_value = False
+                    _get_conf.side_effect = self.get_conf
+                    self.monitoring = Monitoring(
+                        api_key="",
+                        app_id="",
+                        release="",
+                        base_url="https://api-staging.io",
+                        monitoring=True)
+                    self.monitoring.monitor = True
 
     def test_start(self):
         self.assertIsNone(self.monitoring.start())

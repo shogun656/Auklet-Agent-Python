@@ -55,12 +55,12 @@ class Monitoring(AukletLogging):
             # ensure not attempting to set threading excepthook more than once
             setup_thread_excepthook()
             except_hook_set = True
-        create_dir()
+        self.auklet_dir = create_dir()
         self.version = version
         self.app_id = app_id
         self.mac_hash = get_mac()
         self.client = Client(api_key, app_id, release, base_url,
-                             self.mac_hash, self.version)
+                             self.mac_hash, self.version, self.auklet_dir)
         self.emission_rate = self.client.update_limits()
         self.tree = MonitoringTree(self.mac_hash)
         self.broker = MQTTClient(self.client)

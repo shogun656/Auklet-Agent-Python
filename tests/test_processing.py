@@ -31,7 +31,8 @@ class TestClient(unittest.TestCase):
             self.broker_password = "test-password"
             self.client = Client(
                 api_key="", app_id="",
-                base_url="https://api-staging.auklet.io/"
+                base_url="https://api-staging.auklet.io/",
+                auklet_dir=".auklet"
             )
             self.monitoring_tree = MonitoringTree()
 
