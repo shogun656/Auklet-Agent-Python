@@ -3,6 +3,7 @@ import sys
 import uuid
 import hashlib
 import requests
+import tempfile
 
 from auklet.__about__ import __version__ as auklet_version
 from auklet.errors import AukletConfigurationError
@@ -55,9 +56,14 @@ def create_file(filename):
 
 
 def create_dir(dir_name=".auklet"):
-    if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
-    return True
+    dirs = [os.getcwd(), os.path.expanduser("~")]
+    for directory in dirs:
+        full_path = "{}/{}".format(directory, dir_name)
+        if os.access(directory, os.W_OK):
+            if not os.path.exists(full_path):
+                os.mkdir(full_path)
+            return full_path
+    return tempfile.gettempdir()
 
 
 def clear_file(filename):
@@ -65,7 +71,7 @@ def clear_file(filename):
 
 
 def build_url(base_url, extension):
-    return '%s%s' % (base_url, extension)
+    return '{}{}'.format(base_url, extension)
 
 
 def get_mac():

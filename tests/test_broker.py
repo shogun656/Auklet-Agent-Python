@@ -25,11 +25,14 @@ class TestMQTTBroker(unittest.TestCase):
                    new=self.__register_device):
             self.client = Client(
                 api_key="", app_id="",
-                base_url="https://api-staging.auklet.io/"
+                base_url="https://api-staging.auklet.io/",
+                auklet_dir=".auklet"
             )
             with patch('auklet.broker.MQTTClient._get_conf') as _get_conf:
-                _get_conf.side_effect = self.get_conf
-                self.broker = MQTTClient(self.client)
+                with patch("os.path.isfile") as is_file_mock:
+                    is_file_mock.return_value = False
+                    _get_conf.side_effect = self.get_conf
+                    self.broker = MQTTClient(self.client)
 
     def test_write_conf(self):
         self.broker._write_conf(self.config)

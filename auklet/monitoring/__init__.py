@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 
 import sys
-import time
 import signal
 from six import iteritems
 from six.moves import _thread
@@ -29,10 +28,11 @@ class Monitoring(AukletLogging):
     tree = None
     client = None
     broker = None
+    version = ""
     monitor = True
     samples_taken = 0
-    timer = signal.ITIMER_REAL
-    sig = signal.SIGALRM
+    timer = signal.ITIMER_PROF
+    sig = signal.SIGPROF
     stopping = False
     stopped = False
 
@@ -44,7 +44,7 @@ class Monitoring(AukletLogging):
     network_rate = 10000  # 10 seconds
     hour = 3600000  # 1 hour
 
-    def __init__(self, api_key=None, app_id=None, release=None,
+    def __init__(self, api_key=None, app_id=None, release=None, version="",
                  base_url="https://api.auklet.io/", monitoring=True):
         if release is None:
             raise AukletConfigurationError(
@@ -55,10 +55,12 @@ class Monitoring(AukletLogging):
             # ensure not attempting to set threading excepthook more than once
             setup_thread_excepthook()
             except_hook_set = True
-        create_dir()
+        self.auklet_dir = create_dir()
+        self.version = version
         self.app_id = app_id
         self.mac_hash = get_mac()
-        self.client = Client(api_key, app_id, release, base_url, self.mac_hash)
+        self.client = Client(api_key, app_id, release, base_url,
+                             self.mac_hash, self.version, self.auklet_dir)
         self.emission_rate = self.client.update_limits()
         self.tree = MonitoringTree(self.mac_hash)
         self.broker = MQTTClient(self.client)
@@ -69,7 +71,8 @@ class Monitoring(AukletLogging):
 
     def start(self):
         # Set a timer which fires a SIGALRM every interval seconds
-        signal.setitimer(self.timer, self.interval, self.interval)
+        if self.monitor:
+            signal.setitimer(self.timer, self.interval, self.interval)
 
     def stop(self):
         self.stopping = True
@@ -77,7 +80,7 @@ class Monitoring(AukletLogging):
 
     def wait_for_stop(self):
         while not self.stopped:
-            time.sleep(.1)
+            pass
 
     def sample(self, sig, current_frame):
         """Samples the given frame."""
