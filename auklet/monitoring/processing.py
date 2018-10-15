@@ -189,9 +189,6 @@ class Client(object):
         self._update_usage_file()
         return True
 
-    def update_network_metrics(self, interval):
-        self.system_metrics.update_network(interval)
-
     def check_date(self):
         if datetime.today().day == self.data_day:
             if self.reset_data:
