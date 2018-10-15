@@ -57,6 +57,23 @@ class TestMonitoring(unittest.TestCase):
             self.monitoring.sample(None, current_frame=Frame())
             self.assertTrue(test_sample_stack)
 
+    def test_process_periodic(self):
+        def produce(self, data):
+            global test_process_periodic_produce_data
+            test_process_periodic_produce_data = True
+
+        def check_date(self):
+            global test_process_periodic_check_date
+            test_process_periodic_check_date = True
+
+        with patch('auklet.broker.MQTTClient.produce', new=produce):
+            with patch('auklet.monitoring.processing.Client.check_date',
+                       new=check_date):
+                self.monitoring.process_periodic()
+                self.assertTrue(test_process_periodic_produce_data)
+                self.assertTrue(test_process_periodic_check_date)
+                self.assertEqual(60000, self.monitoring.emission_rate)
+
     def test_handle_exc(self):
         with patch('auklet.broker.MQTTClient.produce') as _produce:
             with patch(
