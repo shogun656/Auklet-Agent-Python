@@ -272,17 +272,5 @@ class TestMonitoringTree(unittest.TestCase):
         children = [NewChild]
 
 
-class TestSystemMetrics(unittest.TestCase):
-    def setUp(self):
-        self.system_metrics = SystemMetrics()
-
-    def test_update_network(self):
-        if psutil is not None:
-            self.system_metrics.update_network(interval=1)
-            self.assertNotEqual(self.system_metrics.prev_inbound, 0)
-        else:
-            pass
-
-
 if __name__ == '__main__':
     unittest.main()
