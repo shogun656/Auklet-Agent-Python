@@ -1,5 +1,11 @@
 # Changelog
 
+### [1.0.1-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/1.0.1-rc.1)
+
+**Fixed bugs:**
+
+- Remove Network System Metrics [#130](https://github.com/ESG-USA/Auklet-Agent-Python/pull/130) ([tylerwiersing](https://github.com/tylerwiersing))
+
 ## [1.0.0](https://github.com/ESG-USA/Auklet-Agent-Python/tree/1.0.0)
 
 ### [1.0.0-rc.1](https://github.com/ESG-USA/Auklet-Agent-Python/tree/1.0.0-rc.1)
