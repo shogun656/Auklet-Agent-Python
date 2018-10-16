@@ -62,27 +62,17 @@ class TestMonitoring(unittest.TestCase):
             global test_process_periodic_produce_data
             test_process_periodic_produce_data = True
 
-        def update_network_metrics(self, interval):
-            global test_process_periodic_update_network_metrics_interval
-            test_process_periodic_update_network_metrics_interval = True
-
         def check_date(self):
             global test_process_periodic_check_date
             test_process_periodic_check_date = True
 
         with patch('auklet.broker.MQTTClient.produce', new=produce):
-            with patch(
-                    'auklet.monitoring.processing.'
-                    'Client.update_network_metrics',
-                    new=update_network_metrics):
-                with patch('auklet.monitoring.processing.Client.check_date',
-                           new=check_date):
-                    self.monitoring.process_periodic()
-                    self.assertTrue(test_process_periodic_produce_data)
-                    self.assertTrue(
-                        test_process_periodic_update_network_metrics_interval)
-                    self.assertTrue(test_process_periodic_check_date)
-                    self.assertEqual(60000, self.monitoring.emission_rate)
+            with patch('auklet.monitoring.processing.Client.check_date',
+                       new=check_date):
+                self.monitoring.process_periodic()
+                self.assertTrue(test_process_periodic_produce_data)
+                self.assertTrue(test_process_periodic_check_date)
+                self.assertEqual(60000, self.monitoring.emission_rate)
 
     def test_handle_exc(self):
         with patch('auklet.broker.MQTTClient.produce') as _produce:

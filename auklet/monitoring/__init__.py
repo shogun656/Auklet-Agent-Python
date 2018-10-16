@@ -41,7 +41,6 @@ class Monitoring(AukletLogging):
     total_samples = 0
 
     emission_rate = 60000  # 60 seconds
-    network_rate = 10000  # 10 seconds
     hour = 3600000  # 1 hour
 
     def __init__(self, api_key=None, app_id=None, release=None, version="",
@@ -107,8 +106,6 @@ class Monitoring(AukletLogging):
                 self.tree.build_msgpack_tree(self.client))
             self.tree.clear_root()
             self.samples_taken = 0
-        if self.total_samples % self.network_rate == 0:
-            self.client.update_network_metrics(self.network_rate)
         if self.total_samples % self.hour == 0:
             self.emission_rate = self.client.update_limits()
             self.client.check_date()

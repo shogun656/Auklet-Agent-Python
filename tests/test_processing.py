@@ -159,11 +159,6 @@ class TestClient(unittest.TestCase):
         self.assertTrue(
             self.client.check_data_limit(data=self.data, current_use=0))
 
-    def test_update_network_metrics(self):
-        self.client.update_network_metrics(1000)
-        self.assertNotEqual(self.client.system_metrics, None)
-        self.client.system_metrics = None
-
     def test_check_date(self):
         self.client.data_day = datetime.today().day
         self.client.data_current = 1000
