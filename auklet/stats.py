@@ -192,22 +192,9 @@ class SystemMetrics(object):
         if psutil is not None:
             self.cpu_usage = psutil.cpu_percent(interval=1)
             self.mem_usage = psutil.virtual_memory().percent
-            network = psutil.net_io_counters()
-            self.prev_inbound = network.bytes_recv
-            self.prev_outbound = network.bytes_sent
 
     def __iter__(self):
         yield "cpuUsage", self.cpu_usage
         yield "memoryUsage", self.mem_usage
         yield "inboundNetwork", self.inbound_network
         yield "outboundNetwork", self.outbound_network
-
-    def update_network(self, interval):
-        if psutil is not None:
-            network = psutil.net_io_counters()
-            self.inbound_network = (network.bytes_recv -
-                                    self.prev_inbound) / interval
-            self.outbound_network = (network.bytes_sent -
-                                     self.prev_outbound) / interval
-            self.prev_inbound = network.bytes_recv
-            self.prev_outbound = network.bytes_sent
