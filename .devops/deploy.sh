@@ -23,15 +23,4 @@ if [[ "$ENVDIR" == "production" ]]; then
   else
     twine upload dist/*
   fi
-  # Push to public GitHub repo.
-  # The hostname "aukletio.github.com" is intentional and it matches the "ssh-config-aukletio" file.
-  echo 'Pushing production branch to github.com/aukletio...'
-  mv ~/.ssh/config ~/.ssh/config-bak
-  cp .devops/ssh-config-aukletio ~/.ssh/config
-  chmod 400 ~/.ssh/config
-  git remote add aukletio git@aukletio.github.com:aukletio/Auklet-Agent-Python.git
-  git push aukletio HEAD:master
-  git remote rm aukletio
-  rm -f ~/.ssh/config
-  mv ~/.ssh/config-bak ~/.ssh/config
 fi
