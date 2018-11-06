@@ -114,7 +114,7 @@ jobs:
                 name: Run Whitesource
                 command: |
                   set -ou pipefail
-                  if [[ ! -f ~/.localCircleBuild ]]; then
+                  if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
                     bash .devops/whitesource.sh
                   fi
 
