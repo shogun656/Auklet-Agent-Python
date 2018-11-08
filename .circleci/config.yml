@@ -27,19 +27,16 @@ jobs:
             # SETUP
             ##
             - run:
-                name: Flag local build
+                name: Flag local/PR builds
                 command: |
                   if [[ "$CIRCLE_BUILD_NUM" == '' ]]; then
                     touch ~/.localCircleBuild
                   fi
+                  if [[ "$CIRCLE_PR_USERNAME" != '' ]]; then
+                    touch ~/.prCircleBuild
+                  fi
             - add_ssh_keys
             - checkout
-            - run:
-                name: Validate PR
-                command: |
-                  if [[ ! -f ~/.localCircleBuild ]]; then
-                    bash .devops/validate-pr.sh
-                  fi
             - run:
                 name: Install jq
                 command: |
@@ -48,7 +45,6 @@ jobs:
             - run:
                 name: Calculate codebase version
                 command: |
-                  git config --global user.email "$ESGBOT_GIT_EMAIL" && git config --global user.name "$ESGBOT_GIT_NAME"
                   bash .devops/calculate-app-version.sh
                   bash .devops/semverTo440.sh
                   sed -i -e "s/__version__ = .*/__version__ = '$(cat ~/.version440)'/" auklet/__about__.py
@@ -118,7 +114,7 @@ jobs:
                 name: Run Whitesource
                 command: |
                   set -ou pipefail
-                  if [[ ! -f ~/.localCircleBuild ]]; then
+                  if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
                     bash .devops/whitesource.sh
                   fi
 

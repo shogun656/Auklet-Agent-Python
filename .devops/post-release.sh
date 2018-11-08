@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Configure git for commits/pushes.
+git config --global user.email "$BOT_GIT_EMAIL"
+git config --global user.name "$BOT_GIT_NAME"
 # Get the version and drop all build metadata from it.
 VERSION=$(cat ~/.version | xargs | cut -f1 -d"+")
 # Revert to a pristine checkout.
@@ -8,7 +11,7 @@ echo 'Reverting to pristine checkout...'
 git reset --hard HEAD
 git clean -qfdx || true
 # Create release in JIRA.
-JIRA_PROJECT=$(cat .esg | jq -r .jiraProject)
+JIRA_PROJECT='APM'
 echo "Creating release in JIRA project '$JIRA_PROJECT'..."
 JIRA_DATE=$(date +'%d/%b/%Y')
 PAYLOAD="{\"name\": \"$CIRCLE_PROJECT_REPONAME $VERSION\", \"released\": true, \"userReleaseDate\": \"$JIRA_DATE\", \"project\": \"$JIRA_PROJECT\"}"
