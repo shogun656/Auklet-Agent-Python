@@ -10,7 +10,7 @@ VERSION_SIMPLE=$(cat ~/.version | xargs | cut -f1 -d"+")
 VERSION_PEP440=$(cat ~/.version440)
 export TIMESTAMP="$(date --rfc-3339=seconds | sed 's/ /T/')"
 
-if [[ "$ENVDIR" == "production" ]]; then
+if [[ "$ENVDIR" == "release" ]]; then
   echo 'Deploying to PyPI...'
   # Make and upload the distribution.
   # Update setuptools so we have a version that supports Markdown READMEs.
