@@ -134,34 +134,34 @@ jobs:
             # DEPLOYMENT
             ##
             - run:
-                name: Deploy Edge (If staging)
-                command: |
-                  set -ou pipefail
-                  if [[ ! -f ~/.localCircleBuild ]]; then
-                    if [ "${CIRCLE_BRANCH}" == "edge" ]; then
-                      bash .devops/deploy.sh staging
-                    fi
-                  fi
-            - run:
-                name: Deploy QA (If master)
+                name: Deploy Beta (master)
                 command: |
                   set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                      bash .devops/deploy.sh qa
+                      bash .devops/deploy.sh beta
+                    fi
+                  fi
+            - run:
+                name: Deploy RC (rc)
+                command: |
+                  set -ou pipefail
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    if [ "${CIRCLE_BRANCH}" == "rc" ]; then
+                      bash .devops/deploy.sh rc
                       bash .devops/post-release.sh
-                      # Need to checkout master again so we can run more scripts.
-                      git checkout master
+                      # Need to checkout rc again so we can run more scripts.
+                      git checkout rc
                       bash .devops/updateProdReleasePr.sh
                     fi
                   fi
             - run:
-                name: Deploy Production (If production)
+                name: Deploy Production (release)
                 command: |
                   set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild ]]; then
-                    if [ "${CIRCLE_BRANCH}" == "production" ]; then
-                      bash .devops/deploy.sh production
+                    if [ "${CIRCLE_BRANCH}" == "release" ]; then
+                      bash .devops/deploy.sh release
                       bash .devops/post-release.sh
                     fi
                   fi
