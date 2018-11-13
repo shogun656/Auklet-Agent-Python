@@ -13,8 +13,8 @@ done
 touch key.pem
 zip key.pem.zip key.pem
 
-pip install coverage
-python setup.py install
+#pip install coverage
+#python setup.py install
 
 # This outputs the complete current python version to `pyver`
 pyver=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
