@@ -69,6 +69,10 @@ function getAllTags() {
     var tags = JSON.parse(stdout);
     // Sort oldest to newest.
     semverSort.asc(tags);
+    // If a threshold is defined, drop all tags equal to or lesser than it.
+    // This is useful for when repos are migrated and PR history won't match up.
+    var threshold = process.argv[3]
+    if (threshold) tags = tags.filter(tag => semver.gt(tag, threshold))
     console.log(`Tags found (${tags.length}):\n${JSON.stringify(tags, null, 2)}`);
     // Assemble a new list of RC tags with the desired schema.
     rcTags = tags.slice(0).map(function(tag) { return {
