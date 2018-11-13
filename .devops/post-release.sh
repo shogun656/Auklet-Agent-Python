@@ -42,7 +42,7 @@ echo 'Generating changelog updates...'
 CURRENT_DIR="$(pwd)"
 cd ~ # Prevents codebase contamination.
 npm install --no-spin bluebird any-promise request-promise-any request semver semver-extra semver-sort parse-link-header > /dev/null 2>&1
-node $THIS_DIR/calculateChangelogs.js $CURRENT_DIR
+node $THIS_DIR/calculateChangelogs.js $CURRENT_DIR '1.0.1'
 eval cd $CURRENT_DIR
 # Push the changelog to GitHub.
 echo
