@@ -38,6 +38,7 @@ coverage xml
 coverage html
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
+  CC_TEST_REPORTER_ID='1f241448ca8912db9dfe358e8d182fa2c736af8ba565d2954a3110583c4abd9c'
   # Set -e is disabled momentarily to be able to output the error message to log.txt file.
   set +e
   ./cc-test-reporter after-build -t coverage.py -r $CC_TEST_REPORTER_ID --exit-code $? 2>&1 | tee exit_message.txt
