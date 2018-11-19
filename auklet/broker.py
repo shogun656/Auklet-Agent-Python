@@ -101,7 +101,7 @@ class MQTTClient(object):
             context.load_verify_locations(
                 capath="{}/".format(self.client.auklet_dir))
             context.options &= ~ssl.OP_NO_SSLv3
-            self.producer.tls_set_context(context=context)
+            self.producer.tls_set_context(context)
             self.producer.on_disconnect = self.on_disconnect
             self.producer.connect_async(self.brokers, self.port)
             self.producer.loop_start()
