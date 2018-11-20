@@ -1,5 +1,15 @@
 # Changelog
 
+### [1.0.2-rc.2](https://github.com/aukletio/Auklet-Agent-Python/tree/1.0.2-rc.2)
+
+**Fixed bugs:**
+
+- Pass Correct Context to MQTT Constructor [#9](https://github.com/aukletio/Auklet-Agent-Python/pull/9) ([tylerwiersing](https://github.com/tylerwiersing))
+
+**DevOps changes:**
+
+- Drop defunct PR validation scripts [#8](https://github.com/aukletio/Auklet-Agent-Python/pull/8) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ### [1.0.2-rc.1](https://github.com/aukletio/Auklet-Agent-Python/tree/1.0.2-rc.1)
 
 **Fixed bugs:**
