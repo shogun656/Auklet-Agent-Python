@@ -106,7 +106,7 @@ class TestMQTTBroker(unittest.TestCase):
         def tls_set(self, ca_certs):
             pass
 
-        def tls_set_context(self):
+        def tls_set_context(self, context):
             pass
 
         def connect_async(self, broker, port):
