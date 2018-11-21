@@ -104,9 +104,12 @@ auklet_monitoring = Monitoring(
 )
 ```
 
+## Questions? Problems? Ideas?
+
+To get support, report a bug or suggest future ideas for Auklet, go to https://help.auklet.io and click the blue button in the lower-right corner to send a message to our support team.
+
 ## Resources
 - [Auklet][brochure_site]
 - [Python Documentation](https://docs.auklet.io/docs/python-integration)
-- [Issue Tracker](https://github.com/aukletio/Auklet-Agent-Python/issues)
 
 [brochure_site]: https://auklet.io
