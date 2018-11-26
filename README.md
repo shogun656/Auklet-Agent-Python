@@ -4,6 +4,7 @@
 
 **Fixed bugs:**
 
+- Fixing Code Climate Links [#15](https://github.com/aukletio/Auklet-Agent-Python/pull/15) ([bleib1dj](https://github.com/bleib1dj))
 - Pass Correct Context to MQTT Constructor [#9](https://github.com/aukletio/Auklet-Agent-Python/pull/9) ([tylerwiersing](https://github.com/tylerwiersing))
 - Bumping requests package version [#2](https://github.com/aukletio/Auklet-Agent-Python/pull/2) ([bleib1dj](https://github.com/bleib1dj))
 

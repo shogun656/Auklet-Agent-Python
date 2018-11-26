@@ -1,5 +1,11 @@
 # Changelog
 
+### [1.0.2-rc.4](https://github.com/aukletio/Auklet-Agent-Python/tree/1.0.2-rc.4)
+
+**Fixed bugs:**
+
+- Fixing Code Climate Links [#15](https://github.com/aukletio/Auklet-Agent-Python/pull/15) ([bleib1dj](https://github.com/bleib1dj))
+
 ### [1.0.2-rc.3](https://github.com/aukletio/Auklet-Agent-Python/tree/1.0.2-rc.3)
 
 **DevOps changes:**
