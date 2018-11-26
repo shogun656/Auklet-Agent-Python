@@ -1,5 +1,11 @@
 # Changelog
 
+### [1.0.2-rc.3](https://github.com/aukletio/Auklet-Agent-Python/tree/1.0.2-rc.3)
+
+**DevOps changes:**
+
+- Update instructions for bug reports [#12](https://github.com/aukletio/Auklet-Agent-Python/pull/12) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ### [1.0.2-rc.2](https://github.com/aukletio/Auklet-Agent-Python/tree/1.0.2-rc.2)
 
 **Fixed bugs:**

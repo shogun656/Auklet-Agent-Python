@@ -9,6 +9,7 @@
 
 **DevOps changes:**
 
+- Update instructions for bug reports [#12](https://github.com/aukletio/Auklet-Agent-Python/pull/12) ([rjenkinsjr](https://github.com/rjenkinsjr))
 - Drop defunct PR validation scripts [#8](https://github.com/aukletio/Auklet-Agent-Python/pull/8) ([rjenkinsjr](https://github.com/rjenkinsjr))
 - Do not render changelogs at/below tag 1.0.1 [#7](https://github.com/aukletio/Auklet-Agent-Python/pull/7) ([rjenkinsjr](https://github.com/rjenkinsjr))
 - Fix release logic [#5](https://github.com/aukletio/Auklet-Agent-Python/pull/5) ([rjenkinsjr](https://github.com/rjenkinsjr))
