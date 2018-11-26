@@ -4,8 +4,8 @@
 <a href="https://pypi.python.org/pypi/auklet" alt="PyPi page link -- version"><img src="https://img.shields.io/pypi/v/auklet.svg" /></a>
 <a href="https://pypi.python.org/pypi/auklet" alt="PyPi page link -- Apache 2.0 License"><img src="https://img.shields.io/pypi/l/auklet.svg" /></a>
 <a href="https://pypi.python.org/pypi/auklet" alt="Python Versions"><img src="https://img.shields.io/pypi/pyversions/auklet.svg" /></a>
-<a href="https://codeclimate.com/repos/5a54e10be3d6cb4d7d0007a8/maintainability" alt="Code Climate Maintainability"><img src="https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/maintainability" /></a>
-<a href="https://codeclimate.com/repos/5a54e10be3d6cb4d7d0007a8/test_coverage" alt="Test Coverage"><img src="https://api.codeclimate.com/v1/badges/7c2cd3bc63a70ac7fd73/test_coverage" /></a>
+[![Maintainability](https://api.codeclimate.com/v1/badges/4217e03b794e778bd0d0/maintainability)](https://codeclimate.com/github/aukletio/Auklet-Agent-Python/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/4217e03b794e778bd0d0/test_coverage)](https://codeclimate.com/github/aukletio/Auklet-Agent-Python/test_coverage)
 
 This is the official Python agent for [Auklet][brochure_site]. It officially supports Python 2.7.9+ and 3.4-3.7, and runs on most POSIX-based operating systems (Debian, Ubuntu Core, Raspbian, QNX, etc).
 
