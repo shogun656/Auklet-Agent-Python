@@ -1,6 +1,5 @@
 import json
 import msgpack
-import traceback
 
 from time import time
 from uuid import uuid4
@@ -62,11 +61,13 @@ class Client(object):
         self.auklet_dir = auklet_dir
         self._set_filenames()
         self._load_limits()
+
         create_file(self.offline_filename)
         create_file(self.limits_filename)
         create_file(self.usage_filename)
         create_file(self.com_config_filename)
         create_file(self.identification_filename)
+
         self.commit_hash = release
         self.abs_path = get_abs_path(".auklet/version")
         self.system_metrics = SystemMetrics()
@@ -87,6 +88,7 @@ class Client(object):
                 open(self.identification_filename, "r").read())
             if not read_id:
                 raise IOError
+
             res, created = self.check_device(read_id['id'])
             if created:
                 read_id = res
@@ -148,18 +150,14 @@ class Client(object):
                 if limits_str:
                     data = json.loads(limits_str)
                     self.data_day = data['data']['normalized_cell_plan_date']
-                    temp_limit = data['data']['cellular_data_limit']
-                    if temp_limit is not None:
-                        self.data_limit = data['data'][
-                                              'cellular_data_limit'] * MB_TO_B
-                    else:
-                        self.data_limit = temp_limit
-                    temp_offline = data['storage']['storage_limit']
-                    if temp_offline is not None:
-                        self.offline_limit = data['storage'][
-                                                 'storage_limit'] * MB_TO_B
-                    else:
-                        self.offline_limit = data['storage']['storage_limit']
+
+                    self.data_limit = data['data']['cellular_data_limit']
+                    if self.data_limit is not None:
+                        self.data_limit *= MB_TO_B
+
+                    self.offline_limit = data['storage']['storage_limit']
+                    if self.offline_limit is not None:
+                        self.offline_limit *= MB_TO_B
         except IOError:
             return
 
@@ -178,6 +176,7 @@ class Client(object):
             return True
         if self.data_limit is None and not offline:
             return True
+
         data_size = len(data)
         temp_current = current_use + data_size
         if temp_current >= self.data_limit:
@@ -201,27 +200,23 @@ class Client(object):
         config = self._get_config()
         if config is None:
             return 60000
+
         with open(self.limits_filename, 'w+') as limits:
             limits.truncate()
             limits.write(json.dumps(config))
-        new_day = config['data']['normalized_cell_plan_date']
-        temp_limit = config['data']['cellular_data_limit']
-        if temp_limit is not None:
-            new_data = config['data']['cellular_data_limit'] * MB_TO_B
-        else:
-            new_data = temp_limit
-        temp_offline = config['storage']['storage_limit']
-        if temp_offline is not None:
-            new_offline = config['storage']['storage_limit'] * MB_TO_B
-        else:
-            new_offline = config['storage']['storage_limit']
-        if self.data_day != new_day:
-            self.data_day = new_day
+
+        self.data_limit = config['data']['cellular_data_limit']
+        if self.data_limit is not None:
+            self.data_limit *= MB_TO_B
+
+        self.offline_limit = config['storage']['storage_limit']
+        if self.offline_limit is not None:
+            self.offline_limit *= MB_TO_B
+
+        if self.data_day != config['data']['normalized_cell_plan_date']:
+            self.data_day = config['data']['normalized_cell_plan_date']
             self.data_current = 0
-        if self.data_limit != new_data:
-            self.data_limit = new_data
-        if self.offline_limit != new_offline:
-            self.offline_limit = new_offline
+
         # return emission period in ms
         return config['emission_period'] * S_TO_MS
 
